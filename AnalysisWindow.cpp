@@ -84,7 +84,15 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
     for (size_t currrow = 0; currrow < data.size(); currrow++) {
         const auto& cellPair = data[currrow];
         for (size_t currcol = 0; currcol < cellPair.size(); currcol++) {
+#ifdef WIN32
             const auto label = wxString(cellPair[currcol].first);
+#else
+#ifdef JP
+            const auto label = wxString(wxString::FromUTF8(cellPair[currcol].first));
+#else
+            const auto label = wxString(cellPair[currcol].first);
+#endif
+#endif
             const auto value = wxString(cellPair[currcol].second);
 
             const wxString& oldlabel = m_moveGrid->GetColLabelValue(currcol);
@@ -108,11 +116,19 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                 }
             }
 
+#ifdef JP
+            if (label.Cmp(wxT("着手")) == 0) {
+#else
             if (label.Cmp(_T("Move")) == 0) {
+#endif
                 m_moveGrid->SetCellAlignment(currrow, currcol,
                                              wxALIGN_CENTRE, wxALIGN_CENTRE);
             }
+#ifdef JP
+            if (label.Cmp(wxT("予想手順")) == 0) {
+#else
             if (label.Cmp(_T("PV")) == 0) {
+#endif
                 wxString padValue(value);
                 // Make sure column fits at least 5 moves (3+1 chars)
                 if (value.Length() < 5*4) {
@@ -124,7 +140,11 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                 m_moveGrid->SetCellValue(currrow, currcol, value);
             }
 
+#ifdef JP
+            if (label.Cmp(wxT("勝率%")) == 0) {
+#else
             if (label.Cmp(_T("Win%")) == 0) {
+#endif
                 if (currrow == 0) {
                     value.ToCDouble(&topWinRate);
                 } else {
@@ -149,7 +169,11 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
         mHasAutoSized = true;
     }
 
+#ifdef JP
+    wxString titleString(wxT("検討 - 地合見積り "));
+#else
     wxString titleString(_("Analysis - Score Estimate "));
+#endif
     wxString scoreString;
     if (board_score >= 0.0f) {
         titleString += "B+";
@@ -180,7 +204,11 @@ void AnalysisWindow::doLeftClick(wxGridEvent& event) {
         wxString pv;
 
         for (int i = 0; i < gridCols; i++) {
+#ifdef JP
+            if (m_moveGrid->GetColLabelValue(i).Cmp(wxT("予想手順")) == 0) {
+#else
             if (m_moveGrid->GetColLabelValue(i).Cmp(_("PV")) == 0) {
+#endif
                 pv = m_moveGrid->GetCellValue(row, i);
                 break;
             }
@@ -205,10 +233,17 @@ void AnalysisWindow::doContextMenu(wxGridEvent& event) {
     size_t row = event.GetRow();
     wxMenu mnu;
     mnu.SetClientData((void*)row);
+#ifdef JP
+    mnu.Append(ID_COPYPV,   wxT("予想手順コピー"));
+    mnu.Append(ID_COPYLINE, wxT("行全体をコピー"));
+    mnu.AppendSeparator();
+    mnu.Append(ID_DESELECTLINE, wxT("行選択を解除"));
+#else
     mnu.Append(ID_COPYPV,   "Copy PV");
     mnu.Append(ID_COPYLINE, "Copy entire line");
     mnu.AppendSeparator();
     mnu.Append(ID_DESELECTLINE, "Deselect line");
+#endif
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, &AnalysisWindow::onContextMenuClick, this);
     PopupMenu(&mnu);
 }
@@ -223,7 +258,11 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
             wxString pvstring;
 
             for (int i = 0; i < gridCols; i++) {
+#ifdef JP
+                if (m_moveGrid->GetColLabelValue(i).Cmp(wxT("予想手順")) == 0) {
+#else
                 if (m_moveGrid->GetColLabelValue(i).Cmp(_T("PV")) == 0) {
+#endif
                     pvstring = m_moveGrid->GetCellValue(row, i);
                     break;
                 }

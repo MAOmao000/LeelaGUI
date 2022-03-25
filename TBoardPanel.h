@@ -51,9 +51,9 @@ private:
 
     GameState * m_State;
     bool m_stateLock;
-    wxBitmap m_tileFull;  
+    wxBitmap m_tileFull;
     wxImage m_whiteStone;
-    wxImage m_blackStone;      
+    wxImage m_blackStone;
     int m_cellDim;
     int m_playerColor;
     int m_analysisColor;

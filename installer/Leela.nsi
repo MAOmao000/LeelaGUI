@@ -327,10 +327,10 @@ Section "Leela" leela
   SetOutPath $INSTDIR
 
   File "bin\${LEELABIN}"
-  ;;File "bin\libgcc_s_dw2-1.dll"
-  ;;File "bin\libopenblas.dll"
-  ;File "bin\libgfortran-3.dll"
-  ;File "bin\libquadmath-0.dll"
+  File "bin\libgcc_s_seh-1.dll"
+  File "bin\libopenblas.dll"
+  File "bin\libgfortran-3.dll"
+  File "bin\libquadmath-0.dll"
   File "license.rtf"
 
   ;create desktop shortcut
@@ -349,7 +349,7 @@ SectionEnd
 
 Section /o "Leela (GPU accelerated)" leela_ocl
   File "bin\${LEELAOCL}"
-  File "bin\OpenCL.dll"
+  #File "bin\OpenCL.dll"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\Leela (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}" ""
@@ -418,9 +418,9 @@ Function RemoveCleanup
 FunctionEnd
 
 Function CheckSettings
-  ${If} ${FileExists} "$INSTDIR\OpenCL.dll"
+  #${If} ${FileExists} "$INSTDIR\OpenCL.dll"
     !insertmacro SelectSection ${leela_ocl}
-  ${EndIf}
+  #${EndIf}
 FunctionEnd
 
 ;--------------------------------
@@ -473,11 +473,11 @@ Section "Uninstall"
   ;Delete Files
   Delete "$INSTDIR\${LEELABIN}"
   Delete "$INSTDIR\${LEELAOCL}"
-  ;;Delete "$INSTDIR\libgcc_s_dw2-1.dll"
-  ;;Delete "$INSTDIR\libopenblas.dll"
-  ;;Delete "$INSTDIR\libgfortran-3.dll"
-  ;;Delete "$INSTDIR\libquadmath-0.dll"
-  Delete "$INSTDIR\OpenCL.dll"
+  Delete "$INSTDIR\libgcc_s_dw2-1.dll"
+  Delete "$INSTDIR\libopenblas.dll"
+  Delete "$INSTDIR\libgfortran-3.dll"
+  Delete "$INSTDIR\libquadmath-0.dll"
+  #Delete "$INSTDIR\OpenCL.dll"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"

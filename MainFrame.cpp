@@ -96,13 +96,21 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         Network::get_Network();
     } catch (const cl::Error &e) {
         wxString errorString;
+#ifdef JP
+        errorString.Printf(wxT("エラー OpenCL初期化: %s (エラー %d)"),
+#else
         errorString.Printf("Error initializing OpenCL: %s (error %d)",
+#endif
             e.what(), e.err());
         ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         Close();
     } catch (const std::exception& e) {
         wxString errorString;
+#ifdef JP
+        errorString.Printf(wxT("エラー OpenCL初期化: %s", e.what()));
+#else
         errorString.Printf("Error initializing OpenCL: %s", e.what());
+#endif
         ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         Close();
     }
@@ -134,18 +142,29 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #ifdef USE_OPENCL
     m_State.init_game(19, 7.5f);
     if (!GTP::perform_self_test(m_State)) {
+#ifdef JP
+        ::wxMessageBox(wxT("OpenCLのセルフテストに失敗しました。グラフィックドライバを確認してください。"),
+                       _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+#else
         ::wxMessageBox(_("OpenCL self-test failed. Check your graphics drivers."),
                        _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+#endif
         Close();
     } else {
 #ifdef __WXMAC__
         bool hasWhinedDrivers =
             wxConfig::Get()->ReadBool(wxT("hasWhinedDrivers"), false);
         if (!hasWhinedDrivers) {
+#ifdef JP
+            ::wxMessageBox(wxT("macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。"
+                "安定性に問題がある場合は、通常バージョンに切り替えてみてください。"
+                "GPUが遅ければ、もっと速くなるかもしれません。"), _("Leela"), wxOK, this);
+#else
             ::wxMessageBox(_("The GPU and OpenCL drivers on macOS are often outdated "
                 "and of poor quality. Try switching to the regular version if "
                 "you run into stability issues. If your GPU is slow, it may "
                 "even be faster."), _("Leela"), wxOK, this);
+#endif
             wxConfig::Get()->Write(wxT("hasWhinedDrivers"), true);
         }
 #endif
@@ -264,11 +283,19 @@ void MainFrame::updateStatusBar(char *str) {
 // do whatever we need to do if the visible board gets updated
 void MainFrame::doBoardUpdate(wxCommandEvent& event) {
     wxString mess;
+#ifdef JP
+    mess.Printf(wxT("コミ: %d.5; アゲハマ 白: %d/黒: %d"),
+                (int)m_State.get_komi(),
+                m_State.board.get_prisoners(FastBoard::BLACK),
+                m_State.board.get_prisoners(FastBoard::WHITE)
+                );
+#else
     mess.Printf(_("Komi: %d.5; Prisoners white: %d/black: %d"),
                 (int)m_State.get_komi(),
                 m_State.board.get_prisoners(FastBoard::BLACK),
                 m_State.board.get_prisoners(FastBoard::WHITE)
                 );
+#endif
     m_statusBar->SetStatusText(mess, 0);
     Refresh();
 }
@@ -297,9 +324,17 @@ void MainFrame::startEngine() {
             m_engineThread->set_nopass(true);
         }
         m_engineThread->Run();
+#ifdef JP
+        SetStatusBarText(wxT("エンジン思考中..."), 1);
+#else
         SetStatusBarText(_("Engine thinking..."), 1);
+#endif
     } else {
+#ifdef JP
+        wxLogDebug(wxT("エンジンはすでに稼働しています"));
+#else
         wxLogDebug("Engine already running");
+#endif
     }
 }
 
@@ -418,7 +453,11 @@ void MainFrame::doToggleBestMoves(wxCommandEvent& event) {
 }
 
 void MainFrame::doNewMove(wxCommandEvent & event) {
+#ifdef JP
+    wxLogDebug(wxT("新しい着手"));
+#else
     wxLogDebug(_("New move arrived"));
+#endif
 
     stopEngine();
     m_panelBoard->unlockState();
@@ -444,7 +483,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         if (m_State.get_to_move() == m_playerColor
             && m_State.get_last_move() == FastBoard::PASS) {
 
+#ifdef JP
+            ::wxMessageBox(wxT("コンピュータ・パス"), wxT("パス"), wxOK, this);
+#else
             ::wxMessageBox(_("Computer passes"), _("Pass"), wxOK, this);
+#endif
         }
     }
 
@@ -460,7 +503,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             m_State.undo_move();
             m_State.undo_move();
             if (m_State.get_to_move() != m_playerColor) {
+#ifdef JP
+                wxLogDebug(wxT("コンピュータの着手"));
+#else
                 wxLogDebug("Computer to move");
+#endif
                 startEngine();
             } else {
                 m_pondering = true;
@@ -470,7 +517,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     } else {
         if (!m_analyzing) {
             if (m_State.get_to_move() != m_playerColor) {
+#ifdef JP
+                wxLogDebug(wxT("コンピュータの着手"));
+#else
                 wxLogDebug("Computer to move");
+#endif
                 startEngine();
             } else {
                 if (m_ponderEnabled && !m_ratedGame && !m_analyzing
@@ -489,8 +540,13 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     }
 
     if (!m_ratedGame) {
+#ifdef JP
+        SetTitle(_("Leela") +
+                 _(wxT(" - 手数 ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1)));
+#else
         SetTitle(_("Leela") +
                  _(" - move " + wxString::Format(wxT("%i"), m_State.get_movenum() + 1)));
+#endif
     }
 
     // signal update of visible board
@@ -524,7 +580,11 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
     SettingsDialog mydialog(this);
 
     if (mydialog.ShowModal() == wxID_OK) {
+#ifdef JP
+        wxLogDebug(wxT("OKがクリックされました"));
+#else
         wxLogDebug("OK clicked");
+#endif
 
         m_netsEnabled = wxConfig::Get()->Read(wxT("netsEnabled"), 1);
         m_passEnabled = wxConfig::Get()->Read(wxT("passEnabled"), 1);
@@ -543,7 +603,11 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
     NewGameDialog mydialog(this);
 
     if (mydialog.ShowModal() == wxID_OK) {
+#ifdef JP
+        wxLogDebug(wxT("OKがクリックされました"));
+#else
         wxLogDebug("OK clicked");
+#endif
 
         m_State.init_game(mydialog.getBoardsize(), mydialog.getKomi());
         ::wxBeginBusyCursor();
@@ -627,9 +691,14 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
     }
 
+#ifdef JP
+    wxLogDebug(wxT("最終ランク: %d"), rank);
+    wxString mess = wxString(wxT("あなたのランク: "));
+#else
     wxLogDebug("Last rank was: %d", rank);
-
     wxString mess = wxString(_("Your rank: "));
+#endif
+
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
 
@@ -945,7 +1014,11 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         }
     }
 
+#ifdef JP
+    wxLogDebug(wxT("置き石 %d シミュレーション %d"), handicap, simulations);
+#else
     wxLogDebug("Handicap %d Simulations %d", handicap, simulations);
+#endif
 
     {
         float komi = handicap ? 0.5f : 7.5f;
@@ -1037,7 +1110,11 @@ void MainFrame::ratedGameEnd(bool won) {
         wxConfig::Get()->Write(wxT("userRankAdjust19"), adjust);
     }
 
+#ifdef JP
+    wxString mess = wxString(wxT("あなたのランク: "));
+#else
     wxString mess = wxString(_("Your rank: "));
+#endif
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
 
@@ -1083,12 +1160,24 @@ bool MainFrame::scoreDialog(float komi, float handicap,
 
     if (score > 0.0f) {
         if (m_State.get_last_move() == FastBoard::RESIGN) {
+#ifdef JP
+            mess.Printf(wxT("白が投了しました"));
+#else
             mess.Printf(_("BLACK wins by resignation"));
+#endif
         } else {
             if (handicap > 0.5f) {
-                mess.Printf(_("BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n= %.1f points"), prekomi, komi, handicap, score);        
+#ifdef JP
+                mess.Printf(wxT("黒地 %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"), prekomi, komi, handicap, score);
+#else
+                mess.Printf(_("BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n= %.1f points"), prekomi, komi, handicap, score);
+#endif
             } else {
-                mess.Printf(_("BLACK wins by %.0f - %.1f (komi)\n= %.1f points"), prekomi, komi, score);        
+#ifdef JP
+                mess.Printf(wxT("黒地 %.0f - %.1f (コミ)\n= %.1f 目"), prekomi, komi, score);
+#else
+                mess.Printf(_("BLACK wins by %.0f - %.1f (komi)\n= %.1f points"), prekomi, komi, score);
+#endif
             }
         }
     } else {
@@ -1096,12 +1185,24 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         prekomi = prekomi - 0.001f;
         score = score - 0.001f;
         if (m_State.get_last_move() == FastBoard::RESIGN) {
+#ifdef JP
+            mess.Printf(wxT("黒が投了しました"));
+#else
             mess.Printf(_("WHITE wins by resignation"));
+#endif
         } else {
             if (handicap > 0.5f) {
+#ifdef JP
+                mess.Printf(wxT("白地 %.0f + %.1f (コミ) + %0.f (置き石)\n= %.1f 目"), -prekomi, komi, handicap, -score);
+#else
                 mess.Printf(_("WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n= %.1f points"), -prekomi, komi, handicap, -score);
+#endif
             } else {
+#ifdef JP
+                mess.Printf(wxT("白地 %.0f + %.1f コミ)\n= %.1f 目"), -prekomi, komi, -score);
+#else
                 mess.Printf(_("WHITE wins by %.0f + %.1f (komi)\n= %.1f points"), -prekomi, komi, -score);
+#endif
             }
         }
     }
@@ -1115,7 +1216,11 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         if (m_State.get_last_move() != FastBoard::RESIGN) {
             if ((score > 0.0f && net_score < 0.5f)
                 || (score < 0.0f && net_score > 0.5f)) {
+#ifdef JP
+                confidence = wxT("この地合計算は曖昧です");
+#else
                 confidence = _("I am not sure I am scoring this correctly.");
+#endif
             }
         }
     }
@@ -1145,12 +1250,24 @@ wxString MainFrame::rankToString(int rank) {
     wxString res;
 
     if (rank < 0) {
+#ifdef JP
+        res.Printf(wxT("%d 級"), -rank);
+#else
         res.Printf(_("%d kyu"), -rank);
+#endif
     } else {
         if (rank < 7) {
+#ifdef JP
+            res.Printf(wxT("%d 段"), rank + 1);
+#else
             res.Printf(_("%d dan"), rank + 1);
+#endif
         } else {
+#ifdef JP
+            res.Printf(wxT("%d プロ"), rank - 6);
+#else
             res.Printf(_("%d pro"), rank - 6);
+#endif
         }
     }
 
@@ -1170,8 +1287,13 @@ void MainFrame::doPass(wxCommandEvent& event) {
 }
 
 void MainFrame::gameNoLongerCounts() {
+#ifdef JP
+    SetTitle(_("Leela") +
+             wxT(" - 手数 " + wxString::Format(wxT("%i"), m_State.get_movenum() + 1)));
+#else
     SetTitle(_("Leela") +
              _(" - move " + wxString::Format(wxT("%i"), m_State.get_movenum() + 1)));
+#endif
     m_ratedGame = false;
 }
 
@@ -1181,7 +1303,11 @@ void MainFrame::doRealUndo(int count) {
 
     for (int i = 0; i < count; i++) {
         if (m_State.undo_move()) {
+#ifdef JP
+            wxLogDebug(wxT("一手戻す"));
+#else
             wxLogDebug("Undoing one move");
+#endif
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
@@ -1193,7 +1319,11 @@ void MainFrame::doRealForward(int count) {
 
     for (int i = 0; i < count; i++) {
         if (m_State.forward_move()) {
+#ifdef JP
+            wxLogDebug(wxT("一手進める"));
+#else
             wxLogDebug("Forward one move");
+#endif
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
@@ -1252,7 +1382,11 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State = tree->follow_mainline_state();
         int last_move = tree->count_mainline_moves();
         movenum = std::max(1, movenum);
+#ifdef JP
+        wxLogDebug(wxT("読み込み %d 手, %d 手へ"), last_move, movenum);
+#else
         wxLogDebug("Read %d moves, going to move %d", last_move, movenum);
+#endif
         m_State.rewind();
         for (int i = 1; i < movenum; ++i) {
             m_State.forward_move();
@@ -1291,14 +1425,22 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
 void MainFrame::doOpenSGF(wxCommandEvent& event) {
     stopEngine(false);
 
+#ifdef JP
+    wxString caption = wxT("ファイルを選択");
+#else
     wxString caption = _("Choose a file");
+#endif
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
     wxFileDialog dialog(this, caption, wxEmptyString, wxEmptyString, wildcard,
                         wxFD_OPEN | wxFD_CHANGE_DIR | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString path = dialog.GetPath();
+#ifdef JP
+        wxLogDebug(wxT("布石: ") + path);
+#else
         wxLogDebug("Opening: " + path);
+#endif
 
         // open the file
         wxFile sgfFile;
@@ -1317,7 +1459,11 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
 
     std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor);
 
+#ifdef JP
+    wxString caption = wxT("ファイルを選択");
+#else
     wxString caption = _("Choose a file");
+#endif
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
     wxFileDialog dialog(this, caption, wxEmptyString, wxEmptyString, wildcard,
                         wxFD_SAVE | wxFD_CHANGE_DIR | wxFD_OVERWRITE_PROMPT);
@@ -1325,7 +1471,11 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
     if (dialog.ShowModal() == wxID_OK) {
         wxString path = dialog.GetPath();
 
+#ifdef JP
+        wxLogDebug(wxT("保存中: ") + path);
+#else
         wxLogDebug("Saving: " + path);
+#endif
 
         wxFileOutputStream file(path);
 
@@ -1389,7 +1539,11 @@ void MainFrame::doAdjustClocks(wxCommandEvent& event) {
     mydialog.setTimeControl(m_State.get_timecontrol());
 
     if (mydialog.ShowModal() == wxID_OK) {
-        wxLogDebug("Adjust clocks clicked");
+#ifdef JP
+        wxLogDebug(wxT("時間調整がクリックされました"));
+#else
+        //wxLogDebug("Adjust clocks clicked");
+#endif
 
         m_State.set_timecontrol(mydialog.getTimeControl());
     }

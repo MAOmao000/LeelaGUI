@@ -1,11 +1,22 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 // Neutral resources
 
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+LANGUAGE 17, 1
 #pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
@@ -15,25 +26,25 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-AAAA                    ICON                    "C:\\Projects\\LeelaGUI\\img\\leela_mock.ico"
+AAAA                    ICON                    "..\\img\\leela_mock.ico"
 
-WXICON_AAA              ICON                    "wx/msw/std.ico"
+WXICON_AAA              ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\std.ico"
 
-WXICON_SMALL_CLOSED_FOLDER ICON                    "wx/msw/folder1.ico"
+WXICON_SMALL_CLOSED_FOLDER ICON                 "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\folder1.ico"
 
-WXICON_SMALL_OPEN_FOLDER ICON                    "wx/msw/folder2.ico"
+WXICON_SMALL_OPEN_FOLDER ICON                   "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\folder2.ico"
 
-WXICON_SMALL_FILE       ICON                    "wx/msw/file1.ico"
+WXICON_SMALL_FILE       ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\file1.ico"
 
-WXICON_SMALL_COMPUTER   ICON                    "wx/msw/computer.ico"
+WXICON_SMALL_COMPUTER   ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\computer.ico"
 
-WXICON_SMALL_DRIVE      ICON                    "wx/msw/drive.ico"
+WXICON_SMALL_DRIVE      ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\drive.ico"
 
-WXICON_SMALL_CDROM      ICON                    "wx/msw/cdrom.ico"
+WXICON_SMALL_CDROM      ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\cdrom.ico"
 
-WXICON_SMALL_FLOPPY     ICON                    "wx/msw/floppy.ico"
+WXICON_SMALL_FLOPPY     ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\floppy.ico"
 
-WXICON_SMALL_REMOVEABLE ICON                    "wx/msw/removble.ico"
+WXICON_SMALL_REMOVEABLE ICON                    "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\removble.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -41,51 +52,51 @@ WXICON_SMALL_REMOVEABLE ICON                    "wx/msw/removble.ico"
 // Bitmap
 //
 
-IDB_BITMAPWOOD          BITMAP                  "C:\\Projects\\LeelaGUI\\img\\wood.bmp"
+IDB_BITMAPWOOD          BITMAP                  "..\\img\\wood.bmp"
 
-IDB_NEWGAME             BITMAP                  "C:\\Projects\\LeelaGUI\\img\\new.bmp"
+IDB_NEWGAME             BITMAP                  "..\\img\\new.bmp"
 
-IDB_NEWRATED            BITMAP                  "C:\\Projects\\LeelaGUI\\img\\newrated.bmp"
+IDB_NEWRATED            BITMAP                  "..\\img\\newrated.bmp"
 
-IDB_PASS                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\delete.bmp"
+IDB_PASS                BITMAP                  "..\\img\\delete.bmp"
 
-IDB_SCORE               BITMAP                  "C:\\Projects\\LeelaGUI\\img\\find.bmp"
+IDB_SCORE               BITMAP                  "..\\img\\find.bmp"
 
-IDB_RESIGN              BITMAP                  "C:\\Projects\\LeelaGUI\\img\\resign.bmp"
+IDB_RESIGN              BITMAP                  "..\\img\\resign.bmp"
 
-IDB_OPEN                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\fileopen.bmp"
+IDB_OPEN                BITMAP                  "..\\img\\fileopen.bmp"
 
-IDB_SAVE                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\filesave.bmp"
+IDB_SAVE                BITMAP                  "..\\img\\filesave.bmp"
 
-IDB_SAVEAS              BITMAP                  "C:\\Projects\\LeelaGUI\\img\\filesaveas.bmp"
+IDB_SAVEAS              BITMAP                  "..\\img\\filesaveas.bmp"
 
-IDB_QUIT                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\quit.bmp"
+IDB_QUIT                BITMAP                  "..\\img\\quit.bmp"
 
-IDB_UNDO                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\undo.bmp"
+IDB_UNDO                BITMAP                  "..\\img\\undo.bmp"
 
-IDB_REDO                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\redo.bmp"
+IDB_REDO                BITMAP                  "..\\img\\redo.bmp"
 
-IDB_FORWARD             BITMAP                  "C:\\Projects\\LeelaGUI\\img\\forward.bmp"
+IDB_FORWARD             BITMAP                  "..\\img\\forward.bmp"
 
-IDB_BACKWARD            BITMAP                  "C:\\Projects\\LeelaGUI\\img\\back.bmp"
+IDB_BACKWARD            BITMAP                  "..\\img\\back.bmp"
 
-IDB_FORCE               BITMAP                  "C:\\Projects\\LeelaGUI\\img\\execute.bmp"
+IDB_FORCE               BITMAP                  "..\\img\\execute.bmp"
 
-IDB_ANALYZE             BITMAP                  "C:\\Projects\\LeelaGUI\\img\\analyze.bmp"
+IDB_ANALYZE             BITMAP                  "..\\img\\analyze.bmp"
 
-IDB_PLUS                BITMAP                  "C:\\Projects\\LeelaGUI\\img\\plus.bmp"
+IDB_PLUS                BITMAP                  "..\\img\\plus.bmp"
 
-IDB_MINUS               BITMAP                  "C:\\Projects\\LeelaGUI\\img\\minus.bmp"
+IDB_MINUS               BITMAP                  "..\\img\\minus.bmp"
 
-IDB_PARENT              BITMAP                  "C:\\Projects\\LeelaGUI\\img\\goparent3.bmp"
+IDB_PARENT              BITMAP                  "..\\img\\goparent3.bmp"
 
-IDB_WHITESTONE          BITMAP                  "C:\\Projects\\LeelaGUI\\img\\whitestone.bmp"
+IDB_WHITESTONE          BITMAP                  "..\\img\\whitestone.bmp"
 
-IDB_BLACKSTONE          BITMAP                  "C:\\Projects\\LeelaGUI\\img\\blackstone.bmp"
+IDB_BLACKSTONE          BITMAP                  "..\\img\\blackstone.bmp"
 
-CSQUERY                 BITMAP                  "wx/msw/csquery.bmp"
+CSQUERY                 BITMAP                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\csquery.bmp"
 
-WXBITMAP_STD_COLOURS    BITMAP                  "wx/msw/colours.bmp"
+WXBITMAP_STD_COLOURS    BITMAP                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\colours.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -131,7 +142,7 @@ END
 // WAVE
 //
 
-IDW_TOCK                WAVE                    "C:\\Projects\\LeelaGUI\\snd\\tock.wav"
+IDW_TOCK                WAVE                    "..\\snd\\tock.wav"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -158,25 +169,25 @@ END
 // Cursor
 //
 
-WXCURSOR_HAND           CURSOR                  "wx/msw/hand.cur"
+WXCURSOR_HAND           CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\hand.cur"
 
-WXCURSOR_BULLSEYE       CURSOR                  "wx/msw/bullseye.cur"
+WXCURSOR_BULLSEYE       CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\bullseye.cur"
 
-WXCURSOR_PENCIL         CURSOR                  "wx/msw/pencil.cur"
+WXCURSOR_PENCIL         CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\pencil.cur"
 
-WXCURSOR_MAGNIFIER      CURSOR                  "wx/msw/magnif1.cur"
+WXCURSOR_MAGNIFIER      CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\magnif1.cur"
 
-WXCURSOR_ROLLER         CURSOR                  "wx/msw/roller.cur"
+WXCURSOR_ROLLER         CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\roller.cur"
 
-WXCURSOR_PBRUSH         CURSOR                  "wx/msw/pbrush.cur"
+WXCURSOR_PBRUSH         CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\pbrush.cur"
 
-WXCURSOR_PLEFT          CURSOR                  "wx/msw/pntleft.cur"
+WXCURSOR_PLEFT          CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\pntleft.cur"
 
-WXCURSOR_PRIGHT         CURSOR                  "wx/msw/pntright.cur"
+WXCURSOR_PRIGHT         CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\pntright.cur"
 
-WXCURSOR_BLANK          CURSOR                  "wx/msw/blank.cur"
+WXCURSOR_BLANK          CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\blank.cur"
 
-WXCURSOR_CROSS          CURSOR                  "wx/msw/cross.cur"
+WXCURSOR_CROSS          CURSOR                  "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\cross.cur"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -184,7 +195,7 @@ WXCURSOR_CROSS          CURSOR                  "wx/msw/cross.cur"
 // RT_MANIFEST
 //
 
-wxMANIFEST_ID           RT_MANIFEST             "wx/msw/wx.manifest"
+wxMANIFEST_ID           RT_MANIFEST             "C:\\wxWidgets-3.1.5\\include\\wx\\msw\\wx.manifest"
 
 
 #ifdef APSTUDIO_INVOKED

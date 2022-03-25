@@ -111,6 +111,18 @@ void TScorePanel::doPaint(wxPaintEvent& event) {
         wxFont legfont(height / 40.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         gc->SetFont(colfont, *wxBLACK);
         wxDouble fontheight, fontheight2;
+#ifdef JP
+        gc->GetTextExtent(_T("白"), NULL, &fontheight);
+        gc->DrawText(_T("黒"), 0.0, 0.0);
+        gc->DrawText(_T("白"), 0.0, height - fontheight);
+        gc->SetFont(legfont, *wxBLACK);
+        gc->GetTextExtent(_T("複合"), NULL, &fontheight2);
+        gc->DrawText(_T("複合"), 0.0, fontheight * 1.1);
+        gc->SetFont(legfont, *wxBLUE);
+        gc->DrawText(_T("モンテカルロ"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
+        gc->SetFont(legfont, *wxRED);
+        gc->DrawText(_T("ネットワーク"), 0.0, fontheight * 1.1 + fontheight2 * 2.4);
+#else
         gc->GetTextExtent(_T("WHITE"), NULL, &fontheight);
         gc->DrawText(_T("BLACK"), 0.0, 0.0);
         gc->DrawText(_T("WHITE"), 0.0, height - fontheight);
@@ -121,6 +133,7 @@ void TScorePanel::doPaint(wxPaintEvent& event) {
         gc->DrawText(_T("Monte Carlo"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
         gc->SetFont(legfont, *wxRED);
         gc->DrawText(_T("Network"), 0.0, fontheight * 1.1 + fontheight2 * 2.4);
+#endif
 
         delete gc;
     }

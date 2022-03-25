@@ -102,15 +102,22 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     PrepareDC(dc);
 
     wxSize sz = GetClientSize();
+#ifdef JP
+    wxLogDebug(wxT("幅: %d 高さ: %d"), sz.GetWidth(), sz.GetHeight());
+#else
     wxLogDebug("width: %d height: %d", sz.GetWidth(), sz.GetHeight());
-
+#endif
     int boardSize = m_State->board.get_boardsize();
 
     int minDim = std::min(sz.GetWidth(), sz.GetHeight());
     int cellDim = std::max(1, minDim / ((boardSize - 1) + 2));
     m_cellDim = cellDim;
 
+#ifdef JP
+    wxLogDebug(wxT("セルサイズ: %d"), cellDim);
+#else
     wxLogDebug("cell size: %d", cellDim);
+#endif
 
     // Tiled background
     int tileW = m_tileFull.GetWidth();
@@ -125,7 +132,11 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     }
 
     if (m_State == NULL) {
+#ifdef JP
+        wxLogDebug(wxT("空の状態を描画"));
+#else
         wxLogDebug("Paint on empty state");
+#endif
         return;
     }
 
@@ -436,24 +447,40 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
     int startX = event.GetX();
     int startY = event.GetY();
     
+#ifdef JP
+    wxLogDebug(wxT("左クリック %d %d"), startX, startY);
+#else
     wxLogDebug("Left down at %d %d", startX, startY);
+#endif
     
     if (m_State == NULL) {
+#ifdef JP
+        wxLogDebug(wxT("空きボードクリック"));
+#else
         wxLogDebug("Click on empty board");
+#endif
         return;
     }
     
     if (m_State->get_last_move() == FastBoard::RESIGN) {
+#ifdef JP
+        wxLogDebug(wxT("対局は終了しました"));
+#else
         wxLogDebug("Game has been resigned");
+#endif
         return;
     }
     
     if (m_stateLock) {
+#ifdef JP
+        wxLogDebug(wxT("ロック状態でのクリック"));
+#else
         wxLogDebug("Click on locked state");
+#endif
         return;
     } 
     
-    if (m_State->get_to_move() == m_playerColor) {    
+    if (m_State->get_to_move() == m_playerColor) {
         int boardSize = m_State->board.get_boardsize();
         
         int corrX = startX - (m_cellDim / 2);
@@ -465,23 +492,27 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         if (cellX >= boardSize) cellX = boardSize - 1;
         if (cellY >= boardSize) cellY = boardSize - 1;
         
-        // engine board is inverted vertically        
+        // engine board is inverted vertically
         cellY = boardSize - cellY - 1;
      
-        int vtx = m_State->board.get_vertex(cellX, cellY);                
+        int vtx = m_State->board.get_vertex(cellX, cellY);
         
         if (m_State->legal_move(vtx)) {
-            m_State->play_move(vtx);                                                         
+            m_State->play_move(vtx);
             
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
-            event.SetEventObject(this);                        
+            event.SetEventObject(this);
             ::wxPostEvent(GetEventHandler(), event);
             
             Refresh();
-        }                   
+        }
         
-    } else {        
+    } else {
+#ifdef JP
+        wxLogDebug(wxT("あなたの手番ではありません！"));
+#else
         wxLogDebug("It's not your move!");
+#endif
     }
     
     event.Skip();

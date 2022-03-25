@@ -245,7 +245,11 @@ class TNewGameDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TNewGameDialog( wxWindow* parent, wxWindowID id = ID_NEWGAME, const wxString& title = wxT("新規対局"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE );
+#else
 		TNewGameDialog( wxWindow* parent, wxWindowID id = ID_NEWGAME, const wxString& title = _("New Game"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TNewGameDialog();
 	
 };
@@ -276,7 +280,11 @@ class TAboutDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TAboutDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Leelaについて"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE );
+#else
 		TAboutDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("About"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TAboutDialog();
 	
 };
@@ -312,7 +320,11 @@ class TClockAdjustDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TClockAdjustDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("持ち時間調整"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE );
+#else
 		TClockAdjustDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Adjust clocks"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TClockAdjustDialog();
 	
 };
@@ -347,7 +359,11 @@ class TRatedSizeDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TRatedSizeDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("碁盤サイズ選択"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE );
+#else
 		TRatedSizeDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Select board size"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TRatedSizeDialog();
 	
 };
@@ -364,7 +380,11 @@ class TCalculateDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TCalculateDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("計算"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 216,65 ), long style = wxDEFAULT_DIALOG_STYLE );
+#else
 		TCalculateDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Calculation in progress"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 216,65 ), long style = wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TCalculateDialog();
 	
 };
@@ -399,7 +419,11 @@ class TAnalysisWindow : public wxFrame
 	
 	public:
 		
+#ifdef JP
+		TAnalysisWindow( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("検討"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+#else
 		TAnalysisWindow( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Analysis"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+#endif
 		
 		~TAnalysisWindow();
 	
@@ -449,7 +473,11 @@ class TSettingsDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("設定"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+#else
 		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Settings"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE ); 
+#endif
 		~TSettingsDialog();
 	
 };
@@ -488,7 +516,11 @@ class TScoreDialog : public wxDialog
 	
 	public:
 		
+#ifdef JP
+		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("地合計算"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 392,245 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
+#else
 		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Game Score"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 392,205 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP ); 
+#endif
 		~TScoreDialog();
 	
 };
@@ -505,7 +537,11 @@ class TScoreHistogram : public wxFrame
 	
 	public:
 		
+#ifdef JP
+		TScoreHistogram( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("勝率グラフ"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+#else
 		TScoreHistogram( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Win Rate Histogram"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+#endif
 		
 		~TScoreHistogram();
 	
