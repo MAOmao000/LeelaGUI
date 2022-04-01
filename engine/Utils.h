@@ -26,7 +26,7 @@ namespace Utils {
     void setGUIQueue(wxEvtHandler * evt, int evt_type);
     void setAnalysisQueue(wxEvtHandler * evt, int a_evt_type, int m_evt_type);
 #endif
-    void GUIprintf(const char *fmt, ...);
+    void GUIprintf(const int lang, const char *fmt, ...);
     void GUIAnalysis(void* data);
     void GUIBestMoves(void* data);
 

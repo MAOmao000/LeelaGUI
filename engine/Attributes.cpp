@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
+#include <iterator>
 
 #include "Attributes.h"
 #include "FastBoard.h"

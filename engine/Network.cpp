@@ -29,6 +29,9 @@ using namespace caffe;
 #endif
 #ifdef USE_OPENBLAS
 #include <cblas.h>
+#ifdef USE_ONEDNN
+#include <dnnl.h>
+#endif
 #endif
 #ifdef USE_OPENCL
 #include "OpenCL.h"
@@ -372,12 +375,20 @@ void convolve(std::vector<float>& input,
     //    cblas_sgemm(CblasRowMajor, TransA, TransB, M, N, K, alpha, A, lda, B,
     //                ldb, beta, C, N);
 
+#ifdef USE_ONEDNN
+    dnnl_sgemm('N', 'N',
+                outputs, spatial_out, filter_dim,
+                1.0f, &weights[0], filter_dim,
+                &col[0], spatial_out,
+                0.0f, &output[0], spatial_out);
+#else
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 // M        N            K
                 outputs, spatial_out, filter_dim,
                 1.0f, &weights[0], filter_dim,
                 &col[0], spatial_out,
                 0.0f, &output[0], spatial_out);
+#endif
 
     auto lambda_ELU = [](float val) { return (val > 0.0f) ?
                                       val : 1.0f * (std::exp(val) - 1.0f); };

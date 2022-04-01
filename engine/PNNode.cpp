@@ -3,6 +3,7 @@
 #include <cassert>
 #include <algorithm>
 #include <math.h>
+#include <iterator>
 
 #include "Attributes.h"
 #include "PNNode.h"

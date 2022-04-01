@@ -19,11 +19,14 @@
 /* Features */
 //#define KGS
 #define USE_OPTIONS
-//#define USE_BLAS
-//#define USE_OPENBLAS
-//#define USE_MKL
 //#define USE_CAFFE
+#ifdef USE_GPU
 #define USE_OPENCL
+#else
+#define USE_BLAS
+#define USE_OPENBLAS
+//#define USE_MKL
+#endif
 //#define USE_TUNER
 #define USE_SEARCH
 

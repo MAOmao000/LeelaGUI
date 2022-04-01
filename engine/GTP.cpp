@@ -60,8 +60,9 @@ int cfg_random_loops;
 std::string cfg_logfile;
 FILE* cfg_logfile_handle;
 bool cfg_quiet;
+int cfg_lang;
 
-void GTP::setup_default_parameters() {
+void GTP::setup_default_parameters(int lang = 0) {
     cfg_allow_pondering = true;
     cfg_allow_book = true;
     cfg_num_threads = std::max(1, std::min(SMP::get_num_cpus(), MAX_CPUS));
@@ -100,6 +101,7 @@ void GTP::setup_default_parameters() {
     cfg_random_loops = 4;
     cfg_logfile_handle = nullptr;
     cfg_quiet = false;
+    cfg_lang = lang;
 }
 
 bool GTP::perform_self_test(GameState & state) {

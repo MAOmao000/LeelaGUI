@@ -42,7 +42,7 @@ int FullBoard::remove_string(int i) {
 uint64 FullBoard::calc_ko_hash(void) {
     uint64 res;
     
-#ifdef _WIN32
+#ifdef WIN32
     res = 0x1234567887654321UI64;
 #else
     res = 0x1234567887654321ULL;
@@ -63,7 +63,7 @@ uint64 FullBoard::calc_ko_hash(void) {
 uint64 FullBoard::calc_hash(void) {
     uint64 res;    
     
-#ifdef _WIN32
+#ifdef WIN32
     res = 0x1234567887654321UI64;
 #else
     res = 0x1234567887654321ULL;
@@ -80,7 +80,7 @@ uint64 FullBoard::calc_hash(void) {
     res ^= Zobrist::zobrist_pris[1][m_prisoners[1]];    
     
     if (m_tomove == BLACK)
-#ifdef _WIN32
+#ifdef WIN32
         res ^= 0xABCDABCDABCDABCDUI64;
 #else
         res ^= 0xABCDABCDABCDABCDULL;

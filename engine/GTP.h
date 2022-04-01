@@ -38,11 +38,12 @@ extern int cfg_random_loops;
 extern std::string cfg_logfile;
 extern FILE* cfg_logfile_handle;
 extern bool cfg_quiet;
+extern int cfg_lang;
 
 class GTP {
 public:
     static bool execute(GameState & game, std::string xinput);
-    static void setup_default_parameters();
+    static void setup_default_parameters(int m_lang);
     static bool perform_self_test(GameState & state);
 private:
     static const int GTP_VERSION = 2;

@@ -124,7 +124,7 @@ void Utils::GUIBestMoves(void* data) {
 #endif
 }
 
-void Utils::GUIprintf(const char *fmt, ...) {
+void Utils::GUIprintf(const int lang, const char *fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);
@@ -138,7 +138,15 @@ void Utils::GUIprintf(const char *fmt, ...) {
         vsnprintf(buffer, 512, fmt, ap);
 #endif
         wxCommandEvent* myevent = new wxCommandEvent(GUIQ_T);
+#ifdef WIN32
         myevent->SetString(wxString(buffer));
+#else
+        if (lang == 0) {
+            myevent->SetString(wxString(buffer));
+        } else {
+            myevent->SetString(wxString::FromUTF8(buffer));
+        }
+#endif
         ::wxQueueEvent(GUIQ, myevent);
     }
 #endif
