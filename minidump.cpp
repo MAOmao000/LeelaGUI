@@ -16,6 +16,7 @@ bool safeReadDword(void *addr, DWORD &dest)
   }
 }
 
+#if defined(WIN32) && defined(USE_MINIDUMPS)
 bool safeTestReadAccess(void *addr)
 {
   __try {
@@ -83,7 +84,6 @@ BOOL WINAPI MiniDumpCallback(PVOID CallbackParam,
 
   return TRUE;
 }
-
 BOOL WriteMiniDumpHelper(HANDLE hDump, LPEXCEPTION_POINTERS param) {
     MINIDUMP_EXCEPTION_INFORMATION exception = {};
     exception.ThreadId = GetCurrentThreadId();
@@ -97,3 +97,4 @@ BOOL WriteMiniDumpHelper(HANDLE hDump, LPEXCEPTION_POINTERS param) {
     mci.CallbackParam = (void*)&ds;
     return MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDump,  (MINIDUMP_TYPE)(MiniDumpWithUnloadedModules), &exception, NULL, &mci);
 }
+#endif

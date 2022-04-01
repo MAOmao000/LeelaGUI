@@ -1,3 +1,8 @@
+Japanese version
+=====
+
+This is the Japanese version forked from LeelaGUI.
+
 About
 =====
 

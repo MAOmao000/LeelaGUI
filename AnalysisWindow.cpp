@@ -2,6 +2,8 @@
 #include "AnalysisWindow.h"
 #include "Utils.h"
 #include "MainFrame.h"
+#include "GTP.h"
+#include "Msg.h"
 
 AnalysisWindow::AnalysisWindow( wxWindow* parent )
     : TAnalysisWindow(parent) {
@@ -84,7 +86,16 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
     for (size_t currrow = 0; currrow < data.size(); currrow++) {
         const auto& cellPair = data[currrow];
         for (size_t currcol = 0; currcol < cellPair.size(); currcol++) {
+#ifdef WIN32
             const auto label = wxString(cellPair[currcol].first);
+#else
+            wxString label;
+            if (cfg_lang == 0) {
+                label = wxString(cellPair[currcol].first);
+            } else {
+                label = wxString(wxString::FromUTF8(cellPair[currcol].first));
+            }
+#endif
             const auto value = wxString(cellPair[currcol].second);
 
             const wxString& oldlabel = m_moveGrid->GetColLabelValue(currcol);
@@ -108,11 +119,11 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                 }
             }
 
-            if (label.Cmp(_T("Move")) == 0) {
+            if (label.Cmp(MOVE_WXSTR[cfg_lang]) == 0) {
                 m_moveGrid->SetCellAlignment(currrow, currcol,
                                              wxALIGN_CENTRE, wxALIGN_CENTRE);
             }
-            if (label.Cmp(_T("PV")) == 0) {
+            if (label.Cmp(PV_T_WXSTR[cfg_lang]) == 0) {
                 wxString padValue(value);
                 // Make sure column fits at least 5 moves (3+1 chars)
                 if (value.Length() < 5*4) {
@@ -124,7 +135,7 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                 m_moveGrid->SetCellValue(currrow, currcol, value);
             }
 
-            if (label.Cmp(_T("Win%")) == 0) {
+            if (label.Cmp(WIN_PER_WXSTR[cfg_lang]) == 0) {
                 if (currrow == 0) {
                     value.ToCDouble(&topWinRate);
                 } else {
@@ -149,7 +160,7 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
         mHasAutoSized = true;
     }
 
-    wxString titleString(_("Analysis - Score Estimate "));
+    wxString titleString(ANALYSIS_SCORE_WXSTR[cfg_lang]);
     wxString scoreString;
     if (board_score >= 0.0f) {
         titleString += "B+";
@@ -180,7 +191,7 @@ void AnalysisWindow::doLeftClick(wxGridEvent& event) {
         wxString pv;
 
         for (int i = 0; i < gridCols; i++) {
-            if (m_moveGrid->GetColLabelValue(i).Cmp(_("PV")) == 0) {
+            if (m_moveGrid->GetColLabelValue(i).Cmp(PV_WXSTR[cfg_lang]) == 0) {
                 pv = m_moveGrid->GetCellValue(row, i);
                 break;
             }
@@ -205,10 +216,10 @@ void AnalysisWindow::doContextMenu(wxGridEvent& event) {
     size_t row = event.GetRow();
     wxMenu mnu;
     mnu.SetClientData((void*)row);
-    mnu.Append(ID_COPYPV,   "Copy PV");
-    mnu.Append(ID_COPYLINE, "Copy entire line");
+    mnu.Append(ID_COPYPV, COPY_PV_WXSTR[cfg_lang]);
+    mnu.Append(ID_COPYLINE, COPY_ENTIRE_WXSTR[cfg_lang]);
     mnu.AppendSeparator();
-    mnu.Append(ID_DESELECTLINE, "Deselect line");
+    mnu.Append(ID_DESELECTLINE, DESELECT_LINE_WXSTR[cfg_lang]);
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, &AnalysisWindow::onContextMenuClick, this);
     PopupMenu(&mnu);
 }
@@ -223,7 +234,7 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
             wxString pvstring;
 
             for (int i = 0; i < gridCols; i++) {
-                if (m_moveGrid->GetColLabelValue(i).Cmp(_T("PV")) == 0) {
+                if (m_moveGrid->GetColLabelValue(i).Cmp(PV_T_WXSTR[cfg_lang]) == 0) {
                     pvstring = m_moveGrid->GetCellValue(row, i);
                     break;
                 }

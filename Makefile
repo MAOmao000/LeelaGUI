@@ -1,6 +1,6 @@
 default:
 	$(MAKE) CC=gcc CXX=g++ \
-		CXXFLAGS='$(CXXFLAGS) -Wall -Wextra -pipe -O3 -g -ffast-math -mtune=generic -flto -std=c++14 -DNDEBUG'  \
+		CXXFLAGS='$(CXXFLAGS) -Wall -Wextra -pipe -O3 -g -ffast-math -mtune=generic -flto -std=c++14 -DNDEBUG' \
 		LDFLAGS='$(LDFLAGS) -flto' \
 		leelagui
 
@@ -23,28 +23,31 @@ clang:
 		leelagui
 
 #DYNAMIC_LIBS += -lboost_filesystem -lcaffe -lprotobuf -lglog
-#LIBS += -lopenblas
-#DYNAMIC_LIBS += -lpthread
+LIBS += -lopenblas
+DYNAMIC_LIBS += -lpthread
 #DYNAMIC_LIBS += -lOpenCL
-LIBS += -framework Accelerate
+#LIBS += -framework Accelerate
 #LIBS += -framework OpenCL
 #DYNAMIC_LIBS += -lmkl_rt
 
-CAFFE_BASE = /usr/local
-CAFFE_INC = $(CAFFE_BASE)/include
-CAFFE_LIB = $(CAFFE_BASE)/lib
-CXXFLAGS += -I$(CAFFE_INC) -I/usr/local/cuda/include
+#CAFFE_BASE = /usr/local
+#CAFFE_INC = $(CAFFE_BASE)/include
+#CAFFE_LIB = $(CAFFE_BASE)/lib
+#CXXFLAGS += -I$(CAFFE_INC) -I/usr/local/cuda/include
 #CXXFLAGS += -I/opt/intel/mkl/include
-#CXXFLAGS += -I/opt/OpenBLAS/include
+#CXXFLAGS += --input-charset=cp932
+CXXFLAGS += -I/usr/local/boost/include
+CXXFLAGS += -I/opt/OpenBLAS/include
 CXXFLAGS += -Iengine
 #CXXFLAGS += -I/System/Library/Frameworks/Accelerate.framework/Versions/Current/Headers
-LDFLAGS  += -L$(CAFFE_LIB)
-CXXFLAGS += -stdlib=libc++
-LDFLAGS  += -stdlib=libc++
+#LDFLAGS  += -L$(CAFFE_LIB)
+#CXXFLAGS += -stdlib=libc++
+#LDFLAGS  += -stdlib=libc++
 #LDFLAGS  += -L/opt/intel/mkl/lib/intel64/
 #LDFLAGS  += -L/opt/intel/mkl/lib/ia32/
-#LDFLAGS += -L/opt/OpenBLAS/lib
-WX_HOME = ~/git/wxWidgets/mac-build
+LDFLAGS += -L/opt/OpenBLAS/lib
+#WX_HOME = ~/git/wxWidgets/mac-build
+WX_HOME = /usr/local/bin
 
 CXXFLAGS += -I.
 CPPFLAGS += -MD -MP
@@ -58,7 +61,7 @@ sources = engine/Network.cpp engine/AttribScores.cpp engine/FullBoard.cpp engine
 	  engine/NN128.cpp engine/NNValue.cpp engine/OpenCL.cpp engine/MCPolicy.cpp \
 	  AboutDialog.cpp AnalysisWindow.cpp App.cpp CalculateDialog.cpp ClockAdjustDialog.cpp \
 	  EngineThread.cpp GUI.cpp MainFrame.cpp NewGameDialog.cpp RatedSizeDialog.cpp \
-	  ScoreDialog.cpp ScoreHistogram.cpp SettingsDialog.cpp TBoardPanel.cpp TScorePanel.cpp
+	  ScoreDialog.cpp ScoreHistogram.cpp SettingsDialog.cpp TBoardPanel.cpp TScorePanel.cpp Msg.cpp
 
 objects = $(sources:.cpp=.o)
 deps = $(sources:%.cpp=%.d)
@@ -69,7 +72,8 @@ deps = $(sources:%.cpp=%.d)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) `$(WX_HOME)/wx-config --cxxflags` -c -o $@ $<
 
 leelagui: $(objects)
-	$(CXX) $(LDFLAGS) -o $@ $^ -static-libgcc -static-libstdc++ -Wl,-Bstatic $(LIBS) -Wl,--as-needed,-Bdynamic $(DYNAMIC_LIBS) `$(WX_HOME)/wx-config --libs --static=yes`
+#	$(CXX) $(LDFLAGS) -o $@ $^ -static-libgcc -static-libstdc++ -Wl,-Bstatic $(LIBS) -Wl,--as-needed,-Bdynamic $(DYNAMIC_LIBS) `$(WX_HOME)/wx-config --libs --static=yes`
+	$(CXX) $(LDFLAGS) -o $@ $^ -static-libgcc -static-libstdc++ -Wl,-Bstatic $(LIBS) -Wl,--as-needed,-Bdynamic $(DYNAMIC_LIBS) `$(WX_HOME)/wx-config --libs`
 #	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS) $(DYNAMIC_LIBS) `$(WX_HOME)/wx-config --libs --static=yes`
 
 Leela.app: Info.plist leelagui img/leela.icns

@@ -1,0 +1,242 @@
+#ifndef MSG_H_INCLUDED
+#define MSG_H_INCLUDED
+
+#include <wx/string.h>
+
+extern wxString OPENCL_ERR_WXSTR[];
+extern wxString ERR_WXSTR[];
+extern wxString OPENCL_TEST_ERR_WXSTR[];
+extern wxString MAC_NOTE_WXSTR[];
+extern wxString KOMI_WXSTR[];
+extern wxString PRISONERS_WXSTR[];
+extern wxString WHITE_WXSTR[];
+extern wxString PRISONERS_WHITE_WXSTR[];
+extern wxString BLACK_WXSTR[];
+extern wxString PRISONERS_BLACK_WXSTR[];
+extern wxString THINKING_WXSTR[];
+extern wxString ENGINE_ALREADY_WXSTR[];
+extern wxString NEW_MOVE_WXSTR[];
+extern wxString COMPUTER_PASS_WXSTR[];
+extern wxString PASS_WXSTR[];
+extern wxString COMPUTER_MOVE_WXSTR[];
+extern wxString HYPHEN_MOVE_WXSTR[];
+extern wxString OK_CLICKED_WXSTR[];
+extern wxString LAST_RANK_WXSTR[];
+extern wxString YOUR_RANK_WXSTR[];
+extern wxString HANDICAP_WXSTR[];
+extern wxString SIMULATIONS_WXSTR[];
+extern wxString BLACK_WINS_BY_RESIGN_WXSTR[];
+extern wxString BLACK_WINS_BY_WXSTR[];
+extern wxString POINTS_WXSTR[];
+extern wxString WHITE_WINS_BY_RESIGN_WXSTR[];
+extern wxString WHITE_WINS_BY_WXSTR[];
+extern wxString NOT_SURE_SCORE_WXSTR[];
+extern wxString KYU_WXSTR[];
+extern wxString DAN_WXSTR[];
+extern wxString PRO_WXSTR[];
+extern wxString UNDO_ONE_WXSTR[];
+extern wxString FORWARD_ONE_WXSTR[];
+extern wxString READ_WXSTR[];
+extern wxString MOVES_COMMA_WXSTR[];
+extern wxString GOING_TO_MOVE_WXSTR[];
+extern wxString TO_MOVE_WXSTR[];
+extern wxString CHOOSE_FILE_WXSTR[];
+extern wxString OPENING_WXSTR[];
+extern wxString SAVING_WXSTR[];
+extern wxString ADJUST_CLOCK_WXSTR[];
+
+extern wxString VERSION_WXSTR[];
+
+extern wxString MENU_NEW_GAME_WXSTR[];
+extern wxString MENU_START_GAME_WXSTR[];
+extern wxString MENU_NEW_RATED_GAME_WXSTR[];
+extern wxString MENU_STARTS_RATED_GAME_WXSTR[];
+extern wxString MENU_SET_RATED_SIZE_WXSTR[];
+extern wxString MENU_CHANGE_SIZE_RATED_WXSTR[];
+extern wxString MENU_OPEN_GAME_WXSTR[];
+extern wxString MENU_OPENS_GAME_FROM_WXSTR[];
+extern wxString MENU_SAVE_GAME_WXSTR[];
+extern wxString MENU_SAVE_GAME_TO_WXSTR[];
+extern wxString MENU_COPY_SGF_WXSTR[];
+extern wxString MENU_COPY_CLIPBOARD_WXSTR[];
+extern wxString MENU_PASTE_SGF_WXSTR[];
+extern wxString MENU_PASTE_CLIPBOARD_WXSTR[];
+extern wxString MENU_EXIT_WXSTR[];
+extern wxString MENU_EXIT_PROGRAM_WXSTR[];
+extern wxString MENU_FILE_WXSTR[];
+
+extern wxString MENU_UNDO_WXSTR[];
+extern wxString MENU_FORWARD_WXSTR[];
+extern wxString MENU_BACK10_WXSTR[];
+extern wxString MENU_BACK10_NO_KEY_WXSTR[];
+extern wxString MENU_FORWARD10_WXSTR[];
+extern wxString MENU_FORWARD10_NO_KEY_WXSTR[];
+extern wxString MENU_FORCE_COMPUTER_MOVE_WXSTR[];
+extern wxString MENU_FORCE_COMPUTER_NO_KEY_WXSTR[];
+extern wxString MENU_PASS_WXSTR[];
+extern wxString MENU_RESIGN_WXSTR[];
+extern wxString MENU_RESIGN_NO_KEY_WXSTR[];
+extern wxString MENU_SCORE_GAME_WXSTR[];
+extern wxString MENU_SCORE_GAME_NO_KEY_WXSTR[] ;
+extern wxString MENU_GAME_WXSTR[];
+
+extern wxString MENU_ANALYZE_WXSTR[];
+extern wxString MENU_ANALYZE_NO_KEY_WXSTR[];
+extern wxString MENU_PUSH_POS_WXSTR[];
+extern wxString MENU_PUSH_POS_NO_KEY_WXSTR[];
+extern wxString MENU_POP_POS_WXSTR[];
+extern wxString MENU_POP_POS_NO_KEY_WXSTR[];
+extern wxString MENU_REVERT_STORE_WXSTR[];
+extern wxString MENU_REVERT_STORE_NO_KEY_WXSTR[];
+extern wxString MENU_ANALYSIS_WINDOW_WXSTR[];
+extern wxString MENU_SCORE_WINDOW_WXSTR[];
+extern wxString MENU_ANALYZE_TOP_WXSTR[];
+
+extern wxString MENU_MOVE_PROB_WXSTR[];
+extern wxString MENU_MOVE_PROB_NO_KEY_WXSTR[];
+extern wxString MENU_BEST_MOVES_WXSTR[];
+extern wxString MENU_BEST_MOVES_NO_KEY_WXSTR[];
+extern wxString MENU_SHOW_TERRITORY_WXSTR[];
+extern wxString MENU_SHOW_TERRITORY_NO_KEY_WXSTR[];
+extern wxString MENU_SHOW_MOYO_WXSTR[];
+extern wxString MENU_SHOW_MOYO_NO_KEY_WXSTR[];
+extern wxString MENU_PREFERENCES_WXSTR[];
+extern wxString MENU_ADJUST_CLOCKS_WXSTR[];
+extern wxString MENU_TOOLS_WXSTR[];
+
+extern wxString MENU_HELP_RULES_WXSTR[] ;
+extern wxString MENU_HELP_RULES_NO_KEY_WXSTR[];
+extern wxString MENU_HOME_PAGE_WXSTR[];
+extern wxString MENU_ABOUT_WXSTR[];
+extern wxString MENU_ABOUT_NO_KEY_WXSTR[];
+extern wxString MENU_HELP_WXSTR[];
+
+extern wxString TBAR_NEW_GAME_WXSTR[];
+extern wxString TBAR_NEW_GAME_EXP_WXSTR[];
+extern wxString TBAR_NEW_RATED_WXSTR[];
+extern wxString TBAR_NEW_RATED_EXP_WXSTR[];
+extern wxString TBAR_LOAD_GAME_WXSTR[] ;
+extern wxString TBAR_LOAD_GAME_EXP_WXSTR[];
+extern wxString TBAR_SAVE_GAME_WXSTR[];
+extern wxString TBAR_SAVE_GAME_EXP_WXSTR[];
+extern wxString TBAR_BACK10_WXSTR[];
+extern wxString TBAR_BACK10_EXP_WXSTR[];
+extern wxString TBAR_UNDO_WXSTR[] ;
+extern wxString TBAR_UNDO_EXP_WXSTR[];
+extern wxString TBAR_REDO_WXSTR[];
+extern wxString TBAR_REDO_EXP_WXSTR[];
+extern wxString TBAR_FORWARD10_WXSTR[] ;
+extern wxString TBAR_FORWARD10_EXP_WXSTR[];
+extern wxString TBAR_FORCE_COMPUTER_MOVE_WXSTR[];
+extern wxString TBAR_FORCE_COMPUTER_MOVE_EXP_WXSTR[];
+extern wxString TBAR_STORE_POSITION_WXSTR[];
+extern wxString TBAR_STORE_POSITION_EXP_WXSTR[];
+extern wxString TBAR_REMOVE_POSITION_WXSTR[];
+extern wxString TBAR_REMOVE_POSITION_EXP_WXSTR[];
+extern wxString TBAR_REVERT_WXSTR[];
+extern wxString TBAR_REVERT_EXP_WXSTR[];
+extern wxString TBAR_TOOL_WXSTR[];
+extern wxString TBAR_TOOL_1_EXP_WXSTR[];
+extern wxString TBAR_TOOL_2_EXP_WXSTR[];
+extern wxString TBAR_TOOL_3_EXP_WXSTR[];
+extern wxString TBAR_TOOL_4_EXP_WXSTR[];
+extern wxString TBAR_EXIT_WXSTR[];
+extern wxString TBAR_EXIT_EXP_WXSTR[];
+
+extern wxString BOARD_SIZE_WXSTR[];
+extern wxString KOMI_0_5_WXSTR[];
+extern wxString TIME_FOR_GAME_WXSTR[];
+extern wxString MINUTES_WXSTR[];
+extern wxString BLACK_UPPER_WXSTR[];
+extern wxString WHITE_UPPER_WXSTR[];
+extern wxString YOUR_COLOR_WXSTR[];
+extern wxString SIMULATE100_WXSTR[];
+extern wxString SIMULATE500_WXSTR[];
+extern wxString SIMULATE1000_WXSTR[];
+extern wxString SIMULATE5000_WXSTR[];
+extern wxString SIMULATE10000_WXSTR[];
+extern wxString SIMULATE20000_WXSTR[];
+extern wxString SIMULATE_UNLIMIT_WXSTR[];
+extern wxString ENGINE_MAX_LEVEL_WXSTR[];
+extern wxString ENGINE_SETTINGS19_WXSTR[];
+extern wxString USE_NET_WXSTR[];
+extern wxString CANCEL_WXSTR[];
+extern wxString ENGINE_NOTE_WXSTR[];
+extern wxString BLACK_CLOCK_WXSTR[];
+extern wxString WHITE_CLOCK_WXSTR[];
+extern wxString CALCULATING_HOLD_WXSTR[];
+
+extern wxString EFFORT_WXSTR[];
+extern wxString SIMULATIONS_COL_LABEL_WXSTR[];
+extern wxString PROB_WXSTR[];
+
+extern wxString ENGINE_SETTINGS_WXSTR[];
+extern wxString ALLOW_PASSES_WXSTR[];
+extern wxString PONDERING_WXSTR[];
+extern wxString ALLOW_RESIGN_WXSTR[];
+extern wxString NEURAL_NETWORKS_WXSTR[];
+extern wxString INTERFACE_SETTINGS_WXSTR[];
+extern wxString SOUND_WXSTR[];
+extern wxString ALLOW_DPI_SCALING_WXSTR[];
+extern wxString JAPANESE_WXSTR[];
+
+extern wxString FINAL_SCORE_WXSTR[];
+extern wxString BLACK_WINS_BY00_WXSTR[];
+extern wxString SCORED_CORRECTLY_WXSTR[];
+extern wxString ACCEPT_BUTTON_WXSTR[];
+extern wxString DISPUTE_BUTTON_WXSTR[];
+
+extern wxString MOVE_WXSTR[];
+extern wxString PV_WXSTR[];
+extern wxString PV_T_WXSTR[];
+extern wxString WIN_PER_WXSTR[];
+extern wxString ANALYSIS_SCORE_WXSTR[];
+extern wxString COPY_PV_WXSTR[];
+extern wxString COPY_ENTIRE_WXSTR[];
+extern wxString DESELECT_LINE_WXSTR[];
+
+extern wxString NEW_GAME_WXSTR[];
+extern wxString ABOUT_WXSTR[];
+extern wxString ADJUST_CLOCKS_WXSTR[];
+extern wxString SELECT_BOARD_SIZE_WXSTR[];
+extern wxString CALCULATION_WXSTR[];
+extern wxString ANALYSIS_WXSTR[];
+extern wxString SETTINGS_WXSTR[];
+extern wxString GAME_SCORE_WXSTR[];
+
+extern wxString WIN_RATE_HISTOGRAM_WXSTR[];
+extern wxString WHITE_T_WXSTR[];
+extern wxString BLACK_T_WXSTR[];
+extern wxString COMBINED_T_WXSTR[];
+extern wxString MONTE_CARLO_T_WXSTR[];
+extern wxString NETWORK_T_WXSTR[];
+
+extern wxString WIDTH_WXSTR[];
+extern wxString HEIGHT_WXSTR[];
+extern wxString CELL_SIZE_WXSTR[];
+extern wxString PAINT_ON_EMPTY_WXSTR[];
+extern wxString LEFT_DOWN_WXSTR[];
+extern wxString CLICK_ON_EMPTY_WXSTR[];
+extern wxString GAME_RESIGNED_WXSTR[];
+extern wxString CLICK_ON_LOCKED_WXSTR[];
+extern wxString NOT_YOUR_MOVE_WXSTR[];
+
+extern std::string MOVE_STR[];
+extern std::string EFFORT_STR[];
+extern std::string SIMULATIONS_STR[];
+extern std::string WIN_STR[];
+extern std::string PROB_STR[];
+extern std::string EVAL_STR[];
+extern std::string PV_STR[];
+extern std::string NODES_STR[];
+extern std::string NODES_UPPER_STR[];
+extern std::string SEARCHED_STR[];
+extern std::string THINKING_AT_STR[];
+extern std::string THINKING_SEC_STR[];
+extern std::string THINKING_STR[];
+extern std::string VISITS_STR[];
+extern std::string PLAYOUTS_STR[];
+extern std::string PLAYOUTS_PER_STR[];
+extern std::string BEST_MOVE_STR[];
+
+#endif

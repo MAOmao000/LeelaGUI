@@ -9,6 +9,8 @@
 #include "img/whitestone.xpm"
 #include "img/wood.xpm"
 #endif
+#include "GTP.h"
+#include "Msg.h"
 
 wxDEFINE_EVENT(wxEVT_DISPLAY_MAINLINE, wxCommandEvent);
 
@@ -102,15 +104,14 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     PrepareDC(dc);
 
     wxSize sz = GetClientSize();
-    wxLogDebug("width: %d height: %d", sz.GetWidth(), sz.GetHeight());
-
+    wxLogDebug(WIDTH_WXSTR[cfg_lang] + ": %d " + HEIGHT_WXSTR[cfg_lang] + ": %d", sz.GetWidth(), sz.GetHeight());
     int boardSize = m_State->board.get_boardsize();
 
     int minDim = std::min(sz.GetWidth(), sz.GetHeight());
     int cellDim = std::max(1, minDim / ((boardSize - 1) + 2));
     m_cellDim = cellDim;
 
-    wxLogDebug("cell size: %d", cellDim);
+    wxLogDebug(CELL_SIZE_WXSTR[cfg_lang] + ": %d", cellDim);
 
     // Tiled background
     int tileW = m_tileFull.GetWidth();
@@ -125,7 +126,7 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     }
 
     if (m_State == NULL) {
-        wxLogDebug("Paint on empty state");
+        wxLogDebug(PAINT_ON_EMPTY_WXSTR[cfg_lang]);
         return;
     }
 
@@ -436,24 +437,24 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
     int startX = event.GetX();
     int startY = event.GetY();
     
-    wxLogDebug("Left down at %d %d", startX, startY);
+    wxLogDebug(LEFT_DOWN_WXSTR[cfg_lang] + " %d %d", startX, startY);
     
     if (m_State == NULL) {
-        wxLogDebug("Click on empty board");
+        wxLogDebug(CLICK_ON_EMPTY_WXSTR[cfg_lang]);
         return;
     }
     
     if (m_State->get_last_move() == FastBoard::RESIGN) {
-        wxLogDebug("Game has been resigned");
+        wxLogDebug(GAME_RESIGNED_WXSTR[cfg_lang]);
         return;
     }
     
     if (m_stateLock) {
-        wxLogDebug("Click on locked state");
+        wxLogDebug(CLICK_ON_LOCKED_WXSTR[cfg_lang]);
         return;
     } 
     
-    if (m_State->get_to_move() == m_playerColor) {    
+    if (m_State->get_to_move() == m_playerColor) {
         int boardSize = m_State->board.get_boardsize();
         
         int corrX = startX - (m_cellDim / 2);
@@ -465,23 +466,23 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         if (cellX >= boardSize) cellX = boardSize - 1;
         if (cellY >= boardSize) cellY = boardSize - 1;
         
-        // engine board is inverted vertically        
+        // engine board is inverted vertically
         cellY = boardSize - cellY - 1;
      
-        int vtx = m_State->board.get_vertex(cellX, cellY);                
+        int vtx = m_State->board.get_vertex(cellX, cellY);
         
         if (m_State->legal_move(vtx)) {
-            m_State->play_move(vtx);                                                         
+            m_State->play_move(vtx);
             
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
-            event.SetEventObject(this);                        
+            event.SetEventObject(this);
             ::wxPostEvent(GetEventHandler(), event);
             
             Refresh();
-        }                   
+        }
         
-    } else {        
-        wxLogDebug("It's not your move!");
+    } else {
+        wxLogDebug(NOT_YOUR_MOVE_WXSTR[cfg_lang]);
     }
     
     event.Skip();

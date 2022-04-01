@@ -2,6 +2,8 @@
 #include "TScorePanel.h"
 #include "ScoreHistogram.h"
 #include "MainFrame.h"
+#include "GTP.h"
+#include "Msg.h"
 
 BEGIN_EVENT_TABLE(TScorePanel, wxPanel)
     EVT_KEY_DOWN(TScorePanel::doKeyDown)
@@ -111,16 +113,16 @@ void TScorePanel::doPaint(wxPaintEvent& event) {
         wxFont legfont(height / 40.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         gc->SetFont(colfont, *wxBLACK);
         wxDouble fontheight, fontheight2;
-        gc->GetTextExtent(_T("WHITE"), NULL, &fontheight);
-        gc->DrawText(_T("BLACK"), 0.0, 0.0);
-        gc->DrawText(_T("WHITE"), 0.0, height - fontheight);
+        gc->GetTextExtent(WHITE_T_WXSTR[cfg_lang], NULL, &fontheight);
+        gc->DrawText(BLACK_T_WXSTR[cfg_lang], 0.0, 0.0);
+        gc->DrawText(WHITE_T_WXSTR[cfg_lang], 0.0, height - fontheight);
         gc->SetFont(legfont, *wxBLACK);
-        gc->GetTextExtent(_T("Combined"), NULL, &fontheight2);
-        gc->DrawText(_T("Combined"), 0.0, fontheight * 1.1);
+        gc->GetTextExtent(COMBINED_T_WXSTR[cfg_lang], NULL, &fontheight2);
+        gc->DrawText(COMBINED_T_WXSTR[cfg_lang], 0.0, fontheight * 1.1);
         gc->SetFont(legfont, *wxBLUE);
-        gc->DrawText(_T("Monte Carlo"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
+        gc->DrawText(MONTE_CARLO_T_WXSTR[cfg_lang], 0.0, fontheight * 1.1 + fontheight2 * 1.2);
         gc->SetFont(legfont, *wxRED);
-        gc->DrawText(_T("Network"), 0.0, fontheight * 1.1 + fontheight2 * 2.4);
+        gc->DrawText(NETWORK_T_WXSTR[cfg_lang], 0.0, fontheight * 1.1 + fontheight2 * 2.4);
 
         delete gc;
     }

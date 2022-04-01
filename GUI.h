@@ -427,7 +427,8 @@ class TSettingsDialog : public wxDialog
 			ID_RESIGNTOGGLE,
 			ID_NETWORKTOGGLE,
 			ID_SOUNDSWITCH,
-			ID_DPISCALING
+			ID_DPISCALING,
+			ID_JAPANESE
 		};
 		
 		wxPanel* m_panel4;
@@ -440,6 +441,7 @@ class TSettingsDialog : public wxDialog
 		wxStdDialogButtonSizer* m_sdbSizer3;
 		wxButton* m_sdbSizer3OK;
 		wxButton* m_sdbSizer3Cancel;
+		wxCheckBox* m_checkBoxJapanese;
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
@@ -488,7 +490,7 @@ class TScoreDialog : public wxDialog
 	
 	public:
 		
-		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Game Score"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 392,205 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP ); 
+		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Game Score"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 392,255 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP ); 
 		~TScoreDialog();
 	
 };
