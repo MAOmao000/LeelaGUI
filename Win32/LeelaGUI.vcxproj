@@ -1,89 +1,122 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
+    <ProjectConfiguration Include="ReleaseCPU|Win32">
+      <Configuration>ReleaseCPU</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
+    <ProjectConfiguration Include="ReleaseCPU|x64">
+      <Configuration>ReleaseCPU</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseGPU|Win32">
+      <Configuration>ReleaseGPU</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseGPU|x64">
+      <Configuration>ReleaseGPU</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9302BF69-D79E-4267-A192-53452C07A84D}</ProjectGuid>
     <RootNamespace>LeelaGUI</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.4.210\windows\mkl\include;C:\boost\boost_1_65_1;C:\Projects\wxWidgets\include\msvc;C:\Projects\wxWidgets\include;c:\projects\OpenCL-ICD-Loader\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.4.210\windows\mkl\lib\ia32_win;C:\boost\boost_1_65_1\stage\lib32;C:\Projects\wxWidgets\lib\vc_lib;$(LibraryPath)</LibraryPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <TargetName>Leela0110_OpenCL</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
-    <IncludePath>C:\Projects\OpenBLAS\dist\include;C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.4.210\windows\mkl\include;C:\boost\boost_1_65_1;C:\Projects\wxWidgets\include\msvc;C:\Projects\wxWidgets\include;c:\projects\OpenCL-ICD-Loader\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Projects\OpenBLAS\dist\lib;C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.4.210\windows\mkl\lib\ia32_win;C:\boost\boost_1_65_1\stage\lib32;C:\Projects\wxWidgets\lib\vc_lib;$(LibraryPath)</LibraryPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <TargetName>Leela0110</TargetName>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Leela;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;__WXMSW__;__WXDEBUG__;WINVER=0x0501;wxUSE_GUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <PrecompiledHeader />
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>wxUSE_NO_MANIFEST=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31ud.lib;wxbase31ud_net.lib;wxbase31ud_xml.lib;wxjpegd.lib;wxmsw31ud_adv.lib;wxmsw31ud_core.lib;wxmsw31ud_gl.lib;wxmsw31ud_html.lib;wxmsw31ud_qa.lib;wxmsw31ud_richtext.lib;wxmsw31ud_xrc.lib;wxpngd.lib;wxregexud.lib;wxtiffd.lib;wxzlibd.lib;OpenCL.lib;mkl_intel_c.lib;mkl_sequential.lib;mkl_core.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
+    <TargetName>Leela0110</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
+    <TargetName>Leela0110_OpenCL</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\..\Leela;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.5\include\msvc;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_GPU;WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31u.lib;wxjpeg.lib;wxmsw31u_core.lib;wxmsw31u_qa.lib;wxmsw31u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <Manifest />
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.5\include\msvc;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -91,83 +124,149 @@
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31u.lib;wxjpeg.lib;wxmsw31u_core.lib;wxmsw31u_qa.lib;wxmsw31u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;OpenCL.lib;mkl_intel_c.lib;mkl_sequential.lib;mkl_core.lib;imagehlp.lib;dbghelp.lib;libboost_program_options-vc141-mt-s-1_65_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31u.lib;wxjpeg.lib;wxmsw31u_core.lib;wxmsw31u_qa.lib;wxmsw31u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <Manifest />
     <Manifest>
       <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.5\include\msvc;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
+    <ClCompile>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31u.lib;wxjpeg.lib;wxmsw31u_core.lib;wxmsw31u_qa.lib;wxmsw31u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.5\include\msvc;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
+    <ClCompile>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>USE_GPU;WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase31u.lib;wxjpeg.lib;wxmsw31u_core.lib;wxmsw31u_qa.lib;wxmsw31u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Leela\AttribScores.cpp" />
-    <ClCompile Include="..\..\Leela\Attributes.cpp" />
-    <ClCompile Include="..\..\Leela\Book.cpp" />
-    <ClCompile Include="..\..\Leela\FastBoard.cpp" />
-    <ClCompile Include="..\..\Leela\FastState.cpp" />
-    <ClCompile Include="..\..\Leela\FullBoard.cpp" />
-    <ClCompile Include="..\..\Leela\GameState.cpp" />
-    <ClCompile Include="..\..\Leela\GTP.cpp" />
-    <ClCompile Include="..\..\Leela\KoState.cpp" />
-    <ClCompile Include="..\..\Leela\Leela.cpp" />
-    <ClCompile Include="..\..\Leela\Matcher.cpp" />
-    <ClCompile Include="..\..\Leela\MCOTable.cpp" />
-    <ClCompile Include="..\..\Leela\MCPolicy.cpp" />
-    <ClCompile Include="..\..\Leela\Network.cpp" />
-    <ClCompile Include="..\..\Leela\NN.cpp" />
-    <ClCompile Include="..\..\Leela\NN128.cpp" />
-    <ClCompile Include="..\..\Leela\NNValue.cpp" />
-    <ClCompile Include="..\..\Leela\OpenCL.cpp" />
-    <ClCompile Include="..\..\Leela\Playout.cpp" />
-    <ClCompile Include="..\..\Leela\PNNode.cpp" />
-    <ClCompile Include="..\..\Leela\PNSearch.cpp" />
-    <ClCompile Include="..\..\Leela\Random.cpp" />
-    <ClCompile Include="..\..\Leela\SGFParser.cpp" />
-    <ClCompile Include="..\..\Leela\SGFTree.cpp" />
-    <ClCompile Include="..\..\Leela\SMP.cpp" />
-    <ClCompile Include="..\..\Leela\TimeControl.cpp" />
-    <ClCompile Include="..\..\Leela\Timing.cpp" />
-    <ClCompile Include="..\..\Leela\TTable.cpp" />
-    <ClCompile Include="..\..\Leela\UCTNode.cpp" />
-    <ClCompile Include="..\..\Leela\UCTSearch.cpp" />
-    <ClCompile Include="..\..\Leela\Utils.cpp" />
-    <ClCompile Include="..\..\Leela\Zobrist.cpp" />
+    <ClCompile Include="..\engine\AttribScores.cpp" />
+    <ClCompile Include="..\engine\Attributes.cpp" />
+    <ClCompile Include="..\engine\Book.cpp" />
+    <ClCompile Include="..\engine\FastBoard.cpp" />
+    <ClCompile Include="..\engine\FastState.cpp" />
+    <ClCompile Include="..\engine\FullBoard.cpp" />
+    <ClCompile Include="..\engine\GameState.cpp" />
+    <ClCompile Include="..\engine\GTP.cpp" />
+    <ClCompile Include="..\engine\KoState.cpp" />
+    <ClCompile Include="..\engine\Leela.cpp" />
+    <ClCompile Include="..\engine\Matcher.cpp" />
+    <ClCompile Include="..\engine\MCOTable.cpp" />
+    <ClCompile Include="..\engine\MCPolicy.cpp" />
+    <ClCompile Include="..\engine\Network.cpp" />
+    <ClCompile Include="..\engine\NN.cpp" />
+    <ClCompile Include="..\engine\NN128.cpp" />
+    <ClCompile Include="..\engine\NNValue.cpp" />
+    <ClCompile Include="..\engine\OpenCL.cpp" />
+    <ClCompile Include="..\engine\Playout.cpp" />
+    <ClCompile Include="..\engine\PNNode.cpp" />
+    <ClCompile Include="..\engine\PNSearch.cpp" />
+    <ClCompile Include="..\engine\Random.cpp" />
+    <ClCompile Include="..\engine\SGFParser.cpp" />
+    <ClCompile Include="..\engine\SGFTree.cpp" />
+    <ClCompile Include="..\engine\SMP.cpp" />
+    <ClCompile Include="..\engine\TimeControl.cpp" />
+    <ClCompile Include="..\engine\Timing.cpp" />
+    <ClCompile Include="..\engine\TTable.cpp" />
+    <ClCompile Include="..\engine\UCTNode.cpp" />
+    <ClCompile Include="..\engine\UCTSearch.cpp" />
+    <ClCompile Include="..\engine\Utils.cpp" />
+    <ClCompile Include="..\engine\Zobrist.cpp" />
     <ClCompile Include="..\AboutDialog.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\AnalysisWindow.cpp" />
     <ClCompile Include="..\App.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\CalculateDialog.cpp" />
     <ClCompile Include="..\ClockAdjustDialog.cpp" />
     <ClCompile Include="..\EngineThread.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\GUI.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\MainFrame.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\minidump.cpp" />
+    <ClCompile Include="..\Msg.cpp" />
     <ClCompile Include="..\NewGameDialog.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\RatedSizeDialog.cpp" />
     <ClCompile Include="..\ScoreDialog.cpp" />
@@ -175,51 +274,59 @@
     <ClCompile Include="..\SettingsDialog.cpp" />
     <ClCompile Include="..\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\TBoardPanel.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\TScorePanel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Leela\AttribScores.h" />
-    <ClInclude Include="..\..\Leela\Attributes.h" />
-    <ClInclude Include="..\..\Leela\BookData.h" />
-    <ClInclude Include="..\..\Leela\config.h" />
-    <ClInclude Include="..\..\Leela\FastBoard.h" />
-    <ClInclude Include="..\..\Leela\FastState.h" />
-    <ClInclude Include="..\..\Leela\FullBoard.h" />
-    <ClInclude Include="..\..\Leela\GameState.h" />
-    <ClInclude Include="..\..\Leela\GTP.h" />
-    <ClInclude Include="..\..\Leela\KoState.h" />
-    <ClInclude Include="..\..\Leela\Matcher.h" />
-    <ClInclude Include="..\..\Leela\MCOTable.h" />
-    <ClInclude Include="..\..\Leela\MCPolicy.h" />
-    <ClInclude Include="..\..\Leela\Network.h" />
-    <ClInclude Include="..\..\Leela\OpenCL.h" />
-    <ClInclude Include="..\..\Leela\PatternHash.h" />
-    <ClInclude Include="..\..\Leela\Patterns.h" />
-    <ClInclude Include="..\..\Leela\PatternsLive.h" />
-    <ClInclude Include="..\..\Leela\Playout.h" />
-    <ClInclude Include="..\..\Leela\PNNode.h" />
-    <ClInclude Include="..\..\Leela\PNSearch.h" />
-    <ClInclude Include="..\..\Leela\PolicyWeights.h" />
-    <ClInclude Include="..\..\Leela\PolicyWeightsSL.h" />
-    <ClInclude Include="..\..\Leela\Random.h" />
-    <ClInclude Include="..\..\Leela\SGFParser.h" />
-    <ClInclude Include="..\..\Leela\SGFTree.h" />
-    <ClInclude Include="..\..\Leela\SMP.h" />
-    <ClInclude Include="..\..\Leela\ThreadPool.h" />
-    <ClInclude Include="..\..\Leela\TimeControl.h" />
-    <ClInclude Include="..\..\Leela\Timing.h" />
-    <ClInclude Include="..\..\Leela\TTable.h" />
-    <ClInclude Include="..\..\Leela\UCTNode.h" />
-    <ClInclude Include="..\..\Leela\UCTSearch.h" />
-    <ClInclude Include="..\..\Leela\Utils.h" />
-    <ClInclude Include="..\..\Leela\Weights.h" />
-    <ClInclude Include="..\..\Leela\Zobrist.h" />
+    <ClInclude Include="..\engine\AttribScores.h" />
+    <ClInclude Include="..\engine\Attributes.h" />
+    <ClInclude Include="..\engine\BookData.h" />
+    <ClInclude Include="..\engine\config.h" />
+    <ClInclude Include="..\engine\FastBoard.h" />
+    <ClInclude Include="..\engine\FastState.h" />
+    <ClInclude Include="..\engine\FullBoard.h" />
+    <ClInclude Include="..\engine\GameState.h" />
+    <ClInclude Include="..\engine\GTP.h" />
+    <ClInclude Include="..\engine\KoState.h" />
+    <ClInclude Include="..\engine\Matcher.h" />
+    <ClInclude Include="..\engine\MCOTable.h" />
+    <ClInclude Include="..\engine\MCPolicy.h" />
+    <ClInclude Include="..\engine\Network.h" />
+    <ClInclude Include="..\engine\OpenCL.h" />
+    <ClInclude Include="..\engine\PatternHash.h" />
+    <ClInclude Include="..\engine\Patterns.h" />
+    <ClInclude Include="..\engine\PatternsLive.h" />
+    <ClInclude Include="..\engine\Playout.h" />
+    <ClInclude Include="..\engine\PNNode.h" />
+    <ClInclude Include="..\engine\PNSearch.h" />
+    <ClInclude Include="..\engine\PolicyWeights.h" />
+    <ClInclude Include="..\engine\PolicyWeightsSL.h" />
+    <ClInclude Include="..\engine\Random.h" />
+    <ClInclude Include="..\engine\SGFParser.h" />
+    <ClInclude Include="..\engine\SGFTree.h" />
+    <ClInclude Include="..\engine\SMP.h" />
+    <ClInclude Include="..\engine\ThreadPool.h" />
+    <ClInclude Include="..\engine\TimeControl.h" />
+    <ClInclude Include="..\engine\Timing.h" />
+    <ClInclude Include="..\engine\TTable.h" />
+    <ClInclude Include="..\engine\UCTNode.h" />
+    <ClInclude Include="..\engine\UCTSearch.h" />
+    <ClInclude Include="..\engine\Utils.h" />
+    <ClInclude Include="..\engine\Weights.h" />
+    <ClInclude Include="..\engine\Zobrist.h" />
     <ClInclude Include="..\AboutDialog.h" />
     <ClInclude Include="..\AnalysisWindow.h" />
     <ClInclude Include="..\App.h" />
@@ -228,6 +335,7 @@
     <ClInclude Include="..\EngineThread.h" />
     <ClInclude Include="..\GUI.h" />
     <ClInclude Include="..\MainFrame.h" />
+    <ClInclude Include="..\Msg.h" />
     <ClInclude Include="..\NewGameDialog.h" />
     <ClInclude Include="..\RatedSizeDialog.h" />
     <ClInclude Include="..\ScoreDialog.h" />
@@ -277,6 +385,7 @@
     <Media Include="..\snd\tock.wav" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="wx\msw\blank.cur" />
     <None Include="wx\msw\bullseye.cur" />
     <None Include="wx\msw\cross.cur" />
@@ -291,5 +400,18 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\boost.1.78.0\build\boost.targets" Condition="Exists('packages\boost.1.78.0\build\boost.targets')" />
+    <Import Project="packages\opencl-nug.0.777.77\build\native\opencl-nug.targets" Condition="Exists('packages\opencl-nug.0.777.77\build\native\opencl-nug.targets')" />
+    <Import Project="packages\OpenBLAS.0.2.14.1\build\native\openblas.targets" Condition="Exists('packages\OpenBLAS.0.2.14.1\build\native\openblas.targets')" />
+    <Import Project="packages\boost_program_options-vc142.1.78.0\build\boost_program_options-vc142.targets" Condition="Exists('packages\boost_program_options-vc142.1.78.0\build\boost_program_options-vc142.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\boost.1.78.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost.1.78.0\build\boost.targets'))" />
+    <Error Condition="!Exists('packages\opencl-nug.0.777.77\build\native\opencl-nug.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\opencl-nug.0.777.77\build\native\opencl-nug.targets'))" />
+    <Error Condition="!Exists('packages\OpenBLAS.0.2.14.1\build\native\openblas.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\OpenBLAS.0.2.14.1\build\native\openblas.targets'))" />
+    <Error Condition="!Exists('packages\boost_program_options-vc142.1.78.0\build\boost_program_options-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_program_options-vc142.1.78.0\build\boost_program_options-vc142.targets'))" />
+  </Target>
 </Project>

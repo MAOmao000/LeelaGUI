@@ -1,22 +1,36 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 14.00
-# Visual Studio 2015
-VisualStudioVersion = 14.0.31101.0
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LeelaGUI", "LeelaGUI.vcxproj", "{9302BF69-D79E-4267-A192-53452C07A84D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Debug|x64 = Debug|x64
+		ReleaseCPU|Win32 = ReleaseCPU|Win32
+		ReleaseCPU|x64 = ReleaseCPU|x64
+		ReleaseGPU|Win32 = ReleaseGPU|Win32
+		ReleaseGPU|x64 = ReleaseGPU|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.ActiveCfg = Debug|Win32
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.Build.0 = Debug|Win32
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Release|Win32.ActiveCfg = Release|Win32
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Release|Win32.Build.0 = Release|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.ActiveCfg = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.Build.0 = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|x64.ActiveCfg = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|x64.Build.0 = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseCPU|Win32.ActiveCfg = ReleaseCPU|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseCPU|x64.ActiveCfg = ReleaseCPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseCPU|x64.Build.0 = ReleaseCPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|Win32.ActiveCfg = ReleaseGPU|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|Win32.Build.0 = ReleaseGPU|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|x64.ActiveCfg = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|x64.Build.0 = ReleaseGPU|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3AC8E34F-0C57-4A75-A879-F966FAD2D8D7}
 	EndGlobalSection
 EndGlobal
