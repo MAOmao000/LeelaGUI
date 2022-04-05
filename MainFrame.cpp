@@ -33,7 +33,6 @@
 #include "snd/tock.h"
 #include <wx/utils.h>
 #endif
-#include "Msg.h"
 
 wxDEFINE_EVENT(wxEVT_NEW_MOVE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_BOARD_UPDATE, wxCommandEvent);
@@ -48,6 +47,15 @@ static constexpr long MIN_RANK = -30L;
 
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title) {
+
+    m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
+    m_lang = 0;
+    if (m_japaneseEnabled) {
+        m_lang = 1;
+    }
+    GTP::setup_default_parameters(m_lang);
+    setLocale(m_locale);
+
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(NULL);
 #endif
@@ -85,12 +93,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         }
     });
 
-    m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
-    m_lang = 0;
-    if (m_japaneseEnabled) {
-        m_lang = 1;
-    }
-    GTP::setup_default_parameters(m_lang);
     thread_pool.initialize(cfg_num_threads);
 
     auto rng = std::make_unique<Random>(5489UL);
@@ -103,12 +105,13 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         Network::get_Network();
     } catch (const cl::Error &e) {
         wxString errorString;
-        errorString.Printf(OPENCL_ERR_WXSTR[m_lang] + ": %s (" + ERR_WXSTR[m_lang] + " %d)", e.what(), e.err());
+        errorString.Printf(_("Error initializing OpenCL: %s (error %d)"),
+            e.what(), e.err());
         ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         Close();
     } catch (const std::exception& e) {
         wxString errorString;
-        errorString.Printf(OPENCL_ERR_WXSTR[m_lang] + ": %s", e.what());
+        errorString.Printf(_("Error initializing OpenCL: %s"), e.what());
         ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         Close();
     }
@@ -140,7 +143,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #ifdef USE_OPENCL
     m_State.init_game(19, 7.5f);
     if (!GTP::perform_self_test(m_State)) {
-        ::wxMessageBox(OPENCL_TEST_ERR_WXSTR[m_lang],
+        ::wxMessageBox(_("OpenCL self-test failed. Check your graphics drivers."),
                        _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         Close();
     } else {
@@ -148,7 +151,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         bool hasWhinedDrivers =
             wxConfig::Get()->ReadBool(wxT("hasWhinedDrivers"), false);
         if (!hasWhinedDrivers) {
-            ::wxMessageBox(MAC_NOTE_WXSTR[m_lang], _("Leela"), wxOK, this);
+            ::wxMessageBox(_("The GPU and OpenCL drivers on macOS are often outdated "
+                "and of poor quality. Try switching to the regular version if "
+                "you run into stability issues. If your GPU is slow, it may "
+                "even be faster."), _("Leela"), wxOK, this);
             wxConfig::Get()->Write(wxT("hasWhinedDrivers"), true);
         }
 #endif
@@ -267,7 +273,7 @@ void MainFrame::updateStatusBar(char *str) {
 // do whatever we need to do if the visible board gets updated
 void MainFrame::doBoardUpdate(wxCommandEvent& event) {
     wxString mess;
-    mess.Printf(KOMI_WXSTR[m_lang] + ": %d.5; " + PRISONERS_WXSTR[m_lang] + " " + PRISONERS_WHITE_WXSTR[m_lang] + ": %d/" + PRISONERS_BLACK_WXSTR[m_lang] + ": %d",
+    mess.Printf(_("Komi: %d.5; Prisoners white: %d/black: %d"),
                 (int)m_State.get_komi(),
                 m_State.board.get_prisoners(FastBoard::BLACK),
                 m_State.board.get_prisoners(FastBoard::WHITE)
@@ -300,9 +306,9 @@ void MainFrame::startEngine() {
             m_engineThread->set_nopass(true);
         }
         m_engineThread->Run();
-        SetStatusBarText(THINKING_WXSTR[m_lang], 1);
+        SetStatusBarText(_("Engine thinking..."), 1);
     } else {
-        wxLogDebug(ENGINE_ALREADY_WXSTR[m_lang]);
+        wxLogDebug(_("Engine already running"));
     }
 }
 
@@ -421,7 +427,7 @@ void MainFrame::doToggleBestMoves(wxCommandEvent& event) {
 }
 
 void MainFrame::doNewMove(wxCommandEvent & event) {
-    wxLogDebug(NEW_MOVE_WXSTR[m_lang]);
+    wxLogDebug(_("New move arrived"));
 
     stopEngine();
     m_panelBoard->unlockState();
@@ -449,7 +455,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         if (m_State.get_to_move() == m_playerColor
             && m_State.get_last_move() == FastBoard::PASS) {
 
-            ::wxMessageBox(COMPUTER_PASS_WXSTR[m_lang], PASS_WXSTR[m_lang], wxOK, this);
+            ::wxMessageBox(_("Computer passes"), _("Pass"), wxOK, this);
         }
     }
 
@@ -465,7 +471,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             m_State.undo_move();
             m_State.undo_move();
             if (m_State.get_to_move() != m_playerColor) {
-                wxLogDebug(COMPUTER_MOVE_WXSTR[m_lang]);
+                wxLogDebug(_("Computer to move"));
                 startEngine();
             } else {
                 m_pondering = true;
@@ -475,7 +481,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     } else {
         if (!m_analyzing) {
             if (m_State.get_to_move() != m_playerColor) {
-                wxLogDebug(COMPUTER_MOVE_WXSTR[m_lang]);
+                wxLogDebug(_("Computer to move"));
                 startEngine();
             } else {
                 if (m_ponderEnabled && !m_ratedGame && !m_analyzing
@@ -495,7 +501,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
 
     if (!m_ratedGame) {
         SetTitle(_("Leela") +
-                 _(HYPHEN_MOVE_WXSTR[m_lang] + wxString::Format(wxT("%i"), m_State.get_movenum() + 1)));
+                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     }
 
     // signal update of visible board
@@ -529,7 +535,7 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
     SettingsDialog mydialog(this);
 
     if (mydialog.ShowModal() == wxID_OK) {
-        wxLogDebug(OK_CLICKED_WXSTR[m_lang]);
+        wxLogDebug(_("OK clicked"));
 
         m_netsEnabled = wxConfig::Get()->Read(wxT("netsEnabled"), 1);
         m_passEnabled = wxConfig::Get()->Read(wxT("passEnabled"), 1);
@@ -545,10 +551,12 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
 void MainFrame::doNewGame(wxCommandEvent& event) {
     stopEngine(false);
 
+
     NewGameDialog mydialog(this);
 
+    
     if (mydialog.ShowModal() == wxID_OK) {
-        wxLogDebug(OK_CLICKED_WXSTR[m_lang]);
+        wxLogDebug(_("OK clicked"));
 
         m_State.init_game(mydialog.getBoardsize(), mydialog.getKomi());
         ::wxBeginBusyCursor();
@@ -632,9 +640,9 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
     }
 
-    wxLogDebug(LAST_RANK_WXSTR[m_lang] + ": %d", rank);
+    wxLogDebug(_("Last rank was: %d"), rank);
 
-    wxString mess = wxString(YOUR_RANK_WXSTR[m_lang] + ": ");
+    wxString mess = wxString(_("Your rank: "));
 
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
@@ -951,7 +959,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         }
     }
 
-    wxLogDebug(HANDICAP_WXSTR[m_lang] + " %d " + SIMULATIONS_WXSTR[m_lang] + " %d", handicap, simulations);
+    wxLogDebug(_("Handicap %d Simulations %d"), handicap, simulations);
 
     {
         float komi = handicap ? 0.5f : 7.5f;
@@ -1043,7 +1051,7 @@ void MainFrame::ratedGameEnd(bool won) {
         wxConfig::Get()->Write(wxT("userRankAdjust19"), adjust);
     }
 
-    wxString mess = wxString(YOUR_RANK_WXSTR[m_lang] + ": ");
+    wxString mess = wxString(_("Your rank: "));
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
 
@@ -1089,13 +1097,13 @@ bool MainFrame::scoreDialog(float komi, float handicap,
 
     if (score > 0.0f) {
         if (m_State.get_last_move() == FastBoard::RESIGN) {
-            mess.Printf(BLACK_WINS_BY_RESIGN_WXSTR[m_lang]);
+            mess.Printf(_("BLACK wins by resignation"));
         } else {
             if (handicap > 0.5f) {
-                mess.Printf(BLACK_WINS_BY_WXSTR[m_lang] + " %.0f - %.1f (" + KOMI_WXSTR[m_lang] + ") - %0.f (" + HANDICAP_WXSTR[m_lang] + ")\n= %.1f " + POINTS_WXSTR[m_lang],
+                mess.Printf(_("BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n= %.1f points"),        
                             prekomi, komi, handicap, score);
             } else {
-                mess.Printf(BLACK_WINS_BY_WXSTR[m_lang] + " %.0f - %.1f (" + KOMI_WXSTR[m_lang] + ")\n= %.1f " + POINTS_WXSTR[m_lang],
+                mess.Printf(_("BLACK wins by %.0f - %.1f (komi)\n= %.1f points"),        
                             prekomi, komi, score);
             }
         }
@@ -1104,13 +1112,13 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         prekomi = prekomi - 0.001f;
         score = score - 0.001f;
         if (m_State.get_last_move() == FastBoard::RESIGN) {
-            mess.Printf(WHITE_WINS_BY_RESIGN_WXSTR[m_lang]);
+            mess.Printf(_("WHITE wins by resignation"));
         } else {
             if (handicap > 0.5f) {
-                mess.Printf(WHITE_WINS_BY_WXSTR[m_lang] + " %.0f + %.1f (" + KOMI_WXSTR[m_lang] + ") + %0.f (" + HANDICAP_WXSTR[m_lang] + ")\n= %.1f " + POINTS_WXSTR[m_lang],
+                mess.Printf(_("WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n= %.1f points"),
                             -prekomi, komi, handicap, -score);
             } else {
-                mess.Printf(WHITE_WINS_BY_WXSTR[m_lang] + " %.0f + %.1f (" + KOMI_WXSTR[m_lang] + ")\n= %.1f " + POINTS_WXSTR[m_lang],
+                mess.Printf(_("WHITE wins by %.0f + %.1f (komi)\n= %.1f points"),
                             -prekomi, komi, -score);
             }
         }
@@ -1125,7 +1133,7 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         if (m_State.get_last_move() != FastBoard::RESIGN) {
             if ((score > 0.0f && net_score < 0.5f)
                 || (score < 0.0f && net_score > 0.5f)) {
-                confidence = NOT_SURE_SCORE_WXSTR[m_lang];
+                confidence = _("I am not sure I am scoring this correctly.");
             }
         }
     }
@@ -1155,12 +1163,12 @@ wxString MainFrame::rankToString(int rank) {
     wxString res;
 
     if (rank < 0) {
-        res.Printf("%d " + KYU_WXSTR[m_lang], -rank);
+        res.Printf(_("%d kyu"), -rank);
     } else {
         if (rank < 7) {
-            res.Printf("%d " + DAN_WXSTR[m_lang], rank + 1);
+            res.Printf(_("%d dan"), rank + 1);
         } else {
-            res.Printf("%d " + PRO_WXSTR[m_lang], rank - 6);
+            res.Printf(_("%d pro"), rank - 6);
         }
     }
 
@@ -1181,7 +1189,7 @@ void MainFrame::doPass(wxCommandEvent& event) {
 
 void MainFrame::gameNoLongerCounts() {
     SetTitle(_("Leela") +
-             HYPHEN_MOVE_WXSTR[m_lang] + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+             _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     m_ratedGame = false;
 }
 
@@ -1191,7 +1199,7 @@ void MainFrame::doRealUndo(int count) {
 
     for (int i = 0; i < count; i++) {
         if (m_State.undo_move()) {
-            wxLogDebug(UNDO_ONE_WXSTR[m_lang]);
+            wxLogDebug(_("Undoing one move"));
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
@@ -1203,7 +1211,7 @@ void MainFrame::doRealForward(int count) {
 
     for (int i = 0; i < count; i++) {
         if (m_State.forward_move()) {
-            wxLogDebug(FORWARD_ONE_WXSTR[m_lang]);
+            wxLogDebug(_("Forward one move"));
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
@@ -1262,7 +1270,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State = tree->follow_mainline_state();
         int last_move = tree->count_mainline_moves();
         movenum = std::max(1, movenum);
-        wxLogDebug(READ_WXSTR[m_lang] + " %d " + MOVES_COMMA_WXSTR[m_lang] + GOING_TO_MOVE_WXSTR[m_lang] + " %d" + TO_MOVE_WXSTR[m_lang], last_move, movenum);
+        wxLogDebug(_("Read %d moves, going to move %d"), last_move, movenum);
         m_State.rewind();
         for (int i = 1; i < movenum; ++i) {
             m_State.forward_move();
@@ -1301,14 +1309,14 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
 void MainFrame::doOpenSGF(wxCommandEvent& event) {
     stopEngine(false);
 
-    wxString caption = CHOOSE_FILE_WXSTR[m_lang];
+    wxString caption = _("Choose a file");
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
     wxFileDialog dialog(this, caption, wxEmptyString, wxEmptyString, wildcard,
                         wxFD_OPEN | wxFD_CHANGE_DIR | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK) {
         wxString path = dialog.GetPath();
-        wxLogDebug(OPENING_WXSTR[m_lang] + ": " + path);
+        wxLogDebug(_("Opening: ") + path);
 
         // open the file
         wxFile sgfFile;
@@ -1327,7 +1335,7 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
 
     std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor);
 
-    wxString caption = CHOOSE_FILE_WXSTR[m_lang];
+    wxString caption = _("Choose a file");
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
     wxFileDialog dialog(this, caption, wxEmptyString, wxEmptyString, wildcard,
                         wxFD_SAVE | wxFD_CHANGE_DIR | wxFD_OVERWRITE_PROMPT);
@@ -1335,7 +1343,7 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
     if (dialog.ShowModal() == wxID_OK) {
         wxString path = dialog.GetPath();
 
-        wxLogDebug(SAVING_WXSTR[m_lang] + ": " + path);
+        wxLogDebug(_("Saving: " + path));
 
         wxFileOutputStream file(path);
 
@@ -1399,7 +1407,7 @@ void MainFrame::doAdjustClocks(wxCommandEvent& event) {
     mydialog.setTimeControl(m_State.get_timecontrol());
 
     if (mydialog.ShowModal() == wxID_OK) {
-        wxLogDebug(ADJUST_CLOCK_WXSTR[m_lang]);
+        wxLogDebug(_("Adjust clocks clicked"));
 
         m_State.set_timecontrol(mydialog.getTimeControl());
     }
@@ -1580,4 +1588,16 @@ void MainFrame::loadSGF(const wxString & filename, int movenum) {
             loadSGFString(SGF, movenum);
         }
     }
+}
+
+void MainFrame::setLocale(wxLocale & locale) {
+    locale.AddCatalogLookupPathPrefix(_T("catalogs"));
+    if (cfg_lang == 1) {
+        locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
+    }
+    else {
+        locale.Init(wxLANGUAGE_ENGLISH, wxLOCALE_DONT_LOAD_DEFAULT);
+    }
+    locale.AddCatalog(_T("messages"));
+    locale.AddCatalog(_T("wxstd"));
 }

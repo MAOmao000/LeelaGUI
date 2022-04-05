@@ -55,11 +55,20 @@ bool MyApp::OnInit()
     SetUnhandledExceptionFilter(ExceptFilterProc);
 #endif
 
-    wxImage::AddHandler(new wxPNGHandler());
-
-    wxConfig * config = new wxConfig(wxT("Leela"), wxT("Sjeng.Org"));
+    wxConfig * config = new wxConfig(wxT("LeelaI18N"), wxT("Sjeng.Org"));
     wxConfig::Set(config);
 
+    wxLocale locale;
+    locale.AddCatalogLookupPathPrefix(_T("catalogs"));
+    if (wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true)) {
+        locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
+    } else {
+        locale.Init(wxLANGUAGE_ENGLISH, wxLOCALE_DONT_LOAD_DEFAULT);
+    }
+    locale.AddCatalog(_T("messages"));
+    locale.AddCatalog(_T("wxstd"));
+
+    wxImage::AddHandler(new wxPNGHandler());
 #ifdef WIN32
     bool dpiScale = wxConfig::Get()->Read(wxT("dpiscaleEnabled"), (long)0);
     if (!dpiScale) {

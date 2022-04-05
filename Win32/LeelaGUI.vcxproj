@@ -61,18 +61,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <TargetName>Leela0110_OpenCL</TargetName>
+    <TargetName>LeelaI18N_OpenCL</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <TargetName>Leela0110</TargetName>
+    <TargetName>LeelaI18N</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
-    <TargetName>Leela0110</TargetName>
+    <TargetName>LeelaI18N</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
-    <TargetName>Leela0110_OpenCL</TargetName>
+    <TargetName>LeelaI18N_OpenCL</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'">
     <ClCompile>
@@ -90,7 +90,6 @@
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -104,6 +103,8 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
     <Manifest />
     <Manifest>
@@ -126,7 +127,6 @@
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -156,7 +156,6 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -174,7 +173,6 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>USE_GPU;WIN32;NDEBUG;_WINDOWS;__WXMSW__;WINVER=0x0501;wxUSE_GUI=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -259,7 +257,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\minidump.cpp" />
-    <ClCompile Include="..\Msg.cpp" />
     <ClCompile Include="..\NewGameDialog.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -335,7 +332,6 @@
     <ClInclude Include="..\EngineThread.h" />
     <ClInclude Include="..\GUI.h" />
     <ClInclude Include="..\MainFrame.h" />
-    <ClInclude Include="..\Msg.h" />
     <ClInclude Include="..\NewGameDialog.h" />
     <ClInclude Include="..\RatedSizeDialog.h" />
     <ClInclude Include="..\ScoreDialog.h" />

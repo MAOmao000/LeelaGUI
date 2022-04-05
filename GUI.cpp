@@ -12,7 +12,7 @@
 
 #include "GUI.h"
 #include "GTP.h"
-#include "Msg.h"
+
 
 #include "res/analyze.png.h"
 #include "res/back.png.h"
@@ -101,212 +101,212 @@ TMainFrame::TMainFrame( wxWindow* parent, wxWindowID id, const wxString& title, 
     m_menubar1 = new wxMenuBar( 0 );
 	m_menu1 = new wxMenu();
 	wxMenuItem* menuItemNewGame;
-	menuItemNewGame = new wxMenuItem( m_menu1, ID_NEWGAME, wxString(MENU_NEW_GAME_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-N"), MENU_START_GAME_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItemNewGame = new wxMenuItem( m_menu1, ID_NEWGAME, wxString( _("&New Game...") ) + wxT('\t') + wxT("Ctrl-N"), _("Start a new game"), wxITEM_NORMAL );
 	m_menu1->Append( menuItemNewGame );
 	
 	wxMenuItem* menuItemNewRated;
-	menuItemNewRated = new wxMenuItem( m_menu1, ID_NEWRATED, wxString(MENU_NEW_RATED_GAME_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-R"), MENU_STARTS_RATED_GAME_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItemNewRated = new wxMenuItem( m_menu1, ID_NEWRATED, wxString( _("New &Rated Game") ) + wxT('\t') + wxT("Ctrl-R"), _("Starts a new rated game"), wxITEM_NORMAL );
 	m_menu1->Append( menuItemNewRated );
 	
 	wxMenuItem* m_menuItemRatedSize;
-	m_menuItemRatedSize = new wxMenuItem( m_menu1, ID_RATEDSIZE, wxString(MENU_SET_RATED_SIZE_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-B"), MENU_CHANGE_SIZE_RATED_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuItemRatedSize = new wxMenuItem( m_menu1, ID_RATEDSIZE, wxString( _("Set Rated &Board Size...") ) + wxT('\t') + wxT("Ctrl-B"), _("Change the board size for rated games"), wxITEM_NORMAL );
 	m_menu1->Append( m_menuItemRatedSize );
 	
 	m_menu1->AppendSeparator();
 	
 	wxMenuItem* menuItem11;
-	menuItem11 = new wxMenuItem( m_menu1, ID_OPEN, wxString(MENU_OPEN_GAME_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-O"), MENU_OPENS_GAME_FROM_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem11 = new wxMenuItem( m_menu1, ID_OPEN, wxString( _("&Open Game...") ) + wxT('\t') + wxT("Ctrl-O"), _("Opens a game from disk"), wxITEM_NORMAL );
 	m_menu1->Append( menuItem11 );
 	
 	wxMenuItem* menuItem12;
-	menuItem12 = new wxMenuItem( m_menu1, ID_SAVE, wxString(MENU_SAVE_GAME_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-S"), MENU_SAVE_GAME_TO_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem12 = new wxMenuItem( m_menu1, ID_SAVE, wxString( _("&Save Game...") ) + wxT('\t') + wxT("Ctrl-S"), _("Save a game to disk"), wxITEM_NORMAL );
 	m_menu1->Append( menuItem12 );
 	
 	m_menu1->AppendSeparator();
 	
 	wxMenuItem* m_menuItem30;
-	m_menuItem30 = new wxMenuItem( m_menu1, ID_COPYCLIPBOARD, wxString(MENU_COPY_SGF_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-C"), MENU_COPY_CLIPBOARD_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuItem30 = new wxMenuItem( m_menu1, ID_COPYCLIPBOARD, wxString( _("Copy SGF") ) + wxT('\t') + wxT("Ctrl-C"), _("Copy SGF to clipboard"), wxITEM_NORMAL );
 	m_menu1->Append( m_menuItem30 );
 	
 	wxMenuItem* m_menuItem31;
-	m_menuItem31 = new wxMenuItem( m_menu1, ID_PASTECLIPBOARD, wxString(MENU_PASTE_SGF_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-V"), MENU_PASTE_CLIPBOARD_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuItem31 = new wxMenuItem( m_menu1, ID_PASTECLIPBOARD, wxString( _("Paste SGF") ) + wxT('\t') + wxT("Ctrl-V"), _("Paste SGF from clipboard"), wxITEM_NORMAL );
 	m_menu1->Append( m_menuItem31 );
 	
 	m_menu1->AppendSeparator();
 	
 	wxMenuItem* menuItemExit;
-	menuItemExit = new wxMenuItem( m_menu1, wxID_EXIT, wxString(MENU_EXIT_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-F4"), MENU_EXIT_PROGRAM_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItemExit = new wxMenuItem( m_menu1, wxID_EXIT, wxString( _("E&xit") ) + wxT('\t') + wxT("Alt-F4"), _("Exit the program"), wxITEM_NORMAL );
 	m_menu1->Append( menuItemExit );
 	
-	m_menubar1->Append( m_menu1, MENU_FILE_WXSTR[cfg_lang] );
+	m_menubar1->Append( m_menu1, _("&File") ); 
 
 	m_menu2 = new wxMenu();
 	wxMenuItem* menuItem9;
-	menuItem9 = new wxMenuItem( m_menu2, ID_UNDO, wxString(MENU_UNDO_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-Z"), wxEmptyString, wxITEM_NORMAL );
+	menuItem9 = new wxMenuItem( m_menu2, ID_UNDO, wxString( _("&Undo") ) + wxT('\t') + wxT("Ctrl-Z"), wxEmptyString, wxITEM_NORMAL );
 	m_menu2->Append( menuItem9 );
 	
 	wxMenuItem* menuItem8;
-	menuItem8 = new wxMenuItem( m_menu2, ID_REDO, wxString(MENU_FORWARD_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-Y"), wxEmptyString, wxITEM_NORMAL );
+	menuItem8 = new wxMenuItem( m_menu2, ID_REDO, wxString( _("&Forward") ) + wxT('\t') + wxT("Ctrl-Y"), wxEmptyString, wxITEM_NORMAL );
 	m_menu2->Append( menuItem8 );
 	
 	m_menu2->AppendSeparator();
 	
 	wxMenuItem* menuItem131;
-	menuItem131 = new wxMenuItem( m_menu2, ID_BACK10, wxString(MENU_BACK10_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-B"), MENU_BACK10_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem131 = new wxMenuItem( m_menu2, ID_BACK10, wxString( _("Go &Back 10 Moves") ) + wxT('\t') + wxT("Alt-B"), _("Undo 10 moves"), wxITEM_NORMAL );
 	m_menu2->Append( menuItem131 );
 	
 	wxMenuItem* menuItem141;
-	menuItem141 = new wxMenuItem( m_menu2, ID_FWD10, wxString(MENU_FORWARD10_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-F"), MENU_FORWARD10_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem141 = new wxMenuItem( m_menu2, ID_FWD10, wxString( _("Go For&ward 10 Moves") ) + wxT('\t') + wxT("Alt-F"), _("Forward 10 moves"), wxITEM_NORMAL );
 	m_menu2->Append( menuItem141 );
 	
 	m_menu2->AppendSeparator();
 	
 	wxMenuItem* menuItem18;
-	menuItem18 = new wxMenuItem( m_menu2, ID_FORCE, wxString(MENU_FORCE_COMPUTER_MOVE_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-F"), MENU_FORCE_COMPUTER_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem18 = new wxMenuItem( m_menu2, ID_FORCE, wxString( _("Force &Computer Move") ) + wxT('\t') + wxT("Ctrl-F"), _("Force the computer to move now"), wxITEM_NORMAL );
 	m_menu2->Append( menuItem18 );
 	
 	m_menu2->AppendSeparator();
 	
 	wxMenuItem* m_menuItem24;
-	m_menuItem24 = new wxMenuItem( m_menu2, ID_PASS, wxString(MENU_PASS_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-P"), wxEmptyString, wxITEM_NORMAL );
+	m_menuItem24 = new wxMenuItem( m_menu2, ID_PASS, wxString( _("&Pass") ) + wxT('\t') + wxT("Alt-P"), wxEmptyString, wxITEM_NORMAL );
 	m_menu2->Append( m_menuItem24 );
 	
 	wxMenuItem* menuItem20;
-	menuItem20 = new wxMenuItem( m_menu2, ID_RESIGN, wxString(MENU_RESIGN_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-R"), MENU_RESIGN_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem20 = new wxMenuItem( m_menu2, ID_RESIGN, wxString( _("&Resign") ) + wxT('\t') + wxT("Alt-R"), _("Resign the game"), wxITEM_NORMAL );
 	m_menu2->Append( menuItem20 );
 	
 	m_menu2->AppendSeparator();
 	
 	wxMenuItem* menuItem5;
-	menuItem5 = new wxMenuItem( m_menu2, ID_SCORE, wxString(MENU_SCORE_GAME_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-S"), MENU_SCORE_GAME_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem5 = new wxMenuItem( m_menu2, ID_SCORE, wxString( _("&Score Game") ) + wxT('\t') + wxT("Alt-S"), _("Score the position"), wxITEM_NORMAL );
 	m_menu2->Append( menuItem5 );
 	
-	m_menubar1->Append( m_menu2, MENU_GAME_WXSTR[cfg_lang]);
+	m_menubar1->Append( m_menu2, _("&Game") ); 
 	
 	m_menuAnalyze = new wxMenu();
 	wxMenuItem* menuItemAnalyze;
-	menuItemAnalyze = new wxMenuItem( m_menuAnalyze, ID_ANALYZE, wxString(MENU_ANALYZE_WXSTR[cfg_lang]) + wxT('\t') + wxT("F2"), MENU_ANALYZE_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItemAnalyze = new wxMenuItem( m_menuAnalyze, ID_ANALYZE, wxString( _("Start/Stop &Analysis") ) + wxT('\t') + wxT("F2"), _("Start analyzing"), wxITEM_NORMAL );
 	m_menuAnalyze->Append( menuItemAnalyze );
 	
 	m_menuAnalyze->AppendSeparator();
 	
 	wxMenuItem* m_menuItemStoreMainline;
-	m_menuItemStoreMainline = new wxMenuItem( m_menuAnalyze, ID_PUSHPOS, wxString(MENU_PUSH_POS_WXSTR[cfg_lang]) + wxT('\t') + wxT("Shift-P"), MENU_PUSH_POS_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuItemStoreMainline = new wxMenuItem( m_menuAnalyze, ID_PUSHPOS, wxString( _("&Store Position (Push)") ) + wxT('\t') + wxT("Shift-P"), _("Store this position on the stack"), wxITEM_NORMAL );
 	m_menuAnalyze->Append( m_menuItemStoreMainline );
 	
 	wxMenuItem* m_menuPopVariation;
-	m_menuPopVariation = new wxMenuItem( m_menuAnalyze, ID_POPPOS, wxString(MENU_POP_POS_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-P"), MENU_POP_POS_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuPopVariation = new wxMenuItem( m_menuAnalyze, ID_POPPOS, wxString( _("&Forget Position (Pop)") ) + wxT('\t') + wxT("Ctrl-P"), _("Remove the top position from the stack"), wxITEM_NORMAL );
 	m_menuAnalyze->Append( m_menuPopVariation );
 	m_menuPopVariation->Enable( false );
 	
 	wxMenuItem* m_menuItemMainline;
-	m_menuItemMainline = new wxMenuItem( m_menuAnalyze, ID_MAINLINE, wxString(MENU_REVERT_STORE_WXSTR[cfg_lang]) + wxT('\t') + wxT("Alt-M"), MENU_REVERT_STORE_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	m_menuItemMainline = new wxMenuItem( m_menuAnalyze, ID_MAINLINE, wxString( _("R&evert to Stored") ) + wxT('\t') + wxT("Alt-M"), _("Revert board position to the top of the stack"), wxITEM_NORMAL );
 	m_menuAnalyze->Append( m_menuItemMainline );
 	
 	m_menuAnalyze->AppendSeparator();
 	
 	wxMenuItem* m_menuItemAnalysisWindow;
-	m_menuItemAnalysisWindow = new wxMenuItem( m_menuAnalyze, ID_ANALYSISWINDOWTOGGLE, wxString(MENU_ANALYSIS_WINDOW_WXSTR[cfg_lang]) + wxT('\t') + wxT("F7"), wxEmptyString, wxITEM_CHECK );
+	m_menuItemAnalysisWindow = new wxMenuItem( m_menuAnalyze, ID_ANALYSISWINDOWTOGGLE, wxString( _("Analysis &Window") ) + wxT('\t') + wxT("F7"), wxEmptyString, wxITEM_CHECK );
 	m_menuAnalyze->Append( m_menuItemAnalysisWindow );
 	
 	wxMenuItem* m_menuItemHistogram;
-	m_menuItemHistogram = new wxMenuItem( m_menuAnalyze, ID_SCOREHISTOGRAMTOGGLE, wxString(MENU_SCORE_WINDOW_WXSTR[cfg_lang]) + wxT('\t') + wxT("F8"), wxEmptyString, wxITEM_CHECK );
+	m_menuItemHistogram = new wxMenuItem( m_menuAnalyze, ID_SCOREHISTOGRAMTOGGLE, wxString( _("Show &Histogram") ) + wxT('\t') + wxT("F8"), wxEmptyString, wxITEM_CHECK );
 	m_menuAnalyze->Append( m_menuItemHistogram );
 	
-	m_menubar1->Append( m_menuAnalyze, MENU_ANALYZE_TOP_WXSTR[cfg_lang]); 
+	m_menubar1->Append( m_menuAnalyze, _("&Analyze") ); 
 	
 	m_menuTools = new wxMenu();
 	wxMenuItem* m_menuItemMoveProbabilities;
-	m_menuItemMoveProbabilities = new wxMenuItem( m_menuTools, ID_MOVE_PROBABILITIES, wxString(MENU_MOVE_PROB_WXSTR[cfg_lang]) + wxT('\t') + wxT("F3"), MENU_MOVE_PROB_NO_KEY_WXSTR[cfg_lang], wxITEM_CHECK );
+	m_menuItemMoveProbabilities = new wxMenuItem( m_menuTools, ID_MOVE_PROBABILITIES, wxString( _("Show Network &Probabilities") ) + wxT('\t') + wxT("F3"), _("Show the likelihood of each move being played by a professional player"), wxITEM_CHECK );
 	m_menuTools->Append( m_menuItemMoveProbabilities );
 	
 	wxMenuItem* m_menuItemBestMoves;
-	m_menuItemBestMoves = new wxMenuItem( m_menuTools, ID_BEST_MOVES, wxString(MENU_BEST_MOVES_WXSTR[cfg_lang]) + wxT('\t') + wxT("F4"), MENU_BEST_MOVES_NO_KEY_WXSTR[cfg_lang], wxITEM_CHECK );
+	m_menuItemBestMoves = new wxMenuItem( m_menuTools, ID_BEST_MOVES, wxString( _("Show &Best Moves") ) + wxT('\t') + wxT("F4"), _("Color the best moves on the board"), wxITEM_CHECK );
 	m_menuTools->Append( m_menuItemBestMoves );
 	
 	wxMenuItem* menuItem15;
-	menuItem15 = new wxMenuItem( m_menuTools, ID_SHOWTERRITORY, wxString(MENU_SHOW_TERRITORY_WXSTR[cfg_lang]) + wxT('\t') + wxT("F5"), MENU_SHOW_TERRITORY_NO_KEY_WXSTR[cfg_lang], wxITEM_CHECK );
+	menuItem15 = new wxMenuItem( m_menuTools, ID_SHOWTERRITORY, wxString( _("Show &Territory") ) + wxT('\t') + wxT("F5"), _("Show Territory"), wxITEM_CHECK );
 	m_menuTools->Append( menuItem15 );
 	
 	wxMenuItem* menuItem16;
-	menuItem16 = new wxMenuItem( m_menuTools, ID_SHOWMOYO, wxString(MENU_SHOW_MOYO_WXSTR[cfg_lang]) + wxT('\t') + wxT("F6"), MENU_SHOW_MOYO_NO_KEY_WXSTR[cfg_lang], wxITEM_CHECK );
+	menuItem16 = new wxMenuItem( m_menuTools, ID_SHOWMOYO, wxString( _("Show &Moyo") ) + wxT('\t') + wxT("F6"), _("Show Moyo"), wxITEM_CHECK );
 	m_menuTools->Append( menuItem16 );
 	
 	m_menuTools->AppendSeparator();
 	
 	wxMenuItem* m_menuItem28;
-	m_menuItem28 = new wxMenuItem( m_menuTools, wxID_PREFERENCES, wxString( MENU_PREFERENCES_WXSTR[cfg_lang]) + wxT('\t') + wxT("Ctrl-E"), wxEmptyString, wxITEM_NORMAL );
+	m_menuItem28 = new wxMenuItem( m_menuTools, wxID_PREFERENCES, wxString( _("S&ettings...") ) + wxT('\t') + wxT("Ctrl-E"), wxEmptyString, wxITEM_NORMAL );
 	m_menuTools->Append( m_menuItem28 );
 	
 	m_menuTools->AppendSeparator();
 	
 	wxMenuItem* m_menuItemAdjustClocks;
-	m_menuItemAdjustClocks = new wxMenuItem( m_menuTools, ID_ADJUSTCLOCKS, wxString(MENU_ADJUST_CLOCKS_WXSTR[cfg_lang]) , wxEmptyString, wxITEM_NORMAL );
+	m_menuItemAdjustClocks = new wxMenuItem( m_menuTools, ID_ADJUSTCLOCKS, wxString( _("&Adjust Clocks...") ) , wxEmptyString, wxITEM_NORMAL );
 	m_menuTools->Append( m_menuItemAdjustClocks );
 	
-	m_menubar1->Append( m_menuTools, MENU_TOOLS_WXSTR[cfg_lang]);
+	m_menubar1->Append( m_menuTools, _("&Tools") ); 
 	
 	m_menu3 = new wxMenu();
 	wxMenuItem* menuItem13;
-	menuItem13 = new wxMenuItem( m_menu3, ID_HELPRULES, wxString(MENU_HELP_RULES_WXSTR[cfg_lang]) + wxT('\t') + wxT("F1"), MENU_HELP_RULES_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem13 = new wxMenuItem( m_menu3, ID_HELPRULES, wxString( _("&Go Rules") ) + wxT('\t') + wxT("F1"), _("Explanation of the rules of Go"), wxITEM_NORMAL );
 	m_menu3->Append( menuItem13 );
 	
 	wxMenuItem* menuItem10;
-	menuItem10 = new wxMenuItem( m_menu3, ID_HOMEPAGE, wxString(MENU_HOME_PAGE_WXSTR[cfg_lang]) , wxEmptyString, wxITEM_NORMAL );
+	menuItem10 = new wxMenuItem( m_menu3, ID_HOMEPAGE, wxString( _("Leela Homepage") ) , wxEmptyString, wxITEM_NORMAL );
 	m_menu3->Append( menuItem10 );
 	
 	m_menu3->AppendSeparator();
 	
 	wxMenuItem* menuItem7;
-	menuItem7 = new wxMenuItem( m_menu3, wxID_ABOUT, wxString(MENU_ABOUT_WXSTR[cfg_lang]) , MENU_ABOUT_NO_KEY_WXSTR[cfg_lang], wxITEM_NORMAL );
+	menuItem7 = new wxMenuItem( m_menu3, wxID_ABOUT, wxString( _("&About...") ) , _("Information about the program"), wxITEM_NORMAL );
 	m_menu3->Append( menuItem7 );
 	
-	m_menubar1->Append( m_menu3, MENU_HELP_WXSTR[cfg_lang]);
+	m_menubar1->Append( m_menu3, _("&Help") ); 
 	
 	this->SetMenuBar( m_menubar1 );
 	
 	m_toolBar = this->CreateToolBar( wxTB_FLAT|wxTB_HORIZONTAL, wxID_ANY ); 
-	m_tool1 = m_toolBar->AddTool( ID_NEWGAME, TBAR_NEW_GAME_WXSTR[cfg_lang], new_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_NEW_GAME_EXP_WXSTR[cfg_lang], TBAR_NEW_GAME_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool1 = m_toolBar->AddTool( ID_NEWGAME, _("New Game"), new_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Start a new game"), _("Start a new game"), NULL ); 
 	
-	m_tool12 = m_toolBar->AddTool( ID_NEWRATED, TBAR_NEW_RATED_WXSTR[cfg_lang], newrated_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_NEW_RATED_EXP_WXSTR[cfg_lang], TBAR_NEW_RATED_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool12 = m_toolBar->AddTool( ID_NEWRATED, _("New Rated Game"), newrated_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Start a new rated game"), _("Start a new rated game"), NULL ); 
 	
-	m_tool4 = m_toolBar->AddTool( ID_OPEN, TBAR_LOAD_GAME_WXSTR[cfg_lang], fileopen_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_LOAD_GAME_EXP_WXSTR[cfg_lang], TBAR_LOAD_GAME_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool4 = m_toolBar->AddTool( ID_OPEN, _("Load Game"), fileopen_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Load a game"), _("Load a game"), NULL ); 
 	
-	m_tool5 = m_toolBar->AddTool( ID_SAVE, TBAR_SAVE_GAME_WXSTR[cfg_lang], filesave_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_SAVE_GAME_EXP_WXSTR[cfg_lang], TBAR_SAVE_GAME_EXP_WXSTR[cfg_lang], NULL ); 
-	
-	m_toolBar->AddSeparator(); 
-	
-	m_tool10 = m_toolBar->AddTool( ID_BACK10, TBAR_BACK10_WXSTR[cfg_lang], back_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_BACK10_EXP_WXSTR[cfg_lang], TBAR_BACK10_EXP_WXSTR[cfg_lang], NULL ); 
-	
-	m_tool13 = m_toolBar->AddTool( ID_UNDO, TBAR_UNDO_WXSTR[cfg_lang], undo_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_UNDO_EXP_WXSTR[cfg_lang], TBAR_UNDO_EXP_WXSTR[cfg_lang], NULL ); 
-	
-	m_tool15 = m_toolBar->AddTool( ID_REDO, TBAR_REDO_WXSTR[cfg_lang], redo_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_REDO_EXP_WXSTR[cfg_lang], TBAR_REDO_EXP_WXSTR[cfg_lang], NULL ); 
-	
-	m_tool9 = m_toolBar->AddTool( ID_FWD10, TBAR_FORWARD10_WXSTR[cfg_lang], forward_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_FORWARD10_EXP_WXSTR[cfg_lang], TBAR_FORWARD10_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool5 = m_toolBar->AddTool( ID_SAVE, _("Save"), filesave_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Save the game"), _("Save the game"), NULL ); 
 	
 	m_toolBar->AddSeparator(); 
 	
-	m_toolForce = m_toolBar->AddTool( ID_FORCE, TBAR_FORCE_COMPUTER_MOVE_WXSTR[cfg_lang], execute_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_FORCE_COMPUTER_MOVE_EXP_WXSTR[cfg_lang], TBAR_FORCE_COMPUTER_MOVE_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool10 = m_toolBar->AddTool( ID_BACK10, _("Go back 10 moves"), back_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Go back 10 moves"), _("Go back 10 moves"), NULL ); 
 	
-	m_toolPushPos = m_toolBar->AddTool( ID_PUSHPOS, TBAR_STORE_POSITION_WXSTR[cfg_lang], plus_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_STORE_POSITION_EXP_WXSTR[cfg_lang], TBAR_STORE_POSITION_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool13 = m_toolBar->AddTool( ID_UNDO, _("Undo"), undo_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Take back one move"), _("Take back one move"), NULL ); 
 	
-	m_toolPopPos = m_toolBar->AddTool( ID_POPPOS, TBAR_REMOVE_POSITION_WXSTR[cfg_lang], minus_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_REMOVE_POSITION_EXP_WXSTR[cfg_lang], TBAR_REMOVE_POSITION_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool15 = m_toolBar->AddTool( ID_REDO, _("Forward"), redo_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Go forward one move"), _("Go forward one move"), NULL ); 
 	
-	m_toolMainline = m_toolBar->AddTool( ID_MAINLINE, TBAR_REVERT_WXSTR[cfg_lang], goparent3_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_REVERT_EXP_WXSTR[cfg_lang], TBAR_REVERT_EXP_WXSTR[cfg_lang], NULL ); 
-	
-	m_toolAnalyze = m_toolBar->AddTool( ID_ANALYZE, TBAR_TOOL_WXSTR[cfg_lang], analyze_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_TOOL_1_EXP_WXSTR[cfg_lang], TBAR_TOOL_1_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool9 = m_toolBar->AddTool( ID_FWD10, _("Forward 10"), forward_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Go forward 10 moves"), _("Go forward 10 moves"), NULL ); 
 	
 	m_toolBar->AddSeparator(); 
 	
-	m_tool2 = m_toolBar->AddTool( ID_PASS, TBAR_TOOL_WXSTR[cfg_lang], delete_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_TOOL_2_EXP_WXSTR[cfg_lang], TBAR_TOOL_2_EXP_WXSTR[cfg_lang], NULL ); 
+	m_toolForce = m_toolBar->AddTool( ID_FORCE, _("Force computer move"), execute_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Force computer move"), _("Force computer move"), NULL ); 
 	
-	m_tool3 = m_toolBar->AddTool( ID_SCORE, TBAR_TOOL_WXSTR[cfg_lang], find_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_TOOL_3_EXP_WXSTR[cfg_lang], TBAR_TOOL_3_EXP_WXSTR[cfg_lang], NULL ); 
+	m_toolPushPos = m_toolBar->AddTool( ID_PUSHPOS, _("Store Position"), plus_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Remember this position on the stack"), _("Remember this position on the stack"), NULL ); 
 	
-	m_tool131 = m_toolBar->AddTool( ID_RESIGN, TBAR_TOOL_WXSTR[cfg_lang], resign_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_TOOL_4_EXP_WXSTR[cfg_lang], TBAR_TOOL_4_EXP_WXSTR[cfg_lang], NULL ); 
+	m_toolPopPos = m_toolBar->AddTool( ID_POPPOS, _("Remove Position"), minus_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Remove the top position from the stack"), _("Remove the top position from the stack"), NULL ); 
+	
+	m_toolMainline = m_toolBar->AddTool( ID_MAINLINE, _("Revert to mainline"), goparent3_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Revert to stored position"), _("Revert to stored position"), NULL ); 
+	
+	m_toolAnalyze = m_toolBar->AddTool( ID_ANALYZE, _("tool"), analyze_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Start/Stop analysis"), _("Start/Stop analysis"), NULL ); 
 	
 	m_toolBar->AddSeparator(); 
 	
-	m_tool11 = m_toolBar->AddTool( wxID_EXIT, TBAR_EXIT_WXSTR[cfg_lang], quit_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, TBAR_EXIT_EXP_WXSTR[cfg_lang], TBAR_EXIT_EXP_WXSTR[cfg_lang], NULL ); 
+	m_tool2 = m_toolBar->AddTool( ID_PASS, _("tool"), delete_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Pass"), _("Pass"), NULL ); 
+	
+	m_tool3 = m_toolBar->AddTool( ID_SCORE, _("tool"), find_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Score the game"), _("Score the game"), NULL ); 
+	
+	m_tool131 = m_toolBar->AddTool( ID_RESIGN, _("tool"), resign_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Resign the game"), _("Resign the game"), NULL ); 
+	
+	m_toolBar->AddSeparator(); 
+	
+	m_tool11 = m_toolBar->AddTool( wxID_EXIT, _("Exit"), quit_png_to_wx_bitmap(), wxNullBitmap, wxITEM_NORMAL, _("Exit the program"), _("Exit the program"), NULL ); 
 	
 	m_toolBar->Realize(); 
 	
@@ -324,7 +324,7 @@ BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
 END_EVENT_TABLE()
 
-TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, NEW_GAME_WXSTR[cfg_lang], pos, size, style )
+TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("New Game"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -342,7 +342,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	
 	wxString m_radioBoxBoardSizeChoices[] = { _("7 x 7"), _("9 x 9"), _("13 x 13"), _("17 x 17"), _("19 x 19"), _("25 x 25") };
 	int m_radioBoxBoardSizeNChoices = sizeof( m_radioBoxBoardSizeChoices ) / sizeof( wxString );
-	m_radioBoxBoardSize = new wxRadioBox( this, wxID_ANY, BOARD_SIZE_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, m_radioBoxBoardSizeNChoices, m_radioBoxBoardSizeChoices, 3, wxRA_SPECIFY_ROWS );
+	m_radioBoxBoardSize = new wxRadioBox( this, wxID_ANY, _("Board size"), wxDefaultPosition, wxDefaultSize, m_radioBoxBoardSizeNChoices, m_radioBoxBoardSizeChoices, 3, wxRA_SPECIFY_ROWS );
 	m_radioBoxBoardSize->SetSelection( 4 );
 	bSizer12->Add( m_radioBoxBoardSize, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
@@ -351,12 +351,12 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	
 	wxStaticBoxSizer* sbSizer2;
 
-	sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, KOMI_0_5_WXSTR[cfg_lang]), wxHORIZONTAL );
+	sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Komi (+0.5)") ), wxHORIZONTAL );
 	m_spinCtrlKomi = new wxSpinCtrl( sbSizer2->GetStaticBox(), ID_KOMISPIN, wxT("7"), wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, -100, 100, 7 );
 
 	sbSizer2->Add( m_spinCtrlKomi, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
-	m_staticText2 = new wxStaticText( sbSizer2->GetStaticBox(), wxID_ANY, KOMI_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText2 = new wxStaticText( sbSizer2->GetStaticBox(), wxID_ANY, _("Komi"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticText2->Wrap( -1 );
 	sbSizer2->Add( m_staticText2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
@@ -364,12 +364,12 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer9->Add( sbSizer2, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
 	wxStaticBoxSizer* sbSizer3;
-	sbSizer3 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, HANDICAP_WXSTR[cfg_lang] ), wxHORIZONTAL );
-	m_spinCtrlHandicap = new wxSpinCtrl( sbSizer3->GetStaticBox(), ID_HANDICAPSPIN, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 0, 100, 0 );
+	sbSizer3 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Handicap") ), wxHORIZONTAL );
 	
+	m_spinCtrlHandicap = new wxSpinCtrl( sbSizer3->GetStaticBox(), ID_HANDICAPSPIN, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 0, 100, 0 );
 	sbSizer3->Add( m_spinCtrlHandicap, 0, wxALIGN_CENTER|wxALL, 5 );
 	
-	m_staticText3 = new wxStaticText( sbSizer3->GetStaticBox(), wxID_ANY, HANDICAP_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText3 = new wxStaticText( sbSizer3->GetStaticBox(), wxID_ANY, _("Handicap"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticText3->Wrap( -1 );
 	sbSizer3->Add( m_staticText3, 0, wxALIGN_CENTER|wxALL, 5 );
 	
@@ -377,11 +377,12 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer9->Add( sbSizer3, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
 	wxStaticBoxSizer* sbSizer5;
-	sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, TIME_FOR_GAME_WXSTR[cfg_lang] ), wxHORIZONTAL );
+	sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game") ), wxHORIZONTAL );
+	
 	m_spinCtrlTime = new wxSpinCtrl( sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 90 );
 	sbSizer5->Add( m_spinCtrlTime, 0, wxALIGN_CENTER|wxALL, 5 );
 	
-	m_staticText13 = new wxStaticText( sbSizer5->GetStaticBox(), wxID_ANY, MINUTES_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText13 = new wxStaticText( sbSizer5->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticText13->Wrap( -1 );
 	sbSizer5->Add( m_staticText13, 0, wxALIGN_CENTER|wxALL, 5 );
 	
@@ -394,22 +395,22 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer10;
 	bSizer10 = new wxBoxSizer( wxVERTICAL );
 	
-	wxString m_radioBoxColorChoices[] = { BLACK_UPPER_WXSTR[cfg_lang], WHITE_UPPER_WXSTR[cfg_lang] };
+	wxString m_radioBoxColorChoices[] = { _("Black"), _("White") };
 	int m_radioBoxColorNChoices = sizeof( m_radioBoxColorChoices ) / sizeof( wxString );
-	m_radioBoxColor = new wxRadioBox( this, wxID_ANY, YOUR_COLOR_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, m_radioBoxColorNChoices, m_radioBoxColorChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxColor = new wxRadioBox( this, wxID_ANY, _("Your color"), wxDefaultPosition, wxDefaultSize, m_radioBoxColorNChoices, m_radioBoxColorChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBoxColor->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxColor, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
-	wxString m_radioBoxLevelChoices[] = { SIMULATE100_WXSTR[cfg_lang], SIMULATE500_WXSTR[cfg_lang], SIMULATE1000_WXSTR[cfg_lang], SIMULATE5000_WXSTR[cfg_lang], SIMULATE10000_WXSTR[cfg_lang], SIMULATE20000_WXSTR[cfg_lang], SIMULATE_UNLIMIT_WXSTR[cfg_lang] };
+	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Unlimited") };
 	int m_radioBoxLevelNChoices = sizeof( m_radioBoxLevelChoices ) / sizeof( wxString );
-	m_radioBoxLevel = new wxRadioBox( this, wxID_ANY, ENGINE_MAX_LEVEL_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
+	m_radioBoxLevel = new wxRadioBox( this, wxID_ANY, _("Engine max level"), wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
 	m_radioBoxLevel->SetSelection( 6 );
 	bSizer10->Add( m_radioBoxLevel, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
 	wxStaticBoxSizer* sbSizerEngineSettings;
-	sbSizerEngineSettings = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, ENGINE_SETTINGS19_WXSTR[cfg_lang] ), wxVERTICAL );
+	sbSizerEngineSettings = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Engine settings (19 x 19)") ), wxVERTICAL );
 	
-	m_checkNeuralNet = new wxCheckBox( sbSizerEngineSettings->GetStaticBox(), wxID_ANY, USE_NET_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkNeuralNet = new wxCheckBox( sbSizerEngineSettings->GetStaticBox(), wxID_ANY, _("Use Neural Network"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkNeuralNet->SetValue(true); 
 	sbSizerEngineSettings->Add( m_checkNeuralNet, 0, wxALL, 5 );
 	
@@ -426,7 +427,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_sdbSizer1 = new wxStdDialogButtonSizer();
 	m_sdbSizer1OK = new wxButton( this, wxID_OK );
 	m_sdbSizer1->AddButton( m_sdbSizer1OK );
-		m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL, CANCEL_WXSTR[cfg_lang] );
+		m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL );
 	m_sdbSizer1->AddButton( m_sdbSizer1Cancel );
 	m_sdbSizer1->Realize();
 	
@@ -438,7 +439,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_sdbSizer1OK = new wxButton( this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_sdbSizer1OK->SetDefault();
 	bSizer19->Add( m_sdbSizer1OK, 0, wxALL|wxEXPAND, 5 );
-	m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL, CANCEL_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer19->Add( m_sdbSizer1Cancel, 0, wxALL|wxEXPAND, 5 );
 	bSizer7->Add( bSizer19, 0, wxALIGN_LEFT|wxALL, 2 );
 	
@@ -456,20 +457,20 @@ BEGIN_EVENT_TABLE( TAboutDialog, wxDialog )
 	EVT_INIT_DIALOG( TAboutDialog::_wxFB_doInit )
 END_EVENT_TABLE()
 
-TAboutDialog::TAboutDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, ABOUT_WXSTR[cfg_lang], pos, size, style )
+TAboutDialog::TAboutDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("About"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
-	m_staticTextVersion = new wxStaticText( this, wxID_ANY, _("Leela ") + VERSION_WXSTR[cfg_lang] + wxString(_(" ")) + wxString(wxT(PROGRAM_VERSION)), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticTextVersion = new wxStaticText( this, wxID_ANY, _("Leela version ") + wxString(wxT(PROGRAM_VERSION)), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticTextVersion->Wrap( -1 );
 	m_staticTextVersion->SetFont( wxFont( 11, 70, 90, 92, false, wxEmptyString ) );
 	
 	bSizer9->Add( m_staticTextVersion, 0, wxALL|wxEXPAND, 10 );
 	
-	m_staticTextEngine = new wxStaticText( this, wxID_ANY, ENGINE_NOTE_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticTextEngine = new wxStaticText( this, wxID_ANY, _("OpenCL/BLAS Engine goes here and can be a very long string"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticTextEngine->Wrap( 400 );
 	bSizer9->Add( m_staticTextEngine, 0, wxALL|wxEXPAND, 5 );
 	
@@ -503,7 +504,7 @@ BEGIN_EVENT_TABLE( TClockAdjustDialog, wxDialog )
 	EVT_BUTTON( wxID_OK, TClockAdjustDialog::_wxFB_doOK )
 END_EVENT_TABLE()
 
-TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, ADJUST_CLOCKS_WXSTR[cfg_lang], pos, size, style )
+TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("Adjust clocks"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -511,7 +512,7 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
 	wxStaticBoxSizer* sbSizer4;
-	sbSizer4 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, BLACK_CLOCK_WXSTR[cfg_lang] ), wxHORIZONTAL );
+	sbSizer4 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Black clock (minutes:seconds)") ), wxHORIZONTAL );
 	
 	m_spinCtrlBlackMins = new wxSpinCtrl( sbSizer4->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxSP_ARROW_KEYS, 0, 999, 30 );
 	sbSizer4->Add( m_spinCtrlBlackMins, 1, wxALL|wxEXPAND, 5 );
@@ -523,7 +524,7 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	bSizer9->Add( sbSizer4, 1, wxALL|wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer6;
-	sbSizer6 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, WHITE_CLOCK_WXSTR[cfg_lang] ), wxHORIZONTAL );
+	sbSizer6 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("White clock (minutes:seconds)") ), wxHORIZONTAL );
 	
 	m_spinCtrlWhiteMins = new wxSpinCtrl( sbSizer6->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxSP_ARROW_KEYS, 0, 999, 30 );
 	sbSizer6->Add( m_spinCtrlWhiteMins, 1, wxALL|wxEXPAND, 5 );
@@ -538,7 +539,7 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	m_sdbSizer3 = new wxStdDialogButtonSizer();
 	m_sdbSizer3OK = new wxButton( this, wxID_OK );
 	m_sdbSizer3->AddButton( m_sdbSizer3OK );
-	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL, CANCEL_WXSTR[cfg_lang] );
+	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL );
 	m_sdbSizer3->AddButton( m_sdbSizer3Cancel );
 	m_sdbSizer3->Realize();
 	
@@ -550,7 +551,7 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	m_sdbSizer3OK = new wxButton( this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_sdbSizer3OK->SetDefault();
 	bSizer20->Add( m_sdbSizer3OK, 0, wxALL|wxEXPAND, 5 );
-	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL, CANCEL_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer20->Add( m_sdbSizer3Cancel, 0, wxALL|wxEXPAND, 5 );
 	bSizer9->Add( bSizer20, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 	
@@ -569,7 +570,7 @@ BEGIN_EVENT_TABLE( TRatedSizeDialog, wxDialog )
 	EVT_BUTTON( ID_SIZE19, TRatedSizeDialog::_wxFB_doSize19 )
 END_EVENT_TABLE()
 
-TRatedSizeDialog::TRatedSizeDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, SELECT_BOARD_SIZE_WXSTR[cfg_lang], pos, size, style )
+TRatedSizeDialog::TRatedSizeDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("Select board size"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -593,14 +594,14 @@ TRatedSizeDialog::~TRatedSizeDialog()
 {
 }
 
-TCalculateDialog::TCalculateDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, CALCULATION_WXSTR[cfg_lang], pos, size, style )
+TCalculateDialog::TCalculateDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("Calculation in progress"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
 	wxBoxSizer* bSizer11;
 	bSizer11 = new wxBoxSizer( wxVERTICAL );
 	
-	m_staticTextCalculating = new wxStaticText( this, wxID_ANY, CALCULATING_HOLD_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticTextCalculating = new wxStaticText( this, wxID_ANY, _("Calculating, please hold..."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticTextCalculating->Wrap( -1 );
 	bSizer11->Add( m_staticTextCalculating, 1, wxALL|wxEXPAND, 5 );
 	
@@ -621,7 +622,7 @@ BEGIN_EVENT_TABLE( TAnalysisWindow, wxFrame )
 	EVT_GRID_CELL_RIGHT_CLICK( TAnalysisWindow::_wxFB_doContextMenu )
 END_EVENT_TABLE()
 
-TAnalysisWindow::TAnalysisWindow( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, ANALYSIS_WXSTR[cfg_lang], pos, size, style )
+TAnalysisWindow::TAnalysisWindow( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, _("Analysis"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -646,12 +647,12 @@ TAnalysisWindow::TAnalysisWindow( wxWindow* parent, wxWindowID id, const wxStrin
 	m_moveGrid->EnableDragColMove( false );
 	m_moveGrid->EnableDragColSize( true );
 	m_moveGrid->SetColLabelSize( 30 );
-	m_moveGrid->SetColLabelValue( 0, MOVE_WXSTR[cfg_lang] );
-	m_moveGrid->SetColLabelValue( 1, EFFORT_WXSTR[cfg_lang] + _("%") );
-	m_moveGrid->SetColLabelValue( 2, SIMULATIONS_COL_LABEL_WXSTR[cfg_lang] );
-	m_moveGrid->SetColLabelValue( 3, WIN_PER_WXSTR[cfg_lang] );
-	m_moveGrid->SetColLabelValue( 4, _("Net") + PROB_WXSTR[cfg_lang] + _("%") );
-	m_moveGrid->SetColLabelValue( 5, PV_WXSTR[cfg_lang] );
+	m_moveGrid->SetColLabelValue( 0, _("Move") );
+	m_moveGrid->SetColLabelValue( 1, _("Effort%") );
+	m_moveGrid->SetColLabelValue( 2, _("Simulations") );
+	m_moveGrid->SetColLabelValue( 3, _("Win%") );
+	m_moveGrid->SetColLabelValue( 4, _("Net Prob%") );
+	m_moveGrid->SetColLabelValue( 5, _("PV") );
 	m_moveGrid->SetColLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTRE );
 	
 	// Rows
@@ -689,7 +690,7 @@ BEGIN_EVENT_TABLE( TSettingsDialog, wxDialog )
 	EVT_BUTTON( wxID_OK, TSettingsDialog::_wxFB_doOK )
 END_EVENT_TABLE()
 
-TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, SETTINGS_WXSTR[cfg_lang], pos, size, style )
+TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("Settings"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -701,24 +702,24 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	bSizer15 = new wxBoxSizer( wxVERTICAL );
 	
 	wxStaticBoxSizer* sbSizer7;
-	sbSizer7 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, ENGINE_SETTINGS_WXSTR[cfg_lang] ), wxVERTICAL );
+	sbSizer7 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, _("Engine Settings") ), wxVERTICAL );
 	
 	wxGridSizer* gSizer1;
 	gSizer1 = new wxGridSizer( 0, 2, 0, 0 );
 	
-	m_checkBoxPasses = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PASSTOGGLE, ALLOW_PASSES_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxPasses = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PASSTOGGLE, _("Allow Passes"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxPasses->SetValue(true); 
 	gSizer1->Add( m_checkBoxPasses, 0, wxALL, 5 );
 	
-	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, PONDERING_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxPondering->SetValue(true); 
 	gSizer1->Add( m_checkBoxPondering, 0, wxALL, 5 );
 	
-	m_checkBoxResignations = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, ALLOW_RESIGN_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxResignations = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxResignations->SetValue(true); 
 	gSizer1->Add( m_checkBoxResignations, 0, wxALL, 5 );
 	
-	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, NEURAL_NETWORKS_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, _("Neural Networks"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxNeuralNet->SetValue(true); 
 	gSizer1->Add( m_checkBoxNeuralNet, 0, wxALL, 5 );
 	
@@ -729,16 +730,16 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	bSizer15->Add( sbSizer7, 0, wxBOTTOM|wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer9;
-	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, INTERFACE_SETTINGS_WXSTR[cfg_lang] ), wxVERTICAL );
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, _("Interface Settings") ), wxVERTICAL );
 	
-	m_checkBoxSound = new wxCheckBox( sbSizer9->GetStaticBox(), ID_SOUNDSWITCH, SOUND_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxSound = new wxCheckBox( sbSizer9->GetStaticBox(), ID_SOUNDSWITCH, _("Sound"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxSound->SetValue(true); 
 	sbSizer9->Add( m_checkBoxSound, 0, wxALL, 5 );
 	
-	m_checkBoxDPIScaling = new wxCheckBox( sbSizer9->GetStaticBox(), ID_DPISCALING, ALLOW_DPI_SCALING_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxDPIScaling = new wxCheckBox( sbSizer9->GetStaticBox(), ID_DPISCALING, _("Allow DPI Scaling (needs restart)"), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer9->Add( m_checkBoxDPIScaling, 0, wxALL, 5 );
 	
-	m_checkBoxJapanese = new wxCheckBox( sbSizer9->GetStaticBox(), ID_JAPANESE, JAPANESE_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxJapanese = new wxCheckBox( sbSizer9->GetStaticBox(), ID_JAPANESE, _("Japanese"), wxDefaultPosition, wxDefaultSize, 0 );
 	if (cfg_lang == 0) {
 		m_checkBoxJapanese->SetValue(false);
 	} else {
@@ -753,7 +754,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_sdbSizer3 = new wxStdDialogButtonSizer();
 	m_sdbSizer3OK = new wxButton( m_panel4, wxID_OK );
 	m_sdbSizer3->AddButton( m_sdbSizer3OK );
-	m_sdbSizer3Cancel = new wxButton( m_panel4, wxID_CANCEL, CANCEL_WXSTR[cfg_lang] );
+	m_sdbSizer3Cancel = new wxButton( m_panel4, wxID_CANCEL );
 	m_sdbSizer3->AddButton( m_sdbSizer3Cancel );
 	m_sdbSizer3->Realize();
 	
@@ -765,7 +766,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_sdbSizer3OK = new wxButton( m_panel4, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_sdbSizer3OK->SetDefault();
 	bSizer21->Add( m_sdbSizer3OK, 0, wxALL|wxEXPAND, 5 );
-	m_sdbSizer3Cancel = new wxButton( m_panel4, wxID_CANCEL, CANCEL_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_sdbSizer3Cancel = new wxButton( m_panel4, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer21->Add( m_sdbSizer3Cancel, 0, wxALL|wxEXPAND, 5 );
 	bSizer15->Add( bSizer21, 0, wxEXPAND, 5 );
 	
@@ -792,7 +793,7 @@ BEGIN_EVENT_TABLE( TScoreDialog, wxDialog )
 	EVT_BUTTON( ID_SCORE_DISPUTE, TScoreDialog::_wxFB_doDispute )
 END_EVENT_TABLE()
 
-TScoreDialog::TScoreDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, GAME_SCORE_WXSTR[cfg_lang], pos, size, style )
+TScoreDialog::TScoreDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, _("Game Score"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -803,15 +804,15 @@ TScoreDialog::TScoreDialog( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxVERTICAL );
 	
-	m_staticTextScore = new wxStaticText( m_panel4, wxID_ANY, FINAL_SCORE_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticTextScore = new wxStaticText( m_panel4, wxID_ANY, _("Final Score:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticTextScore->Wrap( -1 );
 	bSizer17->Add( m_staticTextScore, 1, wxALL|wxEXPAND, 5 );
 	
-	m_staticTextMessage = new wxStaticText( m_panel4, wxID_ANY, BLACK_WINS_BY00_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticTextMessage = new wxStaticText( m_panel4, wxID_ANY, _("Black wins by 0.0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticTextMessage->Wrap( -1 );
 	bSizer17->Add( m_staticTextMessage, 1, wxALL|wxEXPAND, 5 );
 	
-	m_staticTextConfidence = new wxStaticText( m_panel4, wxID_ANY, SCORED_CORRECTLY_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticTextConfidence = new wxStaticText( m_panel4, wxID_ANY, _("I'm fairly sure I scored this correctly."), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticTextConfidence->Wrap( -1 );
 	bSizer17->Add( m_staticTextConfidence, 1, wxALL|wxEXPAND, 5 );
 	
@@ -821,11 +822,11 @@ TScoreDialog::TScoreDialog( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	bSizer16->Add( 0, 0, 1, wxEXPAND, 5 );
 	
-	m_buttonOK = new wxButton( m_panel4, ID_SCORE_ACCEPT, ACCEPT_BUTTON_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonOK = new wxButton( m_panel4, ID_SCORE_ACCEPT, _("&Accept"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonOK->SetDefault(); 
 	bSizer16->Add( m_buttonOK, 0, wxALL|wxEXPAND, 5 );
 	
-	m_buttonDispute = new wxButton( m_panel4, ID_SCORE_DISPUTE, DISPUTE_BUTTON_WXSTR[cfg_lang], wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonDispute = new wxButton( m_panel4, ID_SCORE_DISPUTE, _("&Dispute Score"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( m_buttonDispute, 0, wxALL|wxEXPAND, 5 );
 	
 	
@@ -848,7 +849,7 @@ TScoreDialog::~TScoreDialog()
 {
 }
 
-TScoreHistogram::TScoreHistogram( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, WIN_RATE_HISTOGRAM_WXSTR[cfg_lang], pos, size, style )
+TScoreHistogram::TScoreHistogram( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, _("Win Rate Histogram"), pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	

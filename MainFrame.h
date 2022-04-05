@@ -85,7 +85,8 @@ class MainFrame : public TMainFrame {
 	void updateStatusBar(char *str);
 	void setActiveMenus();
 	void gameNoLongerCounts();
-	void loadSGFString(const wxString & SGF, int movenum = 999);
+	void loadSGFString(const wxString& SGF, int movenum = 999);
+	void setLocale(wxLocale & locale);
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -109,6 +110,7 @@ class MainFrame : public TMainFrame {
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
+	wxLocale m_locale;
 	friend class TEngineThread;
 	friend class TBoardPanel;
 };

@@ -61,7 +61,7 @@ sources = engine/Network.cpp engine/AttribScores.cpp engine/FullBoard.cpp engine
 	  engine/NN128.cpp engine/NNValue.cpp engine/OpenCL.cpp engine/MCPolicy.cpp \
 	  AboutDialog.cpp AnalysisWindow.cpp App.cpp CalculateDialog.cpp ClockAdjustDialog.cpp \
 	  EngineThread.cpp GUI.cpp MainFrame.cpp NewGameDialog.cpp RatedSizeDialog.cpp \
-	  ScoreDialog.cpp ScoreHistogram.cpp SettingsDialog.cpp TBoardPanel.cpp TScorePanel.cpp Msg.cpp
+	  ScoreDialog.cpp ScoreHistogram.cpp SettingsDialog.cpp TBoardPanel.cpp TScorePanel.cpp
 
 objects = $(sources:.cpp=.o)
 deps = $(sources:%.cpp=%.d)

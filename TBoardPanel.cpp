@@ -9,8 +9,6 @@
 #include "img/whitestone.xpm"
 #include "img/wood.xpm"
 #endif
-#include "GTP.h"
-#include "Msg.h"
 
 wxDEFINE_EVENT(wxEVT_DISPLAY_MAINLINE, wxCommandEvent);
 
@@ -104,14 +102,14 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     PrepareDC(dc);
 
     wxSize sz = GetClientSize();
-    wxLogDebug(WIDTH_WXSTR[cfg_lang] + ": %d " + HEIGHT_WXSTR[cfg_lang] + ": %d", sz.GetWidth(), sz.GetHeight());
+    wxLogDebug(_("width: %d height: %d"), sz.GetWidth(), sz.GetHeight());
     int boardSize = m_State->board.get_boardsize();
 
     int minDim = std::min(sz.GetWidth(), sz.GetHeight());
     int cellDim = std::max(1, minDim / ((boardSize - 1) + 2));
     m_cellDim = cellDim;
 
-    wxLogDebug(CELL_SIZE_WXSTR[cfg_lang] + ": %d", cellDim);
+    wxLogDebug(_("cell size: %d"), cellDim);
 
     // Tiled background
     int tileW = m_tileFull.GetWidth();
@@ -126,7 +124,7 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     }
 
     if (m_State == NULL) {
-        wxLogDebug(PAINT_ON_EMPTY_WXSTR[cfg_lang]);
+        wxLogDebug(_("Paint on empty state"));
         return;
     }
 
@@ -437,20 +435,20 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
     int startX = event.GetX();
     int startY = event.GetY();
     
-    wxLogDebug(LEFT_DOWN_WXSTR[cfg_lang] + " %d %d", startX, startY);
+    wxLogDebug(_("Left down at %d %d"), startX, startY);
     
     if (m_State == NULL) {
-        wxLogDebug(CLICK_ON_EMPTY_WXSTR[cfg_lang]);
+        wxLogDebug(_("Click on empty board"));
         return;
     }
     
     if (m_State->get_last_move() == FastBoard::RESIGN) {
-        wxLogDebug(GAME_RESIGNED_WXSTR[cfg_lang]);
+        wxLogDebug(_("Game has been resigned"));
         return;
     }
     
     if (m_stateLock) {
-        wxLogDebug(CLICK_ON_LOCKED_WXSTR[cfg_lang]);
+        wxLogDebug(_("Click on locked state"));
         return;
     } 
     
@@ -482,7 +480,7 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         }
         
     } else {
-        wxLogDebug(NOT_YOUR_MOVE_WXSTR[cfg_lang]);
+        wxLogDebug(_("It's not your move!"));
     }
     
     event.Skip();

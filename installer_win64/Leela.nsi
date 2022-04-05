@@ -1,6 +1,6 @@
-﻿!define LEELABIN  "Leela0110.exe"
-!define LEELAOCL  "Leela0110_OpenCL.exe"
-!define VERSION   "0.11.0"
+﻿!define LEELABIN  "LeelaI18N.exe"
+!define LEELAOCL  "LeelaI18N_OpenCL.exe"
+!define VERSION   "1.1.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -20,7 +20,7 @@ ManifestDPIAware true
 ;
 ; General options
 ;
-  Name                    "Leela ${VERSIONNAME}"
+  Name                    "LeelaI18N ${VERSIONNAME}"
   CRCCheck                on
   SetCompress             auto
   SetDatablockOptimize    on
@@ -29,19 +29,20 @@ ManifestDPIAware true
   SetDateSave             on
   WindowIcon              on
   XPStyle                 on
-  BrandingText            "Leela ${VERSIONNAME}"
-  UninstallCaption        "Leela ${VERSIONNAME} Uninstall"
+  BrandingText            "LeelaI18N ${VERSIONNAME}"
+  UninstallCaption        "LeelaI18N ${VERSIONNAME} Uninstall"
   ShowUninstDetails       hide
   ShowInstDetails         hide
   RequestExecutionLevel   user
 
-  !if "${V4}" != ""
-  OutFile "setupLeela${V1}${V2}${V3}${V4}.exe"
-  !else if "${V3}" != ""
-  OutFile "setupLeela${V1}${V2}${V3}.exe"
-  !else
-  OutFile "setupLeela${V1}${V2}.exe"
-  !endif
+;  !if "${V4}" != ""
+;  OutFile "setupLeela${V1}${V2}${V3}${V4}.exe"
+;  !else if "${V3}" != ""
+;  OutFile "setupLeela${V1}${V2}${V3}.exe"
+;  !else
+;  OutFile "setupLeela${V1}${V2}.exe"
+;  !endif
+  OutFile "setupLeelaI18N.exe"
 
 !addplugindir ".\installer"
 !addincludedir ".\installer"
@@ -57,8 +58,8 @@ Var install_for_all
 ;
   !searchparse "ver: ${VERSION}.0.0.0." "ver: " V1 . V2 . V3 . V4 .
   VIProductVersion "${V1}.${V2}.${V3}.${V4}"
-  VIAddVersionKey "FileDescription" "Leela installer"
-  VIAddVersionKey "ProductName" "Leela"
+  VIAddVersionKey "FileDescription" "LeelaI18N installer"
+  VIAddVersionKey "ProductName" "LeelaI18N"
   VIAddVersionKey "CompanyName" "Sjeng.Org"
   VIAddVersionKey "LegalCopyright" "© Gian-Carlo Pascutto. All rights reserved."
   VIAddVersionKey "FileVersion" "${VERSION}"
@@ -71,7 +72,7 @@ Var install_for_all
 ;
 ;Default install dir here is just a placeholder. Proper defaults are initialized in .onInit
 ;
-  InstallDir "-\Leela"
+  InstallDir "-\LeelaI18N"
 
 ;
 ;Define page settings
@@ -90,7 +91,7 @@ Var install_for_all
   !define MUI_COMPONENTSPAGE_NODESC
   !define MUI_CUSTOMFUNCTION_GUIINIT onGuiInit
 
-  !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Leela - the Go program.$\r$\n$\r$\n$\r$\nClick Next to continue."
+  !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of LeelaI18N - the Go program.$\r$\n$\r$\n$\r$\nClick Next to continue."
 
 ;
 ; Welcome page
@@ -106,9 +107,9 @@ Var install_for_all
 ;
 ;Start Menu Folder Page Configuration
 ;
-  !define MUI_STARTMENUPAGE_DEFAULTFOLDER "Leela"
+  !define MUI_STARTMENUPAGE_DEFAULTFOLDER "LeelaI18N"
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "SHCTX"
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Sjeng.Org\Leela"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Sjeng.Org\LeelaI18N"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 
   !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
@@ -130,21 +131,21 @@ Function .onInit
   !insertmacro UAC_PageElevation_OnInit
 
   StrCpy $install_for_all 0
-  ReadRegStr $0 HKLM "Software\Sjeng.Org\Leela" "InstallDir"
+  ReadRegStr $0 HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
   ${If} $0 != ""
     StrCpy $install_for_all 1
   ${EndIf}
 
   ${If} $STARTMENU_FOLDER == ""
-    ReadRegStr $STARTMENU_FOLDER HKCU "Software\Leela" "Start Menu Folder"
+    ReadRegStr $STARTMENU_FOLDER HKCU "Software\LeelaI18N" "Start Menu Folder"
   ${EndIf}
-  ${If} $INSTDIR == "-\Leela"
-    ReadRegStr $INSTDIR HKLM "Software\Sjeng.Org\Leela" "InstallDir"
+  ${If} $INSTDIR == "-\LeelaI18N"
+    ReadRegStr $INSTDIR HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
     ${If} $INSTDIR == ""
-      ReadRegStr $INSTDIR HKCU "Software\Sjeng.Org\Leela" "InstallDir"
+      ReadRegStr $INSTDIR HKCU "Software\Sjeng.Org\LeelaI18N" "InstallDir"
     ${EndIf}
     ${If} $INSTDIR == ""
-      ReadRegStr $INSTDIR HKCU "Software\Leela" "" ; old version used this registry key
+      ReadRegStr $INSTDIR HKCU "Software\LeelaI18N" "" ; old version used this registry key
     ${EndIf}
   ${EndIf}
 
@@ -163,8 +164,8 @@ Function .onInit
   ${Else}
     SetShellVarContext all
   ${EndIf}
-  ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" "UninstallString"
-  ReadRegStr $1 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" "DisplayVersion"
+  ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" "UninstallString"
+  ReadRegStr $1 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" "DisplayVersion"
   ${If} $0 == ""
   ${OrIf} "$1" == "${VERSIONNAME}"
   ${OrIfNot} ${FileExists} $0
@@ -206,7 +207,7 @@ Function ModeSelectionPageCreate
   ${NSD_CreateLabel} 12u 40u 90% 20u "Default. No administrative rights required."
   Pop $0
 
-  ${NSD_CreateLabel} 12u 90u 90% 20u "Install Leela for all users of this machine."
+  ${NSD_CreateLabel} 12u 90u 90% 20u "Install LeelaI18N for all users of this machine."
   Pop $0
 
   #CreateFont $0 $(^Font) $(^FontSize) "700"
@@ -285,28 +286,28 @@ Function PreDir
     SetShellVarContext all
   ${EndIf}
   ${If} $install_for_all == 1
-    ReadRegStr $0 HKCU "Software\Sjeng.Org\Leela" "InstallDir"
+    ReadRegStr $0 HKCU "Software\Sjeng.Org\LeelaI18N" "InstallDir"
     ${If} $0 == ""
-      ReadRegStr $0 HKCU "Software\Leela" ""
+      ReadRegStr $0 HKCU "Software\LeelaI18N" ""
     ${EndIf}
-    ${If} $INSTDIR == "$LOCALAPPDATA\Programs\Leela"
+    ${If} $INSTDIR == "$LOCALAPPDATA\Programs\LeelaI18N"
     ${OrIf} $INSTDIR == $0
       StrCpy $INSTDIR ""
     ${EndIf}
   ${Else}
-    ReadRegStr $0 HKLM "Software\Sjeng.Org\Leela" "InstallDir"
-    ${If} $INSTDIR == "$PROGRAMFILES\Leela"
+    ReadRegStr $0 HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
+    ${If} $INSTDIR == "$PROGRAMFILES\LeelaI18N"
     ${OrIf} $INSTDIR == $0
       StrCpy $INSTDIR ""
     ${EndIf}
   ${EndIf}
   ${If} $INSTDIR == ""
-    ReadRegStr $INSTDIR SHCTX "Software\Sjeng.Org\Leela" "InstallDir"
+    ReadRegStr $INSTDIR SHCTX "Software\Sjeng.Org\LeelaI18N" "InstallDir"
     ${If} $INSTDIR == ""
       ${If} $install_for_all == 0
-        StrCpy $INSTDIR "$LOCALAPPDATA\Programs\Leela"
+        StrCpy $INSTDIR "$LOCALAPPDATA\Programs\LeelaI18N"
       ${Else}
-        StrCpy $INSTDIR "$PROGRAMFILES\Leela"
+        StrCpy $INSTDIR "$PROGRAMFILES\LeelaI18N"
       ${EndIf}
     ${EndIf}
   ${EndIf}
@@ -315,14 +316,14 @@ FunctionEnd
 Var size
 
 Section "Uninstall previous version" cleanup
-  ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" "UninstallString"
+  ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" "UninstallString"
   ${If} $0 != ""
   ${AndIf} ${FileExists} $0
     ExecWait '"$0" /S /update' $1
   ${EndIf}
 SectionEnd
 
-Section "Leela" leela
+Section "LeelaI18N" leela
   SectionIn RO
   SetOutPath $INSTDIR
 
@@ -334,31 +335,40 @@ Section "Leela" leela
   File "license.rtf"
 
   ;create desktop shortcut
-  CreateShortCut "$DESKTOP\Leela.lnk" "$INSTDIR\${LEELABIN}" ""
+  CreateShortCut "$DESKTOP\LeelaI18N.lnk" "$INSTDIR\${LEELABIN}" ""
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   AddSize 4
   ;create start menu shortcut
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Leela.lnk" "$INSTDIR\${LEELABIN}"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\LeelaI18N.lnk" "$INSTDIR\${LEELABIN}"
   !insertmacro MUI_STARTMENU_WRITE_END
+
+  RMDir /r "$INSTDIR\catalogs"
+  CreateDirectory "$INSTDIR\catalogs"
+  CreateDirectory "$INSTDIR\catalogs\ja"
+  CreateDirectory "$INSTDIR\catalogs\ja\LC_MESSAGES"
+  SetOutPath "$INSTDIR\catalogs\ja\LC_MESSAGES"
+  File "bin\catalogs\ja\LC_MESSAGES\messages.mo"
+
+  SetOutPath $INSTDIR
 
   SectionGetSize ${leela} $0
   IntOp $size $size + $0
 SectionEnd
 
-Section /o "Leela (GPU accelerated)" leela_ocl
+Section /o "LeelaI18N (GPU accelerated)" leela_ocl
   File "bin\${LEELAOCL}"
   #File "bin\OpenCL.dll"
 
   ;create desktop shortcut
-  CreateShortCut "$DESKTOP\Leela (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}" ""
+  CreateShortCut "$DESKTOP\LeelaI18N (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}" ""
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   AddSize 4
   ;create start menu shortcut
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Leela (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\LeelaI18N (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}"
   !insertmacro MUI_STARTMENU_WRITE_END
 
   SectionGetSize ${leela_ocl} $0
@@ -369,7 +379,7 @@ Section "-common" common
   File "bin\Leela Homepage.url"
 
   ;store installation folder
-  WriteRegStr SHCTX "Software\Sjeng.Org\Leela" "InstallDir" $INSTDIR
+  WriteRegStr SHCTX "Software\Sjeng.Org\LeelaI18N" "InstallDir" $INSTDIR
 
   ;create uninstaller
   AddSize 73
@@ -378,7 +388,7 @@ Section "-common" common
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   AddSize 8
   ;create start menu shortcuts
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Leela Homepage.lnk" "$INSTDIR\Leela Homepage.url" \
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\LeelaI18N Homepage.lnk" "$INSTDIR\Leela Homepage.url" \
                   "" "" 0 SW_SHOWNORMAL \
                   "" "https://www.sjeng.org/leela"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
@@ -387,27 +397,27 @@ Section "-common" common
   SectionGetSize ${common} $0
   IntOp $size $size + $0
 
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
-                    "DisplayName" "Leela - the Go Program"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
+                    "DisplayName" "LeelaI18N - the Go Program"
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                     "DisplayVersion" "${VERSIONNAME}"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                     "DisplayIcon" "$INSTDIR\${LEELABIN},0"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                    "UninstallString" "$INSTDIR\Uninstall.exe"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                    "InstallLocation" "$INSTDIR"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                    "Publisher" "Sjeng.Org"
-  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                      "EstimatedSize" $size
-  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                      "NoModify" 1
-  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                      "NoRepair" 1
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                    "HelpLink" "https://www.sjeng.org"
-  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela" \
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N" \
                    "URLInfoAbout" "https://www.sjeng.org"
 SectionEnd
 
@@ -430,7 +440,7 @@ Var updating
 
 Function un.onInit
   StrCpy $install_for_all 0
-  ReadRegStr $0 HKLM "Software\Sjeng.Org\Leela" "InstallDir"
+  ReadRegStr $0 HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
   ${If} $0 != ""
     StrCpy $install_for_all 1
   ${EndIf}
@@ -481,15 +491,16 @@ Section "Uninstall"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"
+  RMDir /r "$INSTDIR\catalogs"
 
-  Delete "$DESKTOP\Leela.lnk"
-  Delete "$DESKTOP\Leela (GPU accelerated).lnk"
+  Delete "$DESKTOP\LeelaI18N.lnk"
+  Delete "$DESKTOP\LeelaI18N (GPU accelerated).lnk"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
 
-  Delete "$SMPROGRAMS\$MUI_TEMP\Leela.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Leela (GPU accelerated).lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Leela Homepage.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\LeelaI18N.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\LeelaI18N (GPU accelerated).lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\LeelaI18N Homepage.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
 
   ;Delete empty start menu parent directories
@@ -506,13 +517,13 @@ Section "Uninstall"
 
   startMenuDeleteLoopDone:
 
-  DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leela"
+  DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\LeelaI18N"
   ${If} $install_for_all <> 0
-    DeleteRegKey SHCTX "Software\Sjeng.Org\Leela"
+    DeleteRegKey SHCTX "Software\Sjeng.Org\LeelaI18N"
     DeleteRegKey /ifempty SHCTX "Software\Sjeng.Org"
   ${EndIf}
   ${If} $updating == 0
-    DeleteRegKey HKCU "Software\Sjeng.Org\Leela"
+    DeleteRegKey HKCU "Software\Sjeng.Org\LeelaI18N"
     DeleteRegKey /ifempty HKCU "Software\Sjeng.Org"
   ${EndIf}
 

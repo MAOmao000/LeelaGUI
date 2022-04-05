@@ -21,9 +21,6 @@
 #ifdef USE_OPENCL
 #include "OpenCL.h"
 #endif
-#ifndef _CONSOLE
-#include "Msg.h"
-#endif
 
 using namespace Utils;
 
@@ -203,29 +200,29 @@ void UCTSearch::dump_GUI_stats(GameState & state, UCTNode & parent) {
             pvstring += " " + get_pv(tmpstate, *node);
 
             TRowVector row;
-            row.emplace_back(MOVE_STR[cfg_lang], movestr);
-            row.emplace_back(EFFORT_STR[cfg_lang] + std::string("%"),
+            row.emplace_back(_("Move"), movestr);
+            row.emplace_back(_("Effort%"),
                 std::to_string(100.0 * node->get_visits() / (double)total_visits));
-            row.emplace_back(SIMULATIONS_STR[cfg_lang],
+            row.emplace_back(_("Simulations"),
                 std::to_string(node->get_visits()));
-            row.emplace_back(WIN_STR[cfg_lang] + std::string("%"),
+            row.emplace_back(_("Win%"),
                 node->get_visits() > 0 ?
                     std::to_string(node->get_mixed_score(color)*100.0f) :
                     std::string("-"));
             if (m_use_nets) {
-                row.emplace_back(std::string("MC ") + WIN_STR[cfg_lang] + std::string("%"),
+                row.emplace_back(_("MC Win%"),
                     node->get_visits() > 0 ?
                     std::to_string(node->get_winrate(color)*100.0f) :
                     std::string("-"));
-                row.emplace_back(std::string("Net ") + WIN_STR[cfg_lang] + std::string("%"),
+                row.emplace_back(_("Net Win%"),
                     node->get_evalcount() > 0 ?
                     std::to_string(node->get_eval(color)*100.0f) :
                     std::string("-"));
             }
             row.emplace_back(
-                m_use_nets ? std::string("Net ") + PROB_STR[cfg_lang] + std::string("%") : EVAL_STR[cfg_lang],
+                m_use_nets ? _("Net Prob%") : _("Eval"),
                 std::to_string(node->get_score() * 100.0f));
-            row.emplace_back(EVAL_STR[cfg_lang], pvstring);
+            row.emplace_back(_("PV"), pvstring);
 
             analysis_data.emplace_back(row);
             move_data->emplace_back(movestr,
@@ -715,12 +712,10 @@ void UCTSearch::dump_analysis(void) {
     }
 
     if (!m_quiet) {
-        GUIprintf(cfg_lang, "%s: %d, %s: %5.2f%%, %s: %s",
-                   NODES_UPPER_STR[cfg_lang].c_str(), m_root.get_visits(),
-                   WIN_STR[cfg_lang].c_str(), mixrate,
-                   PV_STR[cfg_lang].c_str(), pvstring.c_str());
+        GUIprintf(cfg_lang, _("Nodes: %d, Win: %5.2f%%, PV: %s").c_str(), m_root.get_visits(),
+                   mixrate, pvstring.c_str());
     } else {
-        GUIprintf(cfg_lang, "%d %s%s", m_root.get_visits(), NODES_STR[cfg_lang].c_str(), SEARCHED_STR[cfg_lang].c_str());
+        GUIprintf(cfg_lang, _("%d nodes searched").c_str(), m_root.get_visits());
     }
 }
 
@@ -785,7 +780,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
     if (!m_analyzing) {
         m_rootstate.get_timecontrol().set_boardsize(m_rootstate.board.get_boardsize());
         time_for_move = m_rootstate.get_timecontrol().max_time_for_move(color);
-        GUIprintf(cfg_lang, "%s%.1f%s", THINKING_AT_STR[cfg_lang].c_str(), time_for_move/100.0f, THINKING_SEC_STR[cfg_lang].c_str());
+        GUIprintf(cfg_lang, _("Thinking at most %.1f seconds...").c_str(), time_for_move/100.0f);
 #ifdef KGS
         if (m_rootstate.get_handicap() > 3
             || m_rootstate.get_komi() < 0.0f
@@ -804,7 +799,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
 #endif
     } else {
         time_for_move = INT_MAX;
-        GUIprintf(cfg_lang, "%s", THINKING_STR[cfg_lang].c_str());
+        GUIprintf(cfg_lang, _("Thinking...").c_str());
     }
 
     // do some preprocessing for move ordering
@@ -953,18 +948,18 @@ int UCTSearch::think(int color, passflag_t passflag) {
                  (int)m_nodes,
                  (int)m_playouts,
                  (m_playouts * 100) / (centiseconds_elapsed+1));
-        GUIprintf(cfg_lang, "%d %s, %d %s, %d %s, %d %s",
-                  m_root.get_visits(), VISITS_STR[cfg_lang].c_str(),
-                  (int)m_nodes, NODES_STR[cfg_lang].c_str(),
-                  (int)m_playouts, PLAYOUTS_STR[cfg_lang].c_str(),
-                  (m_playouts * 100) / (centiseconds_elapsed+1), PLAYOUTS_PER_STR[cfg_lang].c_str());
+        GUIprintf(cfg_lang, _("%d visits, %d nodes, %d playouts, %d p/s").c_str(),
+                 m_root.get_visits(),
+                  (int)m_nodes,
+                  (int)m_playouts,
+                 (m_playouts * 100) / (centiseconds_elapsed+1));
     }
     int bestmove = get_best_move(passflag);
 #else
     int bestmove = get_best_move_nosearch(filter_moves, mc_score, passflag);
 #endif
 
-    GUIprintf(cfg_lang,"%s: %s", BEST_MOVE_STR[cfg_lang].c_str(), m_rootstate.move_to_text(bestmove).c_str());
+    GUIprintf(cfg_lang, _("Best move: %s").c_str(), m_rootstate.move_to_text(bestmove).c_str());
 
     return bestmove;
 }

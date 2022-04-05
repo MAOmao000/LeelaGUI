@@ -1,0 +1,884 @@
+# Japanese translations for PACKAGE package
+# PACKAGE �p�b�P�[�W�ɑ΂���p��.
+# Copyright (C) 2022 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-04-05 16:35+0900\n"
+"PO-Revision-Date: 2022-04-05 16:35+0900\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: AboutDialog.cpp:14 GUI.cpp:467
+msgid "Leela version "
+msgstr "Leela バージョン "
+
+#: AnalysisWindow.cpp:121 GUI.cpp:650 engine\UCTSearch.cpp:203
+msgid "Move"
+msgstr "着手"
+
+#: AnalysisWindow.cpp:125 AnalysisWindow.cpp:193 AnalysisWindow.cpp:247
+#: GUI.cpp:655 engine\UCTSearch.cpp:225
+msgid "PV"
+msgstr "予想手順"
+
+#: AnalysisWindow.cpp:137 GUI.cpp:653 engine\UCTSearch.cpp:211
+msgid "Win%"
+msgstr "勝率%"
+
+#: AnalysisWindow.cpp:162
+msgid "Analysis - Score Estimate "
+msgstr "検討 - 地合見積り"
+
+#: AnalysisWindow.cpp:229
+msgid "Copy PV"
+msgstr "探索手順コピー"
+
+#: AnalysisWindow.cpp:230
+msgid "Copy entire line"
+msgstr "行全体をコピー"
+
+#: AnalysisWindow.cpp:232
+msgid "Deselect line"
+msgstr "行選択を解除"
+
+#: App.cpp:96 MainFrame.cpp:110 MainFrame.cpp:115 MainFrame.cpp:147
+#: MainFrame.cpp:157 MainFrame.cpp:503 MainFrame.cpp:1191 GUI.h:194
+msgid "Leela"
+msgstr ""
+
+#: GUI.cpp:104
+msgid "&New Game..."
+msgstr "新規対局...(&N)"
+
+#: GUI.cpp:104 GUI.cpp:269
+msgid "Start a new game"
+msgstr "新規対局開始"
+
+#: GUI.cpp:108
+msgid "New &Rated Game"
+msgstr "新規レート対局(&R)"
+
+#: GUI.cpp:108
+msgid "Starts a new rated game"
+msgstr "新規レート対局開始"
+
+#: GUI.cpp:112
+msgid "Set Rated &Board Size..."
+msgstr "レート対局碁盤サイズ設定...(&B)"
+
+#: GUI.cpp:112
+msgid "Change the board size for rated games"
+msgstr "レート対局碁盤サイズ変更"
+
+#: GUI.cpp:118
+msgid "&Open Game..."
+msgstr "開く...(&O)"
+
+#: GUI.cpp:118
+msgid "Opens a game from disk"
+msgstr "ディスクからSGFを開く"
+
+#: GUI.cpp:122
+msgid "&Save Game..."
+msgstr "保存...(&S)"
+
+#: GUI.cpp:122
+msgid "Save a game to disk"
+msgstr "ディスクにSGFを保存"
+
+#: GUI.cpp:128
+msgid "Copy SGF"
+msgstr "SGFコピー"
+
+#: GUI.cpp:128
+msgid "Copy SGF to clipboard"
+msgstr "クリップボードにSGFコピー"
+
+#: GUI.cpp:132
+msgid "Paste SGF"
+msgstr "SGF貼り付け"
+
+#: GUI.cpp:132
+msgid "Paste SGF from clipboard"
+msgstr "クリップボードからSGF貼り付け"
+
+#: GUI.cpp:138
+msgid "E&xit"
+msgstr "終了(&x)"
+
+#: GUI.cpp:138 GUI.cpp:309
+msgid "Exit the program"
+msgstr "プログラムを終了"
+
+#: GUI.cpp:141
+msgid "&File"
+msgstr "ファイル(&F)"
+
+#: GUI.cpp:145
+msgid "&Undo"
+msgstr "1手戻る(&U)"
+
+#: GUI.cpp:149
+msgid "&Forward"
+msgstr "1手進む(&F)"
+
+#: GUI.cpp:155
+msgid "Go &Back 10 Moves"
+msgstr "10手戻る(&B)"
+
+#: GUI.cpp:155
+msgid "Undo 10 moves"
+msgstr "10手戻る"
+
+#: GUI.cpp:159
+msgid "Go For&ward 10 Moves"
+msgstr ""
+
+#: GUI.cpp:159
+msgid "Forward 10 moves"
+msgstr "10手進む(&w)"
+
+#: GUI.cpp:165
+msgid "Force &Computer Move"
+msgstr "10手進む"
+
+#: GUI.cpp:165
+msgid "Force the computer to move now"
+msgstr "コンピュータに着手催促(&C)"
+
+#: GUI.cpp:171
+msgid "&Pass"
+msgstr "パス(&P)"
+
+#: GUI.cpp:175
+msgid "&Resign"
+msgstr "投了(&R)"
+
+#: GUI.cpp:175 GUI.cpp:305
+msgid "Resign the game"
+msgstr "投了する"
+
+#: GUI.cpp:181
+msgid "&Score Game"
+msgstr "地合表示(&S)"
+
+#: GUI.cpp:181
+msgid "Score the position"
+msgstr "地合表示"
+
+#: GUI.cpp:184
+msgid "&Game"
+msgstr "対局(&G)"
+
+#: GUI.cpp:188
+msgid "Start/Stop &Analysis"
+msgstr "検討開始・停止(&A)"
+
+#: GUI.cpp:188
+msgid "Start analyzing"
+msgstr "検討開始"
+
+#: GUI.cpp:194
+msgid "&Store Position (Push)"
+msgstr "局面保存(Push)(&S)"
+
+#: GUI.cpp:194
+msgid "Store this position on the stack"
+msgstr "局面をスタック"
+
+#: GUI.cpp:198
+msgid "&Forget Position (Pop)"
+msgstr "局面破棄(Pop)(&F)"
+
+#: GUI.cpp:198 GUI.cpp:293
+msgid "Remove the top position from the stack"
+msgstr "スタック局面を破棄"
+
+#: GUI.cpp:203
+msgid "R&evert to Stored"
+msgstr "局面復元(&e)"
+
+#: GUI.cpp:203
+msgid "Revert board position to the top of the stack"
+msgstr "保存位置に戻す"
+
+#: GUI.cpp:209
+msgid "Analysis &Window"
+msgstr "検討ウィンドウ(&W)"
+
+#: GUI.cpp:213
+msgid "Show &Histogram"
+msgstr "グラフ表示(&H)"
+
+#: GUI.cpp:216
+msgid "&Analyze"
+msgstr "検討(&A)"
+
+#: GUI.cpp:220
+msgid "Show Network &Probabilities"
+msgstr "候補手確率表示(&P)"
+
+#: GUI.cpp:220
+msgid "Show the likelihood of each move being played by a professional player"
+msgstr "各着手がプロの棋士によって指される可能性を示す"
+
+#: GUI.cpp:224
+msgid "Show &Best Moves"
+msgstr "最善手表示(&B)"
+
+#: GUI.cpp:224
+msgid "Color the best moves on the board"
+msgstr "最善手"
+
+#: GUI.cpp:228
+msgid "Show &Territory"
+msgstr "地合表示(&T)"
+
+#: GUI.cpp:228
+msgid "Show Territory"
+msgstr "地合表示"
+
+#: GUI.cpp:232
+msgid "Show &Moyo"
+msgstr "模様表示(&M)"
+
+#: GUI.cpp:232
+msgid "Show Moyo"
+msgstr "模様表示"
+
+#: GUI.cpp:238
+msgid "S&ettings..."
+msgstr "設定...(&e)"
+
+#: GUI.cpp:244
+msgid "&Adjust Clocks..."
+msgstr "持ち時間調整...(&A)"
+
+#: GUI.cpp:247
+msgid "&Tools"
+msgstr "ツール(&T)"
+
+#: GUI.cpp:251
+msgid "&Go Rules"
+msgstr "囲碁のルール(&G)"
+
+#: GUI.cpp:251
+msgid "Explanation of the rules of Go"
+msgstr "囲碁のルールの説明"
+
+#: GUI.cpp:255
+msgid "Leela Homepage"
+msgstr "Leelaホームページ"
+
+#: GUI.cpp:261
+msgid "&About..."
+msgstr "Leelaについて...(&A)"
+
+#: GUI.cpp:261
+msgid "Information about the program"
+msgstr "Leelaについての情報"
+
+#: GUI.cpp:264
+msgid "&Help"
+msgstr "ヘルプ(&H)"
+
+#: GUI.cpp:269 GUI.cpp:327 GUI.h:248
+msgid "New Game"
+msgstr "新規対局"
+
+#: GUI.cpp:271
+msgid "New Rated Game"
+msgstr "新規レート対局"
+
+#: GUI.cpp:271
+msgid "Start a new rated game"
+msgstr "新規レート対局開始"
+
+#: GUI.cpp:273
+msgid "Load Game"
+msgstr "対局結果読み込み"
+
+#: GUI.cpp:273
+msgid "Load a game"
+msgstr "対局結果を読み込む"
+
+#: GUI.cpp:275
+msgid "Save"
+msgstr "対局結果保存"
+
+#: GUI.cpp:275
+msgid "Save the game"
+msgstr "対局結果を保存する"
+
+#: GUI.cpp:279
+msgid "Go back 10 moves"
+msgstr "10手戻る"
+
+#: GUI.cpp:281
+msgid "Undo"
+msgstr "1手戻る"
+
+#: GUI.cpp:281
+msgid "Take back one move"
+msgstr "1手戻る"
+
+#: GUI.cpp:283
+msgid "Forward"
+msgstr "1手進む"
+
+#: GUI.cpp:283
+msgid "Go forward one move"
+msgstr "1手進む"
+
+#: GUI.cpp:285
+msgid "Forward 10"
+msgstr "10手進む"
+
+#: GUI.cpp:285
+msgid "Go forward 10 moves"
+msgstr "10手進む"
+
+#: GUI.cpp:289
+msgid "Force computer move"
+msgstr "コンピュータに着手催促"
+
+#: GUI.cpp:291
+msgid "Store Position"
+msgstr "局面保存"
+
+#: GUI.cpp:291
+msgid "Remember this position on the stack"
+msgstr "スタック局面を憶える"
+
+#: GUI.cpp:293
+msgid "Remove Position"
+msgstr "局面破棄"
+
+#: GUI.cpp:295
+msgid "Revert to mainline"
+msgstr "局面復元"
+
+#: GUI.cpp:295
+msgid "Revert to stored position"
+msgstr "保存位置に戻す"
+
+#: GUI.cpp:297 GUI.cpp:301 GUI.cpp:303 GUI.cpp:305
+msgid "tool"
+msgstr "ツール"
+
+#: GUI.cpp:297
+msgid "Start/Stop analysis"
+msgstr "検討開始・停止"
+
+#: GUI.cpp:301 MainFrame.cpp:458
+msgid "Pass"
+msgstr "パス"
+
+#: GUI.cpp:303
+msgid "Score the game"
+msgstr "地合表示"
+
+#: GUI.cpp:309
+msgid "Exit"
+msgstr "終了"
+
+#: GUI.cpp:343
+msgid "7 x 7"
+msgstr ""
+
+#: GUI.cpp:343 GUI.cpp:580
+msgid "9 x 9"
+msgstr ""
+
+#: GUI.cpp:343
+msgid "13 x 13"
+msgstr ""
+
+#: GUI.cpp:343
+msgid "17 x 17"
+msgstr ""
+
+#: GUI.cpp:343 GUI.cpp:584
+msgid "19 x 19"
+msgstr ""
+
+#: GUI.cpp:343
+msgid "25 x 25"
+msgstr ""
+
+#: GUI.cpp:345
+msgid "Board size"
+msgstr "碁盤サイズ"
+
+#: GUI.cpp:354
+msgid "Komi (+0.5)"
+msgstr "コミ (+0.5)"
+
+#: GUI.cpp:359
+msgid "Komi"
+msgstr "コミ"
+
+#: GUI.cpp:367 GUI.cpp:372
+msgid "Handicap"
+msgstr "置き石"
+
+#: GUI.cpp:380
+msgid "Time for game"
+msgstr "持ち時間"
+
+#: GUI.cpp:385
+msgid "Minutes"
+msgstr "分"
+
+#: GUI.cpp:398
+msgid "Black"
+msgstr "黒"
+
+#: GUI.cpp:398
+msgid "White"
+msgstr "白"
+
+#: GUI.cpp:400
+msgid "Your color"
+msgstr "手番"
+
+#: GUI.cpp:404
+msgid "100 simulations"
+msgstr "100回試行"
+
+#: GUI.cpp:404
+msgid "500 simulations"
+msgstr "500回試行"
+
+#: GUI.cpp:404
+msgid "1000 simulations"
+msgstr "1,000回試行"
+
+#: GUI.cpp:404
+msgid "5000 simulations"
+msgstr "5,000回試行"
+
+#: GUI.cpp:404
+msgid "10000 simulations"
+msgstr "10,000回試行"
+
+#: GUI.cpp:404
+msgid "20000 simulations"
+msgstr "20,000回試行"
+
+#: GUI.cpp:404
+msgid "Unlimited"
+msgstr "無制限"
+
+#: GUI.cpp:406
+msgid "Engine max level"
+msgstr "エンジン最大レベル"
+
+#: GUI.cpp:411
+msgid "Engine settings (19 x 19)"
+msgstr "エンジン設定(19 x 19)"
+
+#: GUI.cpp:413
+msgid "Use Neural Network"
+msgstr "ニューラルネットワークを使う"
+
+#: GUI.cpp:439 GUI.cpp:488 GUI.cpp:551 GUI.cpp:766
+msgid "OK"
+msgstr ""
+
+#: GUI.cpp:442 GUI.cpp:554 GUI.cpp:769
+msgid "Cancel"
+msgstr "取消"
+
+#: GUI.cpp:460 GUI.h:279
+msgid "About"
+msgstr "Leelaについて"
+
+#: GUI.cpp:473
+msgid "OpenCL/BLAS Engine goes here and can be a very long string"
+msgstr "OpenCL/BLASエンジンは長時間かかります"
+
+#: GUI.cpp:477
+msgid "Copyright (C) 2007-2017 Gian-Carlo Pascutto"
+msgstr ""
+
+#: GUI.cpp:481
+msgid "gcp@sjeng.org"
+msgstr ""
+
+#: GUI.cpp:485
+msgid "https://sjeng.org/leela"
+msgstr ""
+
+#: GUI.cpp:507 GUI.h:315
+msgid "Adjust clocks"
+msgstr "持ち時間調整"
+
+#: GUI.cpp:515
+msgid "Black clock (minutes:seconds)"
+msgstr "黒時間(分:秒)"
+
+#: GUI.cpp:527
+msgid "White clock (minutes:seconds)"
+msgstr "白時間(分:秒)"
+
+#: GUI.cpp:573 GUI.h:350
+msgid "Select board size"
+msgstr "碁盤サイズ選択"
+
+#: GUI.cpp:597 GUI.h:367
+msgid "Calculation in progress"
+msgstr "計算"
+
+#: GUI.cpp:604
+msgid "Calculating, please hold..."
+msgstr "計算中、お待ちください..."
+
+#: GUI.cpp:625 GUI.h:402
+msgid "Analysis"
+msgstr "検討"
+
+#: GUI.cpp:651 engine\UCTSearch.cpp:204
+msgid "Effort%"
+msgstr "探索比率%"
+
+#: GUI.cpp:652 engine\UCTSearch.cpp:206
+msgid "Simulations"
+msgstr "試行回数"
+
+#: GUI.cpp:654 engine\UCTSearch.cpp:223
+msgid "Net Prob%"
+msgstr "Net確率%"
+
+#: GUI.cpp:693 GUI.h:454
+msgid "Settings"
+msgstr "設定"
+
+#: GUI.cpp:705
+msgid "Engine Settings"
+msgstr "エンジン設定"
+
+#: GUI.cpp:710
+msgid "Allow Passes"
+msgstr "パスを許可"
+
+#: GUI.cpp:714
+msgid "Pondering"
+msgstr "相手手番中も先読みする"
+
+#: GUI.cpp:718
+msgid "Resignations"
+msgstr "投了を許可"
+
+#: GUI.cpp:722
+msgid "Neural Networks"
+msgstr "ニューラルネットワーク"
+
+#: GUI.cpp:733
+msgid "Interface Settings"
+msgstr "インタフェース設定"
+
+#: GUI.cpp:735
+msgid "Sound"
+msgstr "音"
+
+#: GUI.cpp:739
+msgid "Allow DPI Scaling (needs restart)"
+msgstr "画面のDPIスケーリングを許可(要再起動)"
+
+#: GUI.cpp:742
+msgid "Japanese"
+msgstr "日本語"
+
+#: GUI.cpp:796 GUI.h:493
+msgid "Game Score"
+msgstr "地合表示"
+
+#: GUI.cpp:807
+msgid "Final Score:"
+msgstr "最終地合:"
+
+#: GUI.cpp:811
+msgid "Black wins by 0.0"
+msgstr "黒は0.0目で勝ちます"
+
+#: GUI.cpp:815
+msgid "I'm fairly sure I scored this correctly."
+msgstr "正しく採点したとかなり確信しています"
+
+#: GUI.cpp:825
+msgid "&Accept"
+msgstr "受け入れる(&A)"
+
+#: GUI.cpp:829
+msgid "&Dispute Score"
+msgstr "スコアを競う(&D)"
+
+#: GUI.cpp:852 GUI.h:510
+msgid "Win Rate Histogram"
+msgstr "勝率グラフ"
+
+#: MainFrame.cpp:108
+#, c-format
+msgid "Error initializing OpenCL: %s (error %d)"
+msgstr "エラー OpenCL初期化: %s (エラー %d)"
+
+#: MainFrame.cpp:114
+#, c-format
+msgid "Error initializing OpenCL: %s"
+msgstr "エラー OpenCL初期化: %s"
+
+#: MainFrame.cpp:146
+msgid "OpenCL self-test failed. Check your graphics drivers."
+msgstr "OpenCLのセルフテストに失敗しました。グラフィックドライバを確認してください。"
+
+#: MainFrame.cpp:154
+msgid ""
+"The GPU and OpenCL drivers on macOS are often outdated and of poor quality. "
+"Try switching to the regular version if you run into stability issues. If "
+"your GPU is slow, it may even be faster."
+msgstr "macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。安定性に問題がある場合は、通常バージョンに切り替えてみてください。GPUが遅ければ、もっと速くなるかもしれません。"
+
+#: MainFrame.cpp:276
+#, c-format
+msgid "Komi: %d.5; Prisoners white: %d/black: %d"
+msgstr "コミ: %d.5; アゲハマ 黒: %d/白: %d"
+
+#: MainFrame.cpp:309
+msgid "Engine thinking..."
+msgstr "エンジン思考中..."
+
+#: MainFrame.cpp:311
+msgid "Engine already running"
+msgstr "エンジンはすでに稼働しています"
+
+#: MainFrame.cpp:430
+msgid "New move arrived"
+msgstr "新しい着手"
+
+#: MainFrame.cpp:458
+msgid "Computer passes"
+msgstr "コンピュータはパスします"
+
+#: MainFrame.cpp:474 MainFrame.cpp:484
+msgid "Computer to move"
+msgstr "コンピュータの着手"
+
+#: MainFrame.cpp:504 MainFrame.cpp:1192
+msgid " - move "
+msgstr " - 手数 "
+
+#: MainFrame.cpp:538 MainFrame.cpp:559
+msgid "OK clicked"
+msgstr "OKがクリックされました"
+
+#: MainFrame.cpp:643
+#, c-format
+msgid "Last rank was: %d"
+msgstr "最終ランク: %d"
+
+#: MainFrame.cpp:645 MainFrame.cpp:1054
+msgid "Your rank: "
+msgstr "あなたのランク: "
+
+#: MainFrame.cpp:650
+msgid "Leela - "
+msgstr ""
+
+#: MainFrame.cpp:962
+#, c-format
+msgid "Handicap %d Simulations %d"
+msgstr "置き石 %d シミュレーション %d"
+
+#: MainFrame.cpp:1100
+msgid "BLACK wins by resignation"
+msgstr "白が投了しました"
+
+#: MainFrame.cpp:1103
+#, c-format
+msgid ""
+"BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n"
+"= %.1f points"
+msgstr "黒地 %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
+
+#: MainFrame.cpp:1106
+#, c-format
+msgid ""
+"BLACK wins by %.0f - %.1f (komi)\n"
+"= %.1f points"
+msgstr "黒地 %.0f - %.1f (コミ)\n= %.1f 目"
+
+#: MainFrame.cpp:1115
+msgid "WHITE wins by resignation"
+msgstr "黒が投了しました"
+
+#: MainFrame.cpp:1118
+#, c-format
+msgid ""
+"WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n"
+"= %.1f points"
+msgstr "白地 %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
+
+#: MainFrame.cpp:1121
+#, c-format
+msgid ""
+"WHITE wins by %.0f + %.1f (komi)\n"
+"= %.1f points"
+msgstr "白地 %.0f - %.1f (コミ)\n= %.1f 目"
+
+#: MainFrame.cpp:1136
+msgid "I am not sure I am scoring this correctly."
+msgstr "この地合計算は不確かです"
+
+#: MainFrame.cpp:1166
+#, c-format
+msgid "%d kyu"
+msgstr "%d 級"
+
+#: MainFrame.cpp:1169
+#, c-format
+msgid "%d dan"
+msgstr "%d 段"
+
+#: MainFrame.cpp:1171
+#, c-format
+msgid "%d pro"
+msgstr "%d プロ"
+
+#: MainFrame.cpp:1202
+msgid "Undoing one move"
+msgstr "1手戻す"
+
+#: MainFrame.cpp:1214
+msgid "Forward one move"
+msgstr "1手進める"
+
+#: MainFrame.cpp:1273
+msgid "Read %d moves, going to move %d"
+msgstr "読み込み %d 手, %d 手へ"
+
+#: MainFrame.cpp:1312 MainFrame.cpp:1338
+msgid "Choose a file"
+msgstr "ファイルを選択"
+
+#: MainFrame.cpp:1313 MainFrame.cpp:1339
+msgid "Go games (*.sgf)|*.sgf"
+msgstr ""
+
+#: MainFrame.cpp:1319
+msgid "Opening: "
+msgstr "開く: "
+
+#: MainFrame.cpp:1346
+msgid "Saving: "
+msgstr "保存: "
+
+#: MainFrame.cpp:1410
+msgid "Adjust clocks clicked"
+msgstr "時間調整がクリックされました"
+
+#: TBoardPanel.cpp:105
+#, c-format
+msgid "width: %d height: %d"
+msgstr "幅: %d 高さ: %d"
+
+#: TBoardPanel.cpp:112
+#, c-format
+msgid "cell size: %d"
+msgstr "セルサイズ: %d"
+
+#: TBoardPanel.cpp:127
+msgid "Paint on empty state"
+msgstr "空の状態を描画"
+
+#: TBoardPanel.cpp:438
+#, c-format
+msgid "Left down at %d %d"
+msgstr "左クリック %d %d"
+
+#: TBoardPanel.cpp:441
+msgid "Click on empty board"
+msgstr "空きボードクリック"
+
+#: TBoardPanel.cpp:446
+msgid "Game has been resigned"
+msgstr "対局は投了で終了しました"
+
+#: TBoardPanel.cpp:451
+msgid "Click on locked state"
+msgstr "ロック状態でのクリック"
+
+#: TBoardPanel.cpp:483
+msgid "It's not your move!"
+msgstr "あなたの手番ではありません！"
+
+#: TScorePanel.cpp:114 TScorePanel.cpp:116
+msgid "WHITE"
+msgstr "白"
+
+#: TScorePanel.cpp:115
+msgid "BLACK"
+msgstr "黒"
+
+#: TScorePanel.cpp:118 TScorePanel.cpp:119
+msgid "Combined"
+msgstr "複合"
+
+#: TScorePanel.cpp:121
+msgid "Monte Carlo"
+msgstr "モンテカルロ"
+
+#: TScorePanel.cpp:123
+msgid "Network"
+msgstr "ネットワーク"
+
+#: engine\UCTSearch.cpp:213
+msgid "MC Win%"
+msgstr "MC 勝率%"
+
+#: engine\UCTSearch.cpp:217
+msgid "Net Win%"
+msgstr "Net 勝率%"
+
+#: engine\UCTSearch.cpp:223
+msgid "Eval"
+msgstr "評価値"
+
+#: engine\UCTSearch.cpp:715
+#, c-format
+msgid "Nodes: %d, Win: %5.2f%%, PV: %s"
+msgstr "ノード: %d, 勝率: %5.2f%%, 予想手順: %s"
+
+#: engine\UCTSearch.cpp:718
+#, c-format
+msgid "%d nodes searched"
+msgstr "%d ノード探索"
+
+#: engine\UCTSearch.cpp:783
+#, c-format
+msgid "Thinking at most %.1f seconds..."
+msgstr "最大%.1f秒で思考中..."
+
+#: engine\UCTSearch.cpp:802
+msgid "Thinking..."
+msgstr "思考中..."
+
+#: engine\UCTSearch.cpp:951
+#, c-format
+msgid "%d visits, %d nodes, %d playouts, %d p/s"
+msgstr "%d 訪問, %d ノード, %d プレイアウト, %d プレイアウト/秒"
+
+#: engine\UCTSearch.cpp:962
+#, c-format
+msgid "Best move: %s"
+msgstr "最善手: %s"
