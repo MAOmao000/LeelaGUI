@@ -26,6 +26,9 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool dpiEnabled = wxConfig::Get()->ReadBool(wxT("dpiscaleEnabled"), false);
     m_checkBoxDPIScaling->SetValue(dpiEnabled);
 
+    bool japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
+    m_checkBoxJapanese->SetValue(japaneseEnabled);
+
 #ifdef __WXGTK__
     m_checkBoxDPIScaling->Disable();
     m_checkBoxDPIScaling->SetValue(false);
@@ -58,6 +61,9 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
 
     bool dpiEnabled = m_checkBoxDPIScaling->GetValue();
     wxConfig::Get()->Write(wxT("dpiscaleEnabled"), dpiEnabled);
+
+    bool japaneseEnabled = m_checkBoxJapanese->GetValue();
+    wxConfig::Get()->Write(wxT("japaneseEnabled"), japaneseEnabled);
 
     event.Skip();
 }
