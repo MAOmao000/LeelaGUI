@@ -88,7 +88,7 @@ TMainFrame::TMainFrame( wxWindow* parent, wxWindowID id, const wxString& title, 
 	this->Layout();
 	m_statusBar = this->CreateStatusBar( 2, wxST_SIZEGRIP|wxWANTS_CHARS, ID_DEFAULT );
 #ifndef WIN32
-	if (cfg_lang == 1) {
+	if wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true)) {
 		m_statusBar->SetMinHeight(30);
 	}
 #endif
