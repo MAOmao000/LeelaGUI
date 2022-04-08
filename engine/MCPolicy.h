@@ -8,6 +8,7 @@
 #include <vector>
 #include <limits>
 #include <map>
+#include <string>
 
 // Scored features
 constexpr int NUM_PATTERNS = 23518;
