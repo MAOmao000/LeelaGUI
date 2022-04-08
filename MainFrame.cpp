@@ -11,7 +11,6 @@
 #include "AttribScores.h"
 #include "SGFTree.h"
 #include "SGFParser.h"
-#include "GTP.h"
 #include "SMP.h"
 #include "Network.h"
 #include "EngineThread.h"
@@ -54,7 +53,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         m_lang = 1;
     }
     GTP::setup_default_parameters(m_lang);
-    setLocale(m_locale);
 
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(NULL);
@@ -238,6 +236,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 MainFrame::~MainFrame() {
     stopEngine();
 
+    wxPersistentRegisterAndRestore(this, "MainFrame");
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
         m_analysisWindow != nullptr && m_analysisWindow->IsShown());
     wxConfig::Get()->Write(wxT("scoreHistogramWindowOpen"),
@@ -1588,16 +1587,4 @@ void MainFrame::loadSGF(const wxString & filename, int movenum) {
             loadSGFString(SGF, movenum);
         }
     }
-}
-
-void MainFrame::setLocale(wxLocale & locale) {
-    locale.AddCatalogLookupPathPrefix(_T("catalogs"));
-    if (cfg_lang == 1) {
-        locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
-    }
-    else {
-        locale.Init(wxLANGUAGE_ENGLISH, wxLOCALE_DONT_LOAD_DEFAULT);
-    }
-    locale.AddCatalog(_T("messages"));
-    locale.AddCatalog(_T("wxstd"));
 }

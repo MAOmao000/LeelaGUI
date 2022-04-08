@@ -7,6 +7,7 @@
 #include "FastBoard.h"
 #include "GameState.h"
 #include "EngineThread.h"
+#include "GTP.h"
 
 class AnalysisWindow;
 class ScoreHistogram;
@@ -19,6 +20,8 @@ wxDECLARE_EVENT(wxEVT_BESTMOVES_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PURGE_VIZ, wxCommandEvent);
+
+static wxLocale m_locale;
 
 class MainFrame : public TMainFrame {
 	public:
@@ -86,7 +89,6 @@ class MainFrame : public TMainFrame {
 	void setActiveMenus();
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
-	void setLocale(wxLocale & locale);
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -110,9 +112,23 @@ class MainFrame : public TMainFrame {
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
-	wxLocale m_locale;
 	friend class TEngineThread;
 	friend class TBoardPanel;
+
+	public:
+	static void setLocale(bool japanese) {
+		if (japanese) {
+			if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
+				wxConfig::Get()->Write(wxT("japaneseEnabled"), false);
+				return;
+			}
+			m_locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
+			m_locale.AddCatalogLookupPathPrefix(_T("catalogs"));
+			m_locale.AddCatalog(_T("messages"));
+			m_locale.AddCatalog(_T("wxstd"));
+		}
+	}
+
 };
 
 #endif

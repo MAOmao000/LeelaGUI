@@ -138,15 +138,7 @@ void Utils::GUIprintf(const int lang, const char *fmt, ...) {
         vsnprintf(buffer, 512, fmt, ap);
 #endif
         wxCommandEvent* myevent = new wxCommandEvent(GUIQ_T);
-#ifdef WIN32
-        myevent->SetString(wxString(buffer));
-#else
-        if (lang == 0) {
-            myevent->SetString(wxString(buffer));
-        } else {
-            myevent->SetString(wxString::FromUTF8(buffer));
-        }
-#endif
+        myevent->SetString(wxString::FromUTF8(buffer));
         ::wxQueueEvent(GUIQ, myevent);
     }
 #endif

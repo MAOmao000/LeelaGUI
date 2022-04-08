@@ -58,15 +58,9 @@ bool MyApp::OnInit()
     wxConfig * config = new wxConfig(wxT("LeelaI18N"), wxT("Sjeng.Org"));
     wxConfig::Set(config);
 
-    wxLocale locale;
-    locale.AddCatalogLookupPathPrefix(_T("catalogs"));
-    if (wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true)) {
-        locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
-    } else {
-        locale.Init(wxLANGUAGE_ENGLISH, wxLOCALE_DONT_LOAD_DEFAULT);
-    }
-    locale.AddCatalog(_T("messages"));
-    locale.AddCatalog(_T("wxstd"));
+    ::wxSetWorkingDirectory(::wxPathOnly(argv[0]));
+    bool japanese = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
+    MainFrame::setLocale(japanese);
 
     wxImage::AddHandler(new wxPNGHandler());
 #ifdef WIN32

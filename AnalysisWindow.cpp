@@ -85,16 +85,7 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
     for (size_t currrow = 0; currrow < data.size(); currrow++) {
         const auto& cellPair = data[currrow];
         for (size_t currcol = 0; currcol < cellPair.size(); currcol++) {
-#ifdef WIN32
-            const auto label = wxString(cellPair[currcol].first);
-#else
-            wxString label;
-            if (cfg_lang == 0) {
-                label = wxString(cellPair[currcol].first);
-            } else {
-                label = wxString(wxString::FromUTF8(cellPair[currcol].first));
-            }
-#endif
+            const auto label = wxString(wxString::FromUTF8(cellPair[currcol].first));
             const auto value = wxString(cellPair[currcol].second);
 
             const wxString& oldlabel = m_moveGrid->GetColLabelValue(currcol);
@@ -212,17 +203,6 @@ void AnalysisWindow::doResize( wxSizeEvent& event ) {
 }
 
 void AnalysisWindow::doContextMenu(wxGridEvent& event) {
-    wxLocale locale;
-    locale.AddCatalogLookupPathPrefix(_T("catalogs"));
-    if (cfg_lang == 1) {
-        locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
-    }
-    else {
-        locale.Init(wxLANGUAGE_ENGLISH, wxLOCALE_DONT_LOAD_DEFAULT);
-    }
-    locale.AddCatalog(_T("messages"));
-    locale.AddCatalog(_T("wxstd"));
-
     size_t row = event.GetRow();
     wxMenu mnu;
     mnu.SetClientData((void*)row);

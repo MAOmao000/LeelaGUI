@@ -77,12 +77,6 @@ TMainFrame::TMainFrame( wxWindow* parent, wxWindowID id, const wxString& title, 
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
-	bool japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
-	cfg_lang = 0;
-	if (japaneseEnabled) {
-		cfg_lang = 1;
-	}
-	
 	wxBoxSizer* bSizer2;
 	bSizer2 = new wxBoxSizer( wxVERTICAL );
 	

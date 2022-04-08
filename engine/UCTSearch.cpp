@@ -200,29 +200,29 @@ void UCTSearch::dump_GUI_stats(GameState & state, UCTNode & parent) {
             pvstring += " " + get_pv(tmpstate, *node);
 
             TRowVector row;
-            row.emplace_back(_("Move"), movestr);
-            row.emplace_back(_("Effort%"),
+            row.emplace_back(_("Move").utf8_str(), movestr);
+            row.emplace_back(_("Effort%").utf8_str(),
                 std::to_string(100.0 * node->get_visits() / (double)total_visits));
-            row.emplace_back(_("Simulations"),
+            row.emplace_back(_("Simulations").utf8_str(),
                 std::to_string(node->get_visits()));
-            row.emplace_back(_("Win%"),
+            row.emplace_back(_("Win%").utf8_str(),
                 node->get_visits() > 0 ?
                     std::to_string(node->get_mixed_score(color)*100.0f) :
                     std::string("-"));
             if (m_use_nets) {
-                row.emplace_back(_("MC Win%"),
+                row.emplace_back(_("MC Win%").utf8_str(),
                     node->get_visits() > 0 ?
                     std::to_string(node->get_winrate(color)*100.0f) :
                     std::string("-"));
-                row.emplace_back(_("Net Win%"),
+                row.emplace_back(_("Net Win%").utf8_str(),
                     node->get_evalcount() > 0 ?
                     std::to_string(node->get_eval(color)*100.0f) :
                     std::string("-"));
             }
             row.emplace_back(
-                m_use_nets ? _("Net Prob%") : _("Eval"),
+                m_use_nets ? _("Net Prob%").utf8_str() : _("Eval").utf8_str(),
                 std::to_string(node->get_score() * 100.0f));
-            row.emplace_back(_("PV"), pvstring);
+            row.emplace_back(_("PV").utf8_str(), pvstring);
 
             analysis_data.emplace_back(row);
             move_data->emplace_back(movestr,
@@ -712,10 +712,10 @@ void UCTSearch::dump_analysis(void) {
     }
 
     if (!m_quiet) {
-        GUIprintf(cfg_lang, _("Nodes: %d, Win: %5.2f%%, PV: %s").c_str(), m_root.get_visits(),
+        GUIprintf(cfg_lang, _("Nodes: %d, Win: %5.2f%%, PV: %s").utf8_str(), m_root.get_visits(),
                    mixrate, pvstring.c_str());
     } else {
-        GUIprintf(cfg_lang, _("%d nodes searched").c_str(), m_root.get_visits());
+        GUIprintf(cfg_lang, _("%d nodes searched").utf8_str(), m_root.get_visits());
     }
 }
 
@@ -780,7 +780,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
     if (!m_analyzing) {
         m_rootstate.get_timecontrol().set_boardsize(m_rootstate.board.get_boardsize());
         time_for_move = m_rootstate.get_timecontrol().max_time_for_move(color);
-        GUIprintf(cfg_lang, _("Thinking at most %.1f seconds...").c_str(), time_for_move/100.0f);
+        GUIprintf(cfg_lang, _("Thinking at most %.1f seconds...").utf8_str(), time_for_move/100.0f);
 #ifdef KGS
         if (m_rootstate.get_handicap() > 3
             || m_rootstate.get_komi() < 0.0f
@@ -799,7 +799,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
 #endif
     } else {
         time_for_move = INT_MAX;
-        GUIprintf(cfg_lang, _("Thinking...").c_str());
+        GUIprintf(cfg_lang, _("Thinking...").utf8_str());
     }
 
     // do some preprocessing for move ordering
@@ -948,7 +948,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
                  (int)m_nodes,
                  (int)m_playouts,
                  (m_playouts * 100) / (centiseconds_elapsed+1));
-        GUIprintf(cfg_lang, _("%d visits, %d nodes, %d playouts, %d p/s").c_str(),
+        GUIprintf(cfg_lang, _("%d visits, %d nodes, %d playouts, %d p/s").utf8_str(),
                  m_root.get_visits(),
                   (int)m_nodes,
                   (int)m_playouts,
@@ -959,7 +959,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
     int bestmove = get_best_move_nosearch(filter_moves, mc_score, passflag);
 #endif
 
-    GUIprintf(cfg_lang, _("Best move: %s").c_str(), m_rootstate.move_to_text(bestmove).c_str());
+    GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), m_rootstate.move_to_text(bestmove).c_str());
 
     return bestmove;
 }
