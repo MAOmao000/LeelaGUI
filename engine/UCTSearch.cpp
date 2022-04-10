@@ -959,7 +959,17 @@ int UCTSearch::think(int color, passflag_t passflag) {
     int bestmove = get_best_move_nosearch(filter_moves, mc_score, passflag);
 #endif
 
-    GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), m_rootstate.move_to_text(bestmove).c_str());
+    std::string bm_str = m_rootstate.move_to_text(bestmove);
+    if (bm_str == "pass") {
+        GUIprintf(cfg_lang, _("Best move: pass").utf8_str());
+    } else if (bm_str == "resign") {
+        GUIprintf(cfg_lang, _("Best move: resign").utf8_str());
+    } else if (bm_str == "error") {
+        GUIprintf(cfg_lang, _("Best move: error").utf8_str());
+    } else {
+        GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), bm_str.c_str());
+    }
+    //GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), m_rootstate.move_to_text(bestmove).c_str());
 
     return bestmove;
 }
