@@ -445,10 +445,10 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             wxSound tock("IDW_TOCK", true);
             tock.Play(wxSOUND_ASYNC);
 #else
-            wxArrayString o1;
-            wxArrayString o2;
-            wxExecute("aplay snd/tock.wav", o1, o2);
+            wxSound tock(tock_data_length, tock_data);
+            tock.Play(wxSOUND_ASYNC);
 #endif
+
         }
     } else {
         if (m_State.get_to_move() == m_playerColor
