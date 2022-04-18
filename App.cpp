@@ -58,7 +58,7 @@ bool MyApp::OnInit()
     wxConfig * config = new wxConfig(wxT("LeelaI18N"), wxT("Sjeng.Org"));
     wxConfig::Set(config);
 
-    ::wxSetWorkingDirectory(::wxPathOnly(argv[0]));
+    //::wxSetWorkingDirectory(::wxPathOnly(argv[0]));
     bool japanese = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     MainFrame::setLocale(japanese);
 
