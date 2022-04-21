@@ -58,11 +58,31 @@ bool MyApp::OnInit()
     wxConfig * config = new wxConfig(wxT("LeelaI18N"), wxT("Sjeng.Org"));
     wxConfig::Set(config);
 
-    //::wxSetWorkingDirectory(::wxPathOnly(argv[0]));
+#ifdef WIN32
+    char cwd[4096];
+    strncpy(cwd, (const char*)wxGetCwd().mb_str(wxConvUTF8), 4095);
+    char* prg_path = (char*)calloc(MAX_PATH+1, sizeof(char));
+    char buf[MAX_PATH+1];
+    GetModuleFileNameA(NULL, buf, MAX_PATH);
+    char drive[MAX_PATH+1], dir[MAX_PATH+1], fname[MAX_PATH+1], ext[MAX_PATH+1];
+    _splitpath(buf, drive, dir, fname, ext);
+    sprintf(prg_path, "%s%s", drive, dir);
+    ::wxSetWorkingDirectory(prg_path);
+    free(prg_path);
+#else
+    char prg_path[4096];
+    wxString cwd = wxGetCwd();
+    int len = readlink("/proc/self/exe", prg_path, sizeof(prg_path));
+    prg_path[len] = 0;
+    ::wxSetWorkingDirectory(::wxPathOnly(wxString::FromUTF8(prg_path)));
+#endif
+
     bool japanese = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     MainFrame::setLocale(japanese);
+    ::wxSetWorkingDirectory(cwd);
 
     wxImage::AddHandler(new wxPNGHandler());
+
 #ifdef WIN32
     bool dpiScale = wxConfig::Get()->Read(wxT("dpiscaleEnabled"), (long)0);
     if (!dpiScale) {
