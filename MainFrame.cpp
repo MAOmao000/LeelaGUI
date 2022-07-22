@@ -177,7 +177,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     SetIcon(wxICON(aaaa));
 
 #ifdef __WXGTK__
-    SetSize(550, 640);
+    SetSize(530, 640);
 #elif defined(__WXMAC__)
     SetSize(570, 640);
 #else
@@ -461,7 +461,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     if (m_State.get_passes() >= 2 || m_State.get_last_move() == FastBoard::RESIGN) {
         float komi, score, prekomi, handicap;
         bool won = scoreGame(komi, handicap, score, prekomi);
-        bool accepts = scoreDialog(komi, handicap, score, prekomi);
+        bool accepts = scoreDialog(komi, handicap, score, prekomi, true);
         if (accepts || m_State.get_last_move() == FastBoard::RESIGN) {
             ratedGameEnd(won);
         } else {
@@ -1091,7 +1091,7 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
 }
 
 bool MainFrame::scoreDialog(float komi, float handicap,
-                            float score, float prekomi) {
+                            float score, float prekomi, bool dispute) {
     wxString mess;
 
     if (score > 0.0f) {
@@ -1137,7 +1137,7 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         }
     }
 
-    ScoreDialog mydialog(this, mess, confidence);
+    ScoreDialog mydialog(this, mess, confidence, dispute);
 
     if (mydialog.ShowModal() == wxID_OK) {
         bool result = mydialog.Accepted();

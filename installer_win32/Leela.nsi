@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.1.0"
+!define VERSION   "1.2.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -328,10 +328,10 @@ Section "LeelaI18N" leela
   SetOutPath $INSTDIR
 
   File "bin\${LEELABIN}"
-  File "bin\libgcc_s_sjlj-1.dll"
+  #File "bin\libgcc_s_sjlj-1.dll"
   File "bin\libopenblas.dll"
-  File "bin\libgfortran-3.dll"
-  File "bin\libquadmath-0.dll"
+  #File "bin\libgfortran-3.dll"
+  #File "bin\libquadmath-0.dll"
   File "license.rtf"
 
   ;create desktop shortcut
@@ -483,10 +483,10 @@ Section "Uninstall"
   ;Delete Files
   Delete "$INSTDIR\${LEELABIN}"
   Delete "$INSTDIR\${LEELAOCL}"
-  Delete "$INSTDIR\libgcc_s_dw2-1.dll"
+  #Delete "$INSTDIR\libgcc_s_dw2-1.dll"
   Delete "$INSTDIR\libopenblas.dll"
-  Delete "$INSTDIR\libgfortran-3.dll"
-  Delete "$INSTDIR\libquadmath-0.dll"
+  #Delete "$INSTDIR\libgfortran-3.dll"
+  #Delete "$INSTDIR\libquadmath-0.dll"
   #Delete "$INSTDIR\OpenCL.dll"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"

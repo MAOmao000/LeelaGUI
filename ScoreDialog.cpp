@@ -1,12 +1,15 @@
 #include "ScoreDialog.h"
 
 ScoreDialog::ScoreDialog( wxWindow* parent, wxString message,
-                          wxString confidence )
+                          wxString confidence, bool dispute )
 :
 TScoreDialog( parent )
 {
     m_staticTextMessage->SetLabel(message);
     m_staticTextConfidence->SetLabel(confidence);
+    if (!dispute) {
+        m_buttonDispute->Show(false);
+    }
     this->Layout();
 }
 

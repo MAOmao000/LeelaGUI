@@ -21,7 +21,7 @@ class ScoreDialog : public TScoreDialog
 	public:
 		/** Constructor */
 		ScoreDialog( wxWindow* parent, wxString message,
-                     wxString confidence );
+                     wxString confidence, bool dispute );
 		bool Accepted() { return mAccepts; };
 	//// end generated class members
 };

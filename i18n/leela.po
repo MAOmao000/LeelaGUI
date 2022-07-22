@@ -1,5 +1,5 @@
 # Japanese translations for PACKAGE package
-# PACKAGE �p�b�P�[�W�ɑ΂���p��.
+# PACKAGE パッケージに対する英訳.
 # Copyright (C) 2022 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Automatically generated, 2022.
@@ -170,11 +170,11 @@ msgstr "投了する"
 
 #: GUI.cpp:175
 msgid "&Score Game"
-msgstr "地合表示(&S)"
+msgstr "勝敗・目数(&S)"
 
 #: GUI.cpp:175
 msgid "Score the position"
-msgstr "地合表示"
+msgstr "勝敗・目数"
 
 #: GUI.cpp:178
 msgid "&Game"
@@ -602,11 +602,11 @@ msgstr "日本語"
 
 #: GUI.cpp:790 GUI.h:493
 msgid "Game Score"
-msgstr "地合表示"
+msgstr "勝敗・目数"
 
 #: GUI.cpp:801
 msgid "Final Score:"
-msgstr "最終地合:"
+msgstr "勝敗・目数:"
 
 #: GUI.cpp:805
 msgid "Black wins by 0.0"
@@ -709,14 +709,14 @@ msgstr "白が投了しました"
 msgid ""
 "BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n"
 "= %.1f points"
-msgstr "黒地 %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
+msgstr "黒地: %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
 
 #: MainFrame.cpp:1105
 #, c-format
 msgid ""
 "BLACK wins by %.0f - %.1f (komi)\n"
 "= %.1f points"
-msgstr "黒地 %.0f - %.1f (コミ)\n= %.1f 目"
+msgstr "黒地: %.0f - %.1f (コミ)\n= %.1f 目"
 
 #: MainFrame.cpp:1114
 msgid "WHITE wins by resignation"
@@ -727,18 +727,18 @@ msgstr "黒が投了しました"
 msgid ""
 "WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n"
 "= %.1f points"
-msgstr "白地 %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
+msgstr "白地: %.0f + %.1f (コミ) + %0.f (置き石)\n= %.1f 目"
 
 #: MainFrame.cpp:1120
 #, c-format
 msgid ""
 "WHITE wins by %.0f + %.1f (komi)\n"
 "= %.1f points"
-msgstr "白地 %.0f - %.1f (コミ)\n= %.1f 目"
+msgstr "白地: %.0f + %.1f (コミ)\n= %.1f 目"
 
 #: MainFrame.cpp:1135
 msgid "I am not sure I am scoring this correctly."
-msgstr "この地合計算は不確かです"
+msgstr "この目数の数値は不確かです"
 
 #: MainFrame.cpp:1165
 #, c-format

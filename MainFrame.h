@@ -81,7 +81,7 @@ class MainFrame : public TMainFrame {
 	void startEngine();
 	bool stopEngine(bool update_score = true);
 	// true = user accepts score
-	bool scoreDialog(float komi, float handicap, float score, float prekomi);
+	bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
 	bool scoreGame(float & komi, float & handicap, float & score, float & prescore);
 	void ratedGameEnd(bool won);
 	wxString rankToString(int rank);
