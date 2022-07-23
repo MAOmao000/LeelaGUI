@@ -386,7 +386,7 @@ msgstr "パス"
 
 #: GUI.cpp:297
 msgid "Score the game"
-msgstr "地合表示"
+msgstr "勝敗・目数"
 
 #: GUI.cpp:303
 msgid "Exit"
@@ -622,7 +622,7 @@ msgstr "受け入れる(&A)"
 
 #: GUI.cpp:823
 msgid "&Dispute Score"
-msgstr "スコアを競う(&D)"
+msgstr "対局を続ける(&D)"
 
 #: GUI.cpp:846 GUI.h:510
 msgid "Win Rate Histogram"
@@ -735,6 +735,14 @@ msgid ""
 "WHITE wins by %.0f + %.1f (komi)\n"
 "= %.1f points"
 msgstr "白地: %.0f + %.1f (コミ)\n= %.1f 目"
+
+#: MainFrame.cpp:1129
+msgid "BLACK wins."
+msgstr "黒の勝ちです"
+
+#: MainFrame.cpp:1131
+msgid "WHITE wins."
+msgstr "白の勝ちです"
 
 #: MainFrame.cpp:1135
 msgid "I am not sure I am scoring this correctly."

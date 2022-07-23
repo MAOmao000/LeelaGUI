@@ -461,7 +461,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     if (m_State.get_passes() >= 2 || m_State.get_last_move() == FastBoard::RESIGN) {
         float komi, score, prekomi, handicap;
         bool won = scoreGame(komi, handicap, score, prekomi);
-        bool accepts = scoreDialog(komi, handicap, score, prekomi, true);
+        bool accepts = scoreDialog(komi, handicap, score, prekomi, m_State.get_last_move() != FastBoard::RESIGN);
         if (accepts || m_State.get_last_move() == FastBoard::RESIGN) {
             ratedGameEnd(won);
         } else {
@@ -1124,7 +1124,13 @@ bool MainFrame::scoreDialog(float komi, float handicap,
     }
 
     wxString confidence("");
-    if (m_State.board.get_boardsize() == 19) {
+    if (dispute) {
+        if (score > 0.0f) {
+            confidence = _("BLACK wins.");
+        } else {
+            confidence = _("WHITE wins.");
+        }
+    } else if (m_State.board.get_boardsize() == 19) {
         float net_score = Network::get_Network()->get_value(&m_State,
                                                             Network::Ensemble::AVERAGE_ALL);
         net_score = (m_State.get_to_move() == FastBoard::BLACK) ?
