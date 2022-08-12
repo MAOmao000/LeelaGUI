@@ -635,7 +635,7 @@ void OpenCL_Network::convolve(int filter_size, int channels, int outputs,
         stripSize = filter_size * (width + (filter_size - 1)) * sizeof(float);
         rowTiles    =  cfg_rowtiles;
         rowTileSize =  (19 + rowTiles - 1) / rowTiles;
-    } else if (filter_size == 5) {
+    } else /*if (filter_size == 5) */{
         stripSize = filter_size * width * sizeof(float);
         rowTiles    = 19;
         rowTileSize =  1;
