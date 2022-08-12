@@ -460,7 +460,7 @@ TAboutDialog::TAboutDialog( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	m_staticTextVersion = new wxStaticText( this, wxID_ANY, _("Leela version ") + wxString(wxT(PROGRAM_VERSION)), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
 	m_staticTextVersion->Wrap( -1 );
-	m_staticTextVersion->SetFont( wxFont( 11, 70, 90, 92, false, wxEmptyString ) );
+	m_staticTextVersion->SetFont( wxFont( 11, wxFONTFAMILY_DEFAULT/*70*/, wxFONTSTYLE_NORMAL/*90*/, wxFONTWEIGHT_BOLD/*92*/, false, wxEmptyString ) );
 	
 	bSizer9->Add( m_staticTextVersion, 0, wxALL|wxEXPAND, 10 );
 	
