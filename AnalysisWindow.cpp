@@ -82,6 +82,7 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
          base = m_moveGrid->GetCellFont(0, 0).GetBaseFont();
     }
 
+    int pv_col = -1;
     for (size_t currrow = 0; currrow < data.size(); currrow++) {
         const auto& cellPair = data[currrow];
         for (size_t currcol = 0; currcol < cellPair.size(); currcol++) {
@@ -120,7 +121,7 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                     padValue.Pad(20 - value.Length());
                 }
                 m_moveGrid->SetCellValue(currrow, currcol, padValue);
-                m_moveGrid->AutoSizeColumn(currcol);
+                pv_col = currcol;
             } else {
                 m_moveGrid->SetCellValue(currrow, currcol, value);
             }
@@ -139,6 +140,9 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                 }
             }
         }
+    }
+    if (pv_col >= 0) {
+        m_moveGrid->AutoSizeColumn(pv_col);
     }
 
     if (!mHasAutoSized && !mHasUserSized) {
@@ -217,19 +221,53 @@ void AnalysisWindow::doContextMenu(wxGridEvent& event) {
 void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
     void *data = static_cast<wxMenu*>(event.GetEventObject())->GetClientData();
     size_t row = reinterpret_cast<size_t>(data);
+#ifdef USE_WLCOPY
     switch(event.GetId()) {
     case ID_COPYPV:
-        if (wxTheClipboard->Open()) {
+        {
             int gridCols = m_moveGrid->GetNumberCols();
             wxString pvstring;
-
             for (int i = 0; i < gridCols; i++) {
                 if (m_moveGrid->GetColLabelValue(i).Cmp(_("PV")) == 0) {
                     pvstring = m_moveGrid->GetCellValue(row, i);
                     break;
                 }
             }
-
+            wxExecute(wxString::Format("wl-copy '%s'", pvstring.utf8_str()));
+        }
+        break;
+    case ID_COPYLINE:
+        {
+            int gridCols = m_moveGrid->GetNumberCols();
+            wxString pvstring;
+            for (int i = 0; i < gridCols; i++) {
+                pvstring.Append(m_moveGrid->GetColLabelValue(i));
+                pvstring.Append(": ");
+                pvstring.Append(m_moveGrid->GetCellValue(row, i));
+                if (i != gridCols - 1) {
+                    pvstring.Append(", ");
+                }
+            }
+            wxExecute(wxString::Format("wl-copy '%s'", pvstring.utf8_str()));
+        }
+        break;
+    case ID_DESELECTLINE:
+        wxGridEvent dummy;
+        doDeselect(dummy);
+        break;
+    }
+#else
+    switch(event.GetId()) {
+    case ID_COPYPV:
+        if (wxTheClipboard->Open()) {
+            int gridCols = m_moveGrid->GetNumberCols();
+            wxString pvstring;
+            for (int i = 0; i < gridCols; i++) {
+                if (m_moveGrid->GetColLabelValue(i).Cmp(_("PV")) == 0) {
+                    pvstring = m_moveGrid->GetCellValue(row, i);
+                    break;
+                }
+            }
             auto data = new wxTextDataObject(pvstring);
             wxTheClipboard->SetData(data);
             wxTheClipboard->Flush();
@@ -240,7 +278,6 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
         if (wxTheClipboard->Open()) {
             int gridCols = m_moveGrid->GetNumberCols();
             wxString pvstring;
-
             for (int i = 0; i < gridCols; i++) {
                 pvstring.Append(m_moveGrid->GetColLabelValue(i));
                 pvstring.Append(": ");
@@ -249,7 +286,6 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
                     pvstring.Append(", ");
                 }
             }
-
             auto data = new wxTextDataObject(pvstring);
             wxTheClipboard->SetData(data);
             wxTheClipboard->Flush();
@@ -261,4 +297,5 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
         doDeselect(dummy);
         break;
     }
+#endif
 }
