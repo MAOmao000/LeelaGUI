@@ -9,6 +9,7 @@
 #define GETTICKCOUNT
 #undef HAVE_SELECT
 #define NOMINMAX
+#include <WinSock2.h>
 #else
 #define HAVE_SELECT
 #define GETTIMEOFDAY
