@@ -50,11 +50,20 @@ include(${wxWidgets_USE_FILE})
 
 if(NOT MSVC)
   find_package(PkgConfig REQUIRED)
-  pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-  message(STATUS "  GTK3_INCLUDE_DIRS=${GTK3_INCLUDE_DIRS}")
-  message(STATUS "  GTK3_LIBRARY_DIRS=${GTK3_LIBRARY_DIRS}")
-  message(STATUS "  GTK3_LIBRARIES=${GTK3_LIBRARIES}")
-  message(STATUS "  GTK3_CFLAGS_OTHER=${GTK3_CFLAGS_OTHER}")
+  pkg_check_modules(GTK3 gtk+-3.0)
+  if(NOT GTK3_FOUND)
+    pkg_check_modules(GTK2 REQUIRED gtk+-2.0)
+    message(STATUS "  GTK_INCLUDE_DIRS=${GTK2_INCLUDE_DIRS}")
+    message(STATUS "  GTK_LIBRARY_DIRS=${GTK2_LIBRARY_DIRS}")
+    message(STATUS "  GTK_LIBRARIES=${GTK2_LIBRARIES}")
+    message(STATUS "  GTK_CFLAGS_OTHER=${GTK2_CFLAGS_OTHER}")
+  else()
+    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+    message(STATUS "  GTK_INCLUDE_DIRS=${GTK3_INCLUDE_DIRS}")
+    message(STATUS "  GTK_LIBRARY_DIRS=${GTK3_LIBRARY_DIRS}")
+    message(STATUS "  GTK_LIBRARIES=${GTK3_LIBRARIES}")
+    message(STATUS "  GTK_CFLAGS_OTHER=${GTK3_CFLAGS_OTHER}")
+  endif()
 endif()
 
 set(INCLUDE_DIRS
@@ -125,9 +134,9 @@ endif(MSVC)
 add_executable(leelagui WIN32 ${SRCS})
 
 if(NOT MSVC)
-  target_include_directories(leelagui PUBLIC ${GTK3_INCLUDE_DIRS})
-  target_link_directories(leelagui PUBLIC ${GTK3_LIBRARY_DIRS})
-  add_definitions(${GTK3_CFLAGS_OTHER})
+  target_include_directories(leelagui PUBLIC ${GTK_INCLUDE_DIRS})
+  target_link_directories(leelagui PUBLIC ${GTK_LIBRARY_DIRS})
+  add_definitions(${GTK_CFLAGS_OTHER})
 endif()
 
 target_compile_features(leelagui PUBLIC cxx_std_14)
@@ -163,7 +172,7 @@ else()
     ${OpenCL_LIBRARIES}
     ${BLAS_LIBRARIES}
     ${wxWidgets_LIBRARIES}
-    ${GTK3_LIBRARIES}
+    ${GTK_LIBRARIES}
   )
   target_compile_options(leelagui PUBLIC
     -O3
