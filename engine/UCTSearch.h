@@ -47,9 +47,9 @@ private:
     void dump_thinking();
     void dump_analysis();
     void dump_order2(void);
-    int get_best_move(passflag_t passflag);
-    int get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
-                               float score, passflag_t passflag);
+    std::pair<int, float> get_best_move(passflag_t passflag);
+    std::pair<int, float> get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
+                                                 float score, passflag_t passflag);
     bool allow_early_exit();
     bool allow_easy_move();
     bool easy_move_precondition();
