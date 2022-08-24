@@ -420,13 +420,15 @@ bool UCTSearch::allow_early_exit() {
     return false;
 }
 
-int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
-                                      float score, passflag_t passflag) {
+std::pair<int, float> UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
+                                                        float score, passflag_t passflag) {
+    std::pair<int, float> ret;
+    ret.first/*Best move*/ = moves[0].second;
+
     int color = m_rootstate.board.get_to_move();
 
     // Resort
     std::stable_sort(moves.rbegin(), moves.rend());
-    int bestmove = moves[0].second;
 
     constexpr size_t min_alternates = 25;
     constexpr size_t max_consider   =  3;
@@ -450,7 +452,7 @@ int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
         for (size_t i = 0; i < max_consider; i++) {
             cumul_find += moves[i].first;
             if (pick < cumul_find) {
-                bestmove = moves[i].second;
+                ret.first/*Best move*/ = moves[i].second;
                 // Move in the expected place
                 std::swap(moves[0], moves[i]);
                 break;
@@ -459,7 +461,7 @@ int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
     }
 
     if (passflag & UCTSearch::NOPASS) {
-        if (bestmove == FastBoard::PASS) {
+        if (ret.first/*Best move*/ == FastBoard::PASS) {
             // Alternatives to passing?
             if (moves.size() > 0) {
                 int altmove = moves[1].second;
@@ -473,13 +475,13 @@ int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
                         ||
                         (score < 0.0f && color == FastBoard::BLACK)) {
                         myprintf("Passing loses, playing self-atari.\n");
-                        bestmove = altmove;
+                        ret.first/*Best move*/ = altmove;
                     } else {
                         myprintf("Passing wins, avoiding self-atari.\n");
                     }
                 } else {
                     // alternatve move is not self-atari, so play it
-                    bestmove = altmove;
+                    ret.first/*Best move*/ = altmove;
                 }
             } else {
                 myprintf("Pass is the only acceptable move.\n");
@@ -496,23 +498,23 @@ int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
                 (score < 0.0f && color == FastBoard::BLACK)) {
                 myprintf("Passing loses :-(\n");
                 // We were going to pass, so try something else
-                if (bestmove == FastBoard::PASS) {
+                if (ret.first/*Best move*/ == FastBoard::PASS) {
                     if (moves.size() > 1) {
                         myprintf("Avoiding pass because it loses.\n");
-                        bestmove = moves[1].second;
+                        ret.first/*Best move*/ = moves[1].second;
                     } else {
                         myprintf("No alternative to passing.\n");
                     }
                 }
             } else {
                 myprintf("Passing wins :-)\n");
-                bestmove = FastBoard::PASS;
+                ret.first/*Best move*/ = FastBoard::PASS;
             }
         }
     }
 
     // if we aren't passing, should we consider resigning?
-    if (bestmove != FastBoard::PASS) {
+    if (ret.first/*Best move*/ != FastBoard::PASS) {
         // resigning allowed
         if ((passflag & UCTSearch::NORESIGN) == 0) {
             size_t movetresh = (m_rootstate.board.get_boardsize()
@@ -520,45 +522,48 @@ int UCTSearch::get_best_move_nosearch(std::vector<std::pair<float, int>> moves,
             // bad score and zero wins in the playouts
             if (score <= 0.0f && m_rootstate.m_movenum > movetresh) {
                 myprintf("All playouts lose. Resigning.\n");
-                bestmove = FastBoard::RESIGN;
+                ret.first/*Best move*/ = FastBoard::RESIGN;
             }
         }
     }
 
-    return bestmove;
+    ret.second = moves[0].first;  // second: Win rate(float)
+    return ret;                   // Best move(int), Win rate(float)
 }
 
 
-int UCTSearch::get_best_move(passflag_t passflag) { 
-    int color = m_rootstate.board.get_to_move();    
+std::pair<int, float> UCTSearch::get_best_move(passflag_t passflag) { 
+    std::pair<int, float> ret;  // first: Best move, second: Best score
+
+    int color = m_rootstate.board.get_to_move();
 
     // make sure best is first
     m_root.sort_root_children(color);
-
-    int bestmove = m_root.get_first_child()->get_move();
+    ret.first/*Best move*/ = m_root.get_first_child()->get_move();
 
     // do we have statistics on the moves?
     if (m_root.get_first_child() != NULL) {
         if (m_root.get_first_child()->first_visit()) {
-            return bestmove;
+            ret.second/*Best score*/ = m_root.get_first_child()->get_winrate(color);
+            return ret;  // Best move(int), Best score(float)
         }
     }
 
-    float bestscore = m_root.get_first_child()->get_winrate(color);
+    ret.second/*Best score*/ = m_root.get_first_child()->get_winrate(color);
 
     // do we want to fiddle with the best move because of the rule set?
      if (passflag & UCTSearch::NOPASS) {
         // were we going to pass?
-        if (bestmove == FastBoard::PASS) {
+        if (ret.first/*Best move*/ == FastBoard::PASS) {
             UCTNode * nopass = m_root.get_nopass_child();
 
             if (nopass != NULL) {
                 myprintf("Preferring not to pass.\n");
-                bestmove = nopass->get_move();
+                ret.first/*Best move*/ = nopass->get_move();
                 if (nopass->first_visit()) {
-                    bestscore = 1.0f;
+                    ret.second/*Best score*/ = 1.0f;
                 } else {
-                    bestscore = nopass->get_winrate(color);
+                    ret.second/*Best score*/ = nopass->get_winrate(color);
                 }
             } else {
                 myprintf("Pass is the only acceptable move.\n");
@@ -582,10 +587,10 @@ int UCTSearch::get_best_move(passflag_t passflag) {
                 if (color == FastBoard::WHITE) winrate = 1.0f - winrate;
                 if (winrate > 0.66f) {
                     myprintf("Passing wins (%2.0f%%), I'll pass out.\n", winrate);
-                    bestmove = FastBoard::PASS;
+                    ret.first/*Best move*/ = FastBoard::PASS;
                 }
             }
-        } else if (bestmove == FastBoard::PASS) {
+        } else if (ret.first/*Best move*/ == FastBoard::PASS) {
             // either by forcing or coincidence passing is
             // on top...check whether passing loses instantly
             // do full count including dead stones
@@ -600,11 +605,11 @@ int UCTSearch::get_best_move(passflag_t passflag) {
                 UCTNode * nopass = m_root.get_nopass_child();
                 if (nopass != NULL) {
                     myprintf("Avoiding pass because it loses.\n");
-                    bestmove = nopass->get_move();
+                    ret.first/*Best move*/ = nopass->get_move();
                     if (nopass->first_visit()) {
-                        bestscore = 1.0f;
+                        ret.second/*Best score*/ = 1.0f;
                     } else {
-                        bestscore = nopass->get_winrate(color);
+                        ret.second/*Best score*/ = nopass->get_winrate(color);
                     }
                 } else {
                     myprintf("No alternative to passing.\n");
@@ -619,23 +624,23 @@ int UCTSearch::get_best_move(passflag_t passflag) {
     int visits = m_root.get_first_child()->get_visits();
 
     // if we aren't passing, should we consider resigning?
-    if (bestmove != FastBoard::PASS) {
+    if (ret.first/*Best move*/ != FastBoard::PASS) {
         // resigning allowed
         if ((passflag & UCTSearch::NORESIGN) == 0) {
             size_t movetresh= (m_rootstate.board.get_boardsize()
                                 * m_rootstate.board.get_boardsize()) / 3;
             // bad score and visited enough
-            if (((bestscore < 0.20f && besteval < 0.15f)
-                 || (bestscore < 0.10f))
+            if (((ret.second/*Best score*/ < 0.20f && besteval < 0.15f)
+                 || (ret.second/*Best score*/ < 0.10f))
                 && visits > 90
                 && m_rootstate.m_movenum > movetresh) {
                 myprintf("Score looks bad. Resigning.\n");
-                bestmove = FastBoard::RESIGN;
+                ret.first/*Best move*/ = FastBoard::RESIGN;
             }
         }
     }
 
-    return bestmove;
+    return ret;  // Best move(int), Best score(float)
 }
 
 void UCTSearch::dump_order2(void) {            
@@ -954,24 +959,30 @@ int UCTSearch::think(int color, passflag_t passflag) {
                   (int)m_playouts,
                  (m_playouts * 100) / (centiseconds_elapsed+1));
     }
-    int bestmove = get_best_move(passflag);
+    auto ret = get_best_move(passflag);  // Best move(int), Best score(float)
 #else
-    int bestmove = get_best_move_nosearch(filter_moves, mc_score, passflag);
+    auto ret = get_best_move_nosearch(filter_moves, mc_score, passflag);   // Best move(int), Win rate(float)
 #endif
 
-    std::string bm_str = m_rootstate.move_to_text(bestmove);
-    if (bm_str == "pass") {
-        GUIprintf(cfg_lang, _("Best move: pass").utf8_str());
-    } else if (bm_str == "resign") {
-        GUIprintf(cfg_lang, _("Best move: resign").utf8_str());
-    } else if (bm_str == "error") {
-        GUIprintf(cfg_lang, _("Best move: error").utf8_str());
+    auto score = MCOwnerTable::get_MCO()->get_board_score();
+    wxString scoreString;
+    if (score >= 0.0f) {
+        scoreString.Printf(" B+%.1f", std::fabs(score));
     } else {
-        GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), bm_str.c_str());
+        scoreString.Printf(" W+%.1f", std::fabs(score));
     }
-    //GUIprintf(cfg_lang, _("Best move: %s").utf8_str(), m_rootstate.move_to_text(bestmove).c_str());
+    std::string bm_str = m_rootstate.move_to_text(ret.first/*Best move*/);
+    if (bm_str == "pass") {
+        GUIprintf(cfg_lang, (_("Best move: pass(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+    } else if (bm_str == "resign") {
+        GUIprintf(cfg_lang, (_("Best move: resign(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+    } else if (bm_str == "error") {
+        GUIprintf(cfg_lang, (_("Best move: error(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+    } else {
+        GUIprintf(cfg_lang, (_("Best move: %s(Win rate:%3.1f%%)") + scoreString).utf8_str(), bm_str.c_str(), ret.second*100);
+    }
 
-    return bestmove;
+    return ret.first/*Best move*/;
 }
 
 void UCTSearch::ponder() {
