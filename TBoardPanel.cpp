@@ -242,7 +242,8 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     }  
     
     // board coordinates
-    int coordFontSize = cellDim / 4;
+    int coordFontSize = cellDim / 3/*4*/;
+    int coordFontSize0 = (int)(cellDim / 4.5f);
     int pvFontSize = (int)(cellDim / 2.5f);
     wxFont cfont(coordFontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     wxFont pvfont(pvFontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
@@ -254,8 +255,8 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
         int x = 0;
         int xoff = cellDim + (x - 1) * cellDim;
         int yoff = cellDim + y  * cellDim;   
-        xoff = xoff + cellDim / 2 - coordFontSize;  
-        yoff = yoff - coordFontSize; 
+        xoff = xoff + cellDim / 2 - coordFontSize0;  
+        yoff = yoff - coordFontSize0; 
         int xoff2 = xoff + cellDim * boardSize;
         wxString text;
         text.Printf("%2d", boardSize - y);
@@ -266,15 +267,15 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
         int y = 0;
         int yoff = cellDim + (y - 1) * cellDim;
         int xoff = cellDim + x  * cellDim;   
-        yoff = yoff + cellDim / 2 - coordFontSize;  
+        yoff = yoff + cellDim / 2 - coordFontSize0;  
         xoff = xoff - coordFontSize; 
         int yoff2 = yoff + cellDim * boardSize;
         wxString text;
         if (x < 25) {
             if (x < 8) {
-                text.Printf(" %c", 'a' + x);
+                text.Printf(" %c", 'A'/*'a'*/ + x);
             } else {
-                text.Printf(" %c", 'a' + x  + 1);
+                text.Printf(" %c", 'A'/*'a'*/ + x  + 1);
             }
         } else {
             int tmx = x - 25;
