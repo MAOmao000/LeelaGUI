@@ -888,20 +888,20 @@ msgstr "%d 訪問, %d ノード, %d プレイアウト, %d プレイアウト/�
 
 #: engine\UCTSearch.cpp:964
 #, c-format
-msgid "Best move: pass"
-msgstr "最善手: パス"
+msgid "Best move: pass(Win rate:%3.1f%%)"
+msgstr "最善手: パス(勝率:%3.1f%%)"
 
 #: engine\UCTSearch.cpp:966
 #, c-format
-msgid "Best move: resign"
-msgstr "最善手: 投了"
+msgid "Best move: resign(Win rate:%3.1f%%)"
+msgstr "最善手: 投了(勝率:%3.1f%%)"
 
 #: engine\UCTSearch.cpp:968
 #, c-format
-msgid "Best move: error"
-msgstr "最善手: エラー"
+msgid "Best move: error(Win rate:%3.1f%%)"
+msgstr "最善手: エラー(勝率:%3.1f%%)"
 
 #: engine\UCTSearch.cpp:970
 #, c-format
-msgid "Best move: %s"
-msgstr "最善手: %s"
+msgid "Best move: %s(Win rate:%3.1f%%)"
+msgstr "最善手: %s(勝率:%3.1f%%)"
