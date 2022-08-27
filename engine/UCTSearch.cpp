@@ -964,6 +964,9 @@ int UCTSearch::think(int color, passflag_t passflag) {
     auto ret = get_best_move_nosearch(filter_moves, mc_score, passflag);   // Best move(int), Win rate(float)
 #endif
 
+    if (!std::isfinite(ret.second)) {
+        ret.second = 0.0f;
+    }
     auto score = MCOwnerTable::get_MCO()->get_board_score();
     wxString scoreString;
     if (score >= 0.0f) {
