@@ -3,6 +3,8 @@ Japanese version
 
 This is the Japanese version forked from LeelaGUI.
 
+In version 1.3.0, we have added functions to work with KataGo's engine, except for analysis and time setting.
+
 About
 =====
 
