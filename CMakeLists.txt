@@ -347,7 +347,7 @@ if(MSVC)
 else()
   target_link_libraries(leelagui PUBLIC
     -Wl,--as-needed,-Bdynamic
-    -fopenmp
+#    -fopenmp
     -lpthread
     -lm
     ${Boost_LIBRARIES}
@@ -364,7 +364,7 @@ else()
     -ffast-math
     -march=native
     -mtune=generic
-    -fopenmp
+#    -fopenmp
 #    -pedantic
     -Wno-unused-parameter
     -Wno-unused-variable
