@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.2.0"
+!define VERSION   "1.3.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -333,6 +333,9 @@ Section "LeelaI18N" leela
   #File "bin\libgfortran-3.dll"
   #File "bin\libquadmath-0.dll"
   File "license.rtf"
+  File "bin\zlib.dll"
+  File "bin\default_gtp.cfg"
+  File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\LeelaI18N.lnk" "$INSTDIR\${LEELABIN}" ""
@@ -492,6 +495,9 @@ Section "Uninstall"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir /r "$INSTDIR\catalogs"
+  Delete "$INSTDIR\zlib.dll"
+  Delete "$INSTDIR\default_gtp.cfg"
+  Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
 
   Delete "$DESKTOP\LeelaI18N.lnk"
   Delete "$DESKTOP\LeelaI18N (GPU accelerated).lnk"

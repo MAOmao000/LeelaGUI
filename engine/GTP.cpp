@@ -629,7 +629,8 @@ bool GTP::execute(GameState & game, std::string xinput) {
         cmdstream >> tmp;   // eat fixed_handicap
         cmdstream >> stones;
 
-        if (game.set_fixed_handicap(stones)) {
+        std::vector<int> move_handi;
+        if (game.set_fixed_handicap(stones, move_handi)) {
             std::string stonestring = game.board.get_stone_list();
             gtp_printf(id, "%s", stonestring.c_str());
         } else {

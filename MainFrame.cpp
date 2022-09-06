@@ -33,6 +33,8 @@
 #include <wx/utils.h>
 #endif
 
+#include "../command/gtpKata.h"
+
 wxDEFINE_EVENT(wxEVT_NEW_MOVE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_BOARD_UPDATE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_STATUS_UPDATE, wxCommandEvent);
@@ -46,6 +48,8 @@ static constexpr long MIN_RANK = -30L;
 
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title) {
+
+    m_gtpKata = nullptr;
 
     m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     m_lang = 0;
@@ -166,6 +170,52 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_panelBoard->setPlayerColor(m_playerColor);
     m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Check(false);
 
+    m_panelBoard->setGTP(nullptr);
+    const char* argv[] = {" ", "gtp", "-config", "default_gtp.cfg"};
+
+    std::vector<std::string> args;
+    args.reserve(sizeof(argv));
+    for (int i = 0; i < sizeof(argv) / sizeof(argv[0]); i++)
+        args.push_back(std::string(argv[i]));
+
+    MainArgs::makeCoutAndCerrAcceptUTF8();
+
+    std::vector<std::string> subArgs(args.begin()+1, args.end());
+    try {
+        m_gtpKata = new GTPKata(
+            subArgs,
+            false,           // allowResignation
+            enabled_t::Auto, // cleanupBeforePass
+            0.0,             // forcedKomi
+            enabled_t::Auto, // friendlyPass
+            false,           // isForcingKomi
+            false,           // logSearchInfo
+            false,           // loggingToStder
+            false,           // ogsChatToStderr
+            3,               // resignConsecTurns
+            -1e10,           // resignMinScoreDifference
+            -1.0,            // resignThreshold
+            1.0,             // searchFactorWhenWinning
+            1.0,             // searchFactorWhenWinningThreshold
+            false,           // maybeStartPondering
+            false            // logAllGTPCommunication
+        );
+
+    } catch (const StringError &e) {
+        wxString errorString;
+        errorString.Printf(_("KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"), e.what());
+        ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+        if (m_gtpKata) {
+            delete m_gtpKata;
+            m_gtpKata = nullptr;
+        }
+    }
+
+    if (m_gtpKata)
+        m_panelBoard->setGTP(m_gtpKata);
+    else
+        m_panelBoard->setGTP(nullptr);
+
     // set us as the global message receiver
     Utils::setGUIQueue(this->GetEventHandler(), wxEVT_STATUS_UPDATE);
 
@@ -185,6 +235,13 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #endif
     Center();
     setActiveMenus();
+
+    if (m_gtpKata) {
+        m_menu2->FindItem(ID_REDO)->Enable(false);
+        m_menu2->FindItem(ID_FWD10)->Enable(false);
+        GetToolBar()->EnableTool(ID_REDO, false);
+        GetToolBar()->EnableTool(ID_FWD10, false);
+    }
 
     // Create the window already, so we start saving move evaluations
     m_scoreHistogramWindow = new ScoreHistogram(this);
@@ -236,6 +293,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 MainFrame::~MainFrame() {
     stopEngine();
 
+    if (m_gtpKata) {
+        delete m_gtpKata;
+        m_gtpKata = nullptr;
+    }
+
     wxPersistentRegisterAndRestore(this, "MainFrame");
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
         m_analysisWindow != nullptr && m_analysisWindow->IsShown());
@@ -245,6 +307,7 @@ MainFrame::~MainFrame() {
     delete wxLog::SetActiveTarget(new wxLogStderr(NULL));
 #endif
     m_panelBoard->setState(NULL);
+    m_panelBoard->setGTP(NULL);
 
     Unbind(wxEVT_EVALUATION_UPDATE, &MainFrame::doEvalUpdate, this);
     Unbind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
@@ -287,7 +350,10 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this);
+        if (m_gtpKata)
+            m_engineThread = std::make_unique<TEngineThread>(m_State, m_gtpKata, this);
+        else
+            m_engineThread = std::make_unique<TEngineThread>(m_State, nullptr, this);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -305,7 +371,9 @@ void MainFrame::startEngine() {
             m_engineThread->set_nopass(true);
         }
         m_engineThread->Run();
-        SetStatusBarText(_("Engine thinking..."), 1);
+        if (!m_analyzing && !m_pondering) {
+            SetStatusBarText(_("Engine thinking..."), 1);
+        }
     } else {
         wxLogDebug(_("Engine already running"));
     }
@@ -469,6 +537,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             // undo passes
             m_State.undo_move();
             m_State.undo_move();
+            // signal update of visible board
+            wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+            myevent.SetEventObject(this);
+            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+
             if (m_State.get_to_move() != m_playerColor) {
                 wxLogDebug(_("Computer to move"));
                 startEngine();
@@ -478,6 +551,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             }
         }
     } else {
+        // signal update of visible board
+        wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+        myevent.SetEventObject(this);
+        ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+
         if (!m_analyzing) {
             if (m_State.get_to_move() != m_playerColor) {
                 wxLogDebug(_("Computer to move"));
@@ -503,10 +581,6 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
                  _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     }
 
-    // signal update of visible board
-    wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
-    myevent.SetEventObject(this);
-    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
     broadcastCurrentMove();
 }
 
@@ -563,6 +637,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         calcdialog.Show();
         //::wxSafeYield();
         m_State.set_timecontrol(30 * 100, 0, 0, 0);
+        std::vector<int> move_handi =
         m_State.place_free_handicap(mydialog.getHandicap());
         calcdialog.Hide();
         ::wxEndBusyCursor();
@@ -586,6 +661,14 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         m_pondering = false;
         m_disputing = false;
         gameNoLongerCounts();
+
+        if (m_gtpKata) {
+            m_gtpKata->komi(mydialog.getKomi());
+            m_gtpKata->boardsize(mydialog.getBoardsize(), mydialog.getBoardsize());
+            m_gtpKata->clear_board();
+            if (move_handi.size() > 0)
+                m_gtpKata->set_free_handicap(move_handi);
+        }
 
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
@@ -968,6 +1051,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         calcdialog.Show();
         //::wxSafeYield();
         m_State.set_timecontrol(30 * 100, 0, 0, 0);
+        std::vector<int> move_handi =
         m_State.place_free_handicap(abs(handicap));
         calcdialog.Hide();
         ::wxEndBusyCursor();
@@ -983,6 +1067,15 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_panelBoard->setPlayerColor(m_playerColor);
         m_panelBoard->setShowTerritory(false);
         m_ratedGame = true;
+
+        if (m_gtpKata) {
+            m_gtpKata->komi(komi);
+            m_gtpKata->boardsize(m_ratedSize, m_ratedSize);
+            m_gtpKata->clear_board();
+            if (move_handi.size() > 0)
+                m_gtpKata->set_free_handicap(move_handi);
+        }
+
         setActiveMenus();
     }
 
@@ -1205,6 +1298,8 @@ void MainFrame::doRealUndo(int count) {
     for (int i = 0; i < count; i++) {
         if (m_State.undo_move()) {
             wxLogDebug(_("Undoing one move"));
+            if (m_gtpKata)
+                m_gtpKata->undo();
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);

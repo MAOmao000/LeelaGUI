@@ -186,7 +186,7 @@ void GameState::trim_game_history(int lastmove) {
     game_history.resize(lastmove);
 }
 
-bool GameState::set_fixed_handicap(int handicap) {
+bool GameState::set_fixed_handicap(int handicap, std::vector<int> & move_handi) {
     if (!valid_handicap(handicap)) {
         return false;
     }
@@ -199,28 +199,37 @@ bool GameState::set_fixed_handicap(int handicap) {
     if (handicap >= 2) {
         play_move(FastBoard::BLACK, board.get_vertex(low, low));        
         play_move(FastBoard::BLACK, board.get_vertex(high, high));                                
+        move_handi.emplace_back(board.get_vertex(low, low));
+        move_handi.emplace_back(board.get_vertex(high, high));
     }
   
     if (handicap >= 3) {
         play_move(FastBoard::BLACK, board.get_vertex(high, low));
+        move_handi.emplace_back(board.get_vertex(high, low));
     }
   
     if (handicap >= 4) {
         play_move(FastBoard::BLACK, board.get_vertex(low, high));        
+        move_handi.emplace_back(board.get_vertex(low, high));
     }
   
     if (handicap >= 5 && handicap % 2 == 1) {
         play_move(FastBoard::BLACK, board.get_vertex(mid, mid));
+        move_handi.emplace_back(board.get_vertex(mid, mid));
     }
   
     if (handicap >= 6) {
         play_move(FastBoard::BLACK, board.get_vertex(low, mid));
         play_move(FastBoard::BLACK, board.get_vertex(high, mid));        
+        move_handi.emplace_back(board.get_vertex(low, mid));
+        move_handi.emplace_back(board.get_vertex(high, mid));
     }
   
     if (handicap >= 8) {
         play_move(FastBoard::BLACK, board.get_vertex(mid, low));
         play_move(FastBoard::BLACK, board.get_vertex(mid, high));
+        move_handi.emplace_back(board.get_vertex(mid, low));
+        move_handi.emplace_back(board.get_vertex(mid, high));
     }
     
     board.set_to_move(FastBoard::WHITE);
@@ -232,7 +241,7 @@ bool GameState::set_fixed_handicap(int handicap) {
     return true;
 }
 
-int GameState::set_fixed_handicap_2(int handicap) {
+int GameState::set_fixed_handicap_2(int handicap, std::vector<int> & move_handi) {
     int board_size = board.get_boardsize();
     int low = board_size >= 13 ? 3 : 2;
     int mid = board_size / 2; 
@@ -255,6 +264,7 @@ int GameState::set_fixed_handicap_2(int handicap) {
                 if (board.get_square(i+1, j) != FastBoard::EMPTY) continue;
                 if (board.get_square(i+1, j+1) != FastBoard::EMPTY) continue;                
                 play_move(FastBoard::BLACK, board.get_vertex(i, j));
+                move_handi.emplace_back(board.get_vertex(i, j));
                 placed++;                
             }
         }
@@ -283,7 +293,8 @@ bool GameState::valid_handicap(int handicap) {
     return true;
 }
 
-void GameState::place_free_handicap(int stones) {
+std::vector<int>/*void*/ GameState::place_free_handicap(int stones) {
+    std::vector<int> move_handi;
     int limit = board.get_boardsize() * board.get_boardsize();
     if (stones > limit / 2) {
         stones = limit / 2;
@@ -293,16 +304,17 @@ void GameState::place_free_handicap(int stones) {
     
     int fixplace = std::min(9, stones);
         
-    set_fixed_handicap(fixplace);
+    set_fixed_handicap(fixplace, move_handi);
     stones -= fixplace;    
     
-    stones -= set_fixed_handicap_2(stones);    
+    stones -= set_fixed_handicap_2(stones, move_handi);    
     
     for (int i = 0; i < stones; i++) {
         std::unique_ptr<UCTSearch> search(new UCTSearch(*this));
 
         int move = search->think(FastBoard::BLACK, UCTSearch::NOPASS);
         play_move(FastBoard::BLACK, move);     
+        move_handi.emplace_back(move);
     }
 
     if (orgstones)  {
@@ -314,4 +326,6 @@ void GameState::place_free_handicap(int stones) {
     anchor_game_history();
     
     set_handicap(orgstones);       
+
+    return move_handi;
 }

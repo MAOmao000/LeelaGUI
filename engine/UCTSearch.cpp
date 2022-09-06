@@ -976,13 +976,13 @@ int UCTSearch::think(int color, passflag_t passflag) {
     }
     std::string bm_str = m_rootstate.move_to_text(ret.first/*Best move*/);
     if (bm_str == "pass") {
-        GUIprintf(cfg_lang, (_("Best move: pass(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+        GUIprintf(cfg_lang, (_("Best move: pass(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else if (bm_str == "resign") {
-        GUIprintf(cfg_lang, (_("Best move: resign(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+        GUIprintf(cfg_lang, (_("Best move: resign(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else if (bm_str == "error") {
-        GUIprintf(cfg_lang, (_("Best move: error(Win rate:%3.1f%%)") + scoreString).utf8_str(), ret.second*100);
+        GUIprintf(cfg_lang, (_("Best move: error(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else {
-        GUIprintf(cfg_lang, (_("Best move: %s(Win rate:%3.1f%%)") + scoreString).utf8_str(), bm_str.c_str(), ret.second*100);
+        GUIprintf(cfg_lang, (_("Best move: %s(Win rate:%3.1f%%)") + scoreString).utf8_str(), bm_str.c_str(), 100 - ret.second*100);
     }
 
     return ret.first/*Best move*/;

@@ -19,9 +19,9 @@ public:
     };
     void init_game(int size, float komi);
     void reset_game();
-    bool set_fixed_handicap(int stones);
-    int set_fixed_handicap_2(int stones);
-    void place_free_handicap(int stones);
+    bool set_fixed_handicap(int stones, std::vector<int> & move_handi);
+    int set_fixed_handicap_2(int stones, std::vector<int> & move_handi);
+    std::vector<int>/*void*/ place_free_handicap(int stones);
     void anchor_game_history(void);
     void trim_game_history(int lastmove);
 

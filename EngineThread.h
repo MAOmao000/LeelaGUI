@@ -6,12 +6,14 @@
 #include "Utils.h"
 #include <atomic>
 
+#include "../command/gtpKata.h"
+
 class MainFrame;
 using Utils::ThreadGroup;
 
 class TEngineThread {
     public:
-        TEngineThread(const GameState& gamestate, MainFrame * frame);
+        TEngineThread(const GameState& gamestate, GTPKata * gtpKata, MainFrame * frame);
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -28,6 +30,7 @@ class TEngineThread {
         }
     private:
         std::unique_ptr<GameState> m_state;
+        GTPKata * m_gtpKata;
         MainFrame * m_frame;
         int m_maxvisits;
         bool m_nets;

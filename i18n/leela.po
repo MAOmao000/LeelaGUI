@@ -56,6 +56,11 @@ msgstr "行選択を解除"
 msgid "Leela"
 msgstr ""
 
+#: EngineThread.cpp:50
+#, c-format
+msgid "Win rate:%3.1f%% Score:%.1f"
+msgstr "勝率:%3.1f%% %.1f目差"
+
 #: GUI.cpp:98
 msgid "&New Game..."
 msgstr "新規対局...(&N)"
@@ -649,6 +654,11 @@ msgid ""
 "your GPU is slow, it may even be faster."
 msgstr "macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。安定性に問題がある場合は、通常バージョンに切り替えてみてください。GPUが遅ければ、もっと速くなるかもしれません。"
 
+#: MainFrame.cpp:207
+#, c-format
+msgid "KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"
+msgstr "KataGoエンジンの初期化に失敗したため、Leelaエンジンで起動します:\n%s"
+
 #: MainFrame.cpp:275
 #, c-format
 msgid "Komi: %d.5; Prisoners white: %d/black: %d"
@@ -756,12 +766,12 @@ msgstr "%d 級"
 #: MainFrame.cpp:1168
 #, c-format
 msgid "%d dan"
-msgstr "%d 段"
+msgstr "アマ %d 段"
 
 #: MainFrame.cpp:1170
 #, c-format
 msgid "%d pro"
-msgstr "%d プロ"
+msgstr "プロ %d 段"
 
 #: MainFrame.cpp:1201
 msgid "Undoing one move"
@@ -849,6 +859,18 @@ msgstr "モンテカルロ"
 #: TScorePanel.cpp:123
 msgid "Network"
 msgstr "ネットワーク"
+
+#: cpp\gtpKata.cpp:1657
+msgid "Key 'modelFile'("
+msgstr "キー 'modelFile'("
+
+#: cpp\gtpKata.cpp:1657
+msgid ") dose not exist"
+msgstr ") が存在しません"
+
+#: cpp\gtpKata.cpp:1661
+msgid "Key 'modelFile' not specified in config file "
+msgstr "キー 'modelFile' が構成ファイル に定義されていません: "
 
 #: engine\UCTSearch.cpp:213
 msgid "MC Win%"

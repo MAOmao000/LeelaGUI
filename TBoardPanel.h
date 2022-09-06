@@ -5,6 +5,7 @@
 
 #include "FastBoard.h"
 #include "GameState.h"
+#include "../command/gtpKata.h"
 
 wxDECLARE_EVENT(wxEVT_DISPLAY_MAINLINE, wxCommandEvent);
 
@@ -18,6 +19,7 @@ public:
                const wxString& name = wxPanelNameStr);
 
     void setState(GameState * brd);
+    void setGTP(GTPKata * gtp);
     void setPlayerColor(int color);
     void setShowOwner(bool val);
     void setShowMoyo(bool val);
@@ -50,6 +52,7 @@ private:
     void doProbabilities();
 
     GameState * m_State;
+    GTPKata * m_gtpKata;
     bool m_stateLock;
     wxBitmap m_tileFull;  
     wxImage m_whiteStone;

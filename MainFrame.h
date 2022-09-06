@@ -8,6 +8,7 @@
 #include "GameState.h"
 #include "EngineThread.h"
 #include "GTP.h"
+#include "../core/mainargs.h"
 
 class AnalysisWindow;
 class ScoreHistogram;
@@ -93,6 +94,7 @@ class MainFrame : public TMainFrame {
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
 	GameState m_State;
+	GTPKata* m_gtpKata;
 	std::vector<GameState> m_StateStack;
 	int m_playerColor;
 	int m_visitLimit;
