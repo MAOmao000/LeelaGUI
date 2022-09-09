@@ -1278,6 +1278,8 @@ void MainFrame::doPass(wxCommandEvent& event) {
 
     m_State.play_pass();
     //::wxLogMessage("User passes");
+    if (m_gtpKata)
+        m_gtpKata->play(-1, 0);
 
     wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
     myevent.SetEventObject(this);
@@ -1473,6 +1475,8 @@ void MainFrame::doResign(wxCommandEvent& event) {
         stopEngine();
 
         m_State.play_move(FastBoard::RESIGN);
+        if (m_gtpKata)
+            m_gtpKata->play(-1, 0);
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
         ::wxPostEvent(GetEventHandler(), myevent);
