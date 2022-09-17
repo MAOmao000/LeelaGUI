@@ -22,6 +22,9 @@ void GameState::init_game(int size, float komi) {
     m_timecontrol.set_boardsize(board.get_boardsize());
     m_timecontrol.reset_clocks();
 
+    m_policy.clear();
+    m_owner.clear();
+
     return;
 };
 
@@ -32,6 +35,9 @@ void GameState::reset_game() {
     game_history.push_back(*this);
 
     m_timecontrol.reset_clocks();
+
+    m_policy.clear();
+    m_owner.clear();
 }
 
 bool GameState::forward_move(void) {

@@ -44,6 +44,8 @@ public:
 
     void display_state();
 
+    std::vector<float> m_policy;
+    std::vector<float> m_owner;
 private:
     bool valid_handicap(int stones);
 
