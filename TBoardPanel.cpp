@@ -554,11 +554,6 @@ void TBoardPanel::doMoyo() {
 
 void TBoardPanel::doOwner() {
     if (cfg_use_gtp) {
-        m_Owner.resize(FastBoard::MAXSQ);
-        std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
-
-        int boardsize = m_State->board.get_boardsize();
-
         if (m_State->m_owner.size() > 0) {
             m_Owner.clear();
             for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
