@@ -30,7 +30,6 @@ class TEngineThread {
         }
     private:
         std::unique_ptr<GameState> m_state;
-        GTPKata * m_gtpKata;
         MainFrame * m_frame;
         int m_maxvisits;
         bool m_nets;
@@ -42,6 +41,7 @@ class TEngineThread {
         bool m_update_score;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
+        GTPKata* m_gtpKata;
 };
 
 #endif

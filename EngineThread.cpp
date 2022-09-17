@@ -5,32 +5,36 @@
 #include "UCTSearch.h"
 #include "MainFrame.h"
 #include "Utils.h"
+#include "MCOTable.h"
 
-TEngineThread::TEngineThread(const GameState& state, GTPKata * gtpKata, MainFrame * frame) {
-    m_state = std::make_unique<GameState>(state);
-    m_frame = frame;
-    m_maxvisits = 0;
-    m_runflag = true;
-    m_nopass = false;
-    m_quiet = false;
-    m_nets = true;
-    m_update_score = true;
-    m_gtpKata = gtpKata;
+using namespace std;
+
+TEngineThread::TEngineThread(const GameState& state, GTPKata * gtpKata, MainFrame * frame)
+    :m_state(std::make_unique<GameState>(state)),
+     m_frame(frame),
+     m_maxvisits(0),
+     m_nets(true),
+     m_resigning(true),
+     m_analyseflag(false),
+     m_pondering(false),
+     m_quiet(false),
+     m_nopass(false),
+     m_update_score(true),
+     m_runflag(true),
+     m_gtpKata(gtpKata)
+{
 }
 
 void TEngineThread::Run() {
     auto Func = [this] {
-        double winRate;
-        double scoreLead;
-        auto search = std::make_unique<UCTSearch>(*m_state);
-
         int who = m_state->get_to_move();
 
-        if (m_gtpKata == nullptr || (m_analyseflag && !m_pondering)) {
+        if (!cfg_use_gtp) {
+            auto search = make_unique<UCTSearch>(*m_state);
+
             if (m_analyseflag && !m_pondering) {
                 search->set_playout_limit(0);
-            }
-            else {
+            } else {
                 search->set_playout_limit(m_maxvisits);
             }
             search->set_runflag(&m_runflag);
@@ -46,8 +50,7 @@ void TEngineThread::Run() {
             int move;
             if (m_resigning) {
                 move = search->think(who, mode);
-            }
-            else {
+            } else {
                 move = search->think(who, mode | UCTSearch::NORESIGN);
             }
 
@@ -59,57 +62,57 @@ void TEngineThread::Run() {
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto scores = search->get_scores();
                 auto movenum = m_state->get_movenum();
-                auto scoretuple = std::make_tuple(movenum,
-                    std::get<0>(scores),
-                    std::get<1>(scores),
-                    std::get<2>(scores));
+                auto scoretuple = make_tuple(movenum, get<0>(scores), get<1>(scores), get<2>(scores));
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
             }
             if (!m_analyseflag) {
-                wxQueueEvent(m_frame->GetEventHandler(),
-                    new wxCommandEvent(wxEVT_NEW_MOVE));
+                wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
             }
         } else if (m_pondering) {
             m_gtpKata->ponder();
         } else {
+            // do some preprocessing for move ordering
+            // Note: Playouts are required to display the "Moyo"
+            MCOwnerTable::get_MCO()->clear();
+            GameState& rootstate(*m_state);
+            float mc_score = Playout::mc_owner(rootstate);
+
+            double winrate;
+            double scoreLead;
             Player pla = who == FastBoard::BLACK ? P_BLACK : P_WHITE;
-            string response = m_gtpKata->gen_move(pla, winRate, scoreLead);
-            Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winRate*100, -1 * scoreLead);
+            string response = m_gtpKata->gen_move(pla, winrate, scoreLead);
 
             if (response == "pass") {
                 m_state->play_move(who, FastBoard::PASS);
             } else if (response == "resign") {
                 m_state->play_move(who, FastBoard::RESIGN);
             } else {
-                using namespace std;
                 transform(response.begin(), response.end(), response.begin(), ::tolower);
-                string str_who = who == FastBoard::BLACK ? "b" : "w";
-                m_state->play_textmove(str_who, response);
+                m_state->play_move(who, m_state->board.text_to_move(response));
             }
 
             if (m_update_score) {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
-                auto movenum = m_state->get_movenum() + 1;
+                auto movenum = m_state->get_movenum();
                 float black_winrate;
                 if (who == FastBoard::BLACK) {
-                    black_winrate = winRate;
+                    black_winrate = winrate;
                 } else {
-                    black_winrate = -1.0 * (winRate - 1.0);
+                    black_winrate = -1.0 * (winrate - 1.0);
                 }
-                auto scoretuple = std::make_tuple(movenum,
-                                                  black_winrate,
-                                                  black_winrate,
-                                                  black_winrate);
+                auto scoretuple = make_tuple(movenum, black_winrate, black_winrate, black_winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
             }
+
+            Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreLead);
+
             if (!m_analyseflag) {
-                wxQueueEvent(m_frame->GetEventHandler(),
-                    new wxCommandEvent(wxEVT_NEW_MOVE));
+                wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
             }
         }
     };
