@@ -19,7 +19,6 @@ public:
                const wxString& name = wxPanelNameStr);
 
     void setState(GameState * brd);
-    void setGTP(GTPKata * gtp);
     void setPlayerColor(int color);
     void setShowOwner(bool val);
     void setShowMoyo(bool val);
@@ -37,6 +36,7 @@ public:
         return m_stateLock;
     }
     void clearViz();
+    void setGTP(GTPKata* gtp);
 
 private:
     DECLARE_EVENT_TABLE()
@@ -52,11 +52,10 @@ private:
     void doProbabilities();
 
     GameState * m_State;
-    GTPKata * m_gtpKata;
     bool m_stateLock;
-    wxBitmap m_tileFull;  
+    wxBitmap m_tileFull;
     wxImage m_whiteStone;
-    wxImage m_blackStone;      
+    wxImage m_blackStone;
     int m_cellDim;
     int m_playerColor;
     int m_analysisColor;
@@ -71,6 +70,7 @@ private:
     std::vector<float> m_Owner;
     std::vector<float> m_Probabilities;
     float m_MaxProbability;
+    GTPKata* m_gtpKata;
 };
 
 #endif

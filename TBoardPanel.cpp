@@ -46,7 +46,7 @@ TBoardPanel::TBoardPanel(wxWindow *parent, wxWindowID winid, const wxPoint& pos,
     // 2 x 2 tile
     m_tileFull.Create(srcWidth * 2, srcHeight * 2);
     wxMemoryDC dcTile;
-    wxMemoryDC dcSrc;	
+    wxMemoryDC dcSrc;
 
     dcTile.SelectObject(m_tileFull);    
     dcSrc.SelectObject(tileN);    
@@ -93,7 +93,7 @@ void TBoardPanel::setState(GameState * state) {
     m_State = state;
 }
 
-void TBoardPanel::setGTP(GTPKata * gtp) {
+void TBoardPanel::setGTP(GTPKata* gtp) {
     m_gtpKata = gtp;
 }
 
@@ -476,7 +476,7 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         
         if (m_State->legal_move(vtx)) {
             m_State->play_move(vtx);
-            if (m_gtpKata)
+            if (cfg_use_gtp)
                 m_gtpKata->play(cellX, cellY);
             
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
@@ -557,42 +557,35 @@ void TBoardPanel::doMoyo() {
 }
 
 void TBoardPanel::doOwner() {
-    if (m_gtpKata) {
-        if (!MCOwnerTable::get_MCO()->is_primed()) {
-            Playout::mc_owner(*m_State);
-        }
-
+    if (cfg_use_gtp) {
         m_Owner.resize(FastBoard::MAXSQ);
         std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
 
         int boardsize = m_State->board.get_boardsize();
 
-        auto vec = m_gtpKata->get_owner();
-        int i = 0;
-        for (const auto& owner : vec) {
-            int x = i % boardsize;
-            int y = i / boardsize;
-            y = -1 * (y - boardsize) - 1;
-            int pos = m_State->board.get_vertex(x, y);
-            m_Owner[pos] = -1 * (owner / 2) + 0.5;
-            i++;
-        }
-    } else {
-        if (!MCOwnerTable::get_MCO()->is_primed()) {
-            Playout::mc_owner(*m_State);
-        }
-
-        m_Owner.resize(FastBoard::MAXSQ);
-        std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
-
-        int boardsize = m_State->board.get_boardsize();
-
-        for (int x = 0; x < boardsize; x++) {
-            for (int y = 0; y < boardsize; y++) {
-                int vertex = m_State->board.get_vertex(x, y);
-                m_Owner[vertex] =
-                    MCOwnerTable::get_MCO()->get_blackown(FastBoard::BLACK, vertex);
+        if (m_State->m_owner.size() > 0) {
+            m_Owner.clear();
+            for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
+                m_Owner.emplace_back(*itr);
             }
+            return;
+        }
+    }
+
+    if (!MCOwnerTable::get_MCO()->is_primed()) {
+        Playout::mc_owner(*m_State);
+    }
+
+    m_Owner.resize(FastBoard::MAXSQ);
+    std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
+
+    int boardsize = m_State->board.get_boardsize();
+
+    for (int x = 0; x < boardsize; x++) {
+        for (int y = 0; y < boardsize; y++) {
+            int vertex = m_State->board.get_vertex(x, y);
+            m_Owner[vertex] =
+                MCOwnerTable::get_MCO()->get_blackown(FastBoard::BLACK, vertex);
         }
     }
 }
@@ -656,32 +649,27 @@ void TBoardPanel::doDisplayMainline(wxCommandEvent& event) {
 
 void TBoardPanel::doProbabilities() {
     if (m_State->board.get_hash() != m_DisplayedStateHash) {
+        if (cfg_use_gtp) {
+            if (m_State->m_policy.size() > 0) {
+                m_Probabilities.clear();
+                for (auto itr = m_State->m_policy.begin(); itr != m_State->m_policy.end(); ++itr) {
+                    m_Probabilities.emplace_back(*itr);
+                }
+                m_MaxProbability = m_State->m_policy[0];
+                m_DisplayedStateHash = m_State->board.get_hash();
+                return;
+            }
+        }
         std::fill(m_Probabilities.begin(), m_Probabilities.end(), 0.0f);
         m_MaxProbability = 0.0f;
 
-        if (m_gtpKata) {
-            int boardsize = m_State->board.get_boardsize();
-            auto vec = m_gtpKata->get_policy();
+        auto vec = Network::get_Network()->get_scored_moves(
+            m_State, Network::Ensemble::AVERAGE_ALL);
 
-            for (const auto& pair : vec) {
-                int x = pair.second % boardsize;
-                int y = pair.second / boardsize;
-                y = -1 * (y - boardsize) - 1;
-                int pos = m_State->board.get_vertex(x, y);
-                m_Probabilities[pos] = pair.first;
-                if (pair.first > m_MaxProbability) {
-                    m_MaxProbability = pair.first;
-                }
-            }
-        } else {
-            auto vec = Network::get_Network()->get_scored_moves(
-                m_State, Network::Ensemble::AVERAGE_ALL);
-
-            for (const auto& pair : vec) {
-                m_Probabilities[pair.second] = pair.first;
-                if (pair.first > m_MaxProbability) {
-                    m_MaxProbability = pair.first;
-                }
+        for (const auto& pair : vec) {
+            m_Probabilities[pair.second] = pair.first;
+            if (pair.first > m_MaxProbability) {
+                m_MaxProbability = pair.first;
             }
         }
         m_DisplayedStateHash = m_State->board.get_hash();
