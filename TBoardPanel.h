@@ -5,7 +5,6 @@
 
 #include "FastBoard.h"
 #include "GameState.h"
-#include "../command/gtpKata.h"
 
 wxDECLARE_EVENT(wxEVT_DISPLAY_MAINLINE, wxCommandEvent);
 
@@ -36,7 +35,6 @@ public:
         return m_stateLock;
     }
     void clearViz();
-    void setGTP(GTPKata* gtp);
 
 private:
     DECLARE_EVENT_TABLE()
@@ -70,7 +68,6 @@ private:
     std::vector<float> m_Owner;
     std::vector<float> m_Probabilities;
     float m_MaxProbability;
-    GTPKata* m_gtpKata;
 };
 
 #endif

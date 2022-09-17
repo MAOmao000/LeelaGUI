@@ -93,10 +93,6 @@ void TBoardPanel::setState(GameState * state) {
     m_State = state;
 }
 
-void TBoardPanel::setGTP(GTPKata* gtp) {
-    m_gtpKata = gtp;
-}
-
 void TBoardPanel::setPlayerColor(int color) {
     m_playerColor = color;
 }
@@ -476,11 +472,11 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         
         if (m_State->legal_move(vtx)) {
             m_State->play_move(vtx);
-            if (cfg_use_gtp)
-                m_gtpKata->play(cellX, cellY);
+            std::pair<int, int> cellxy = std::make_pair(cellX, cellY);
             
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
             event.SetEventObject(this);
+            event.SetClientData((void*)new auto(cellxy));
             ::wxPostEvent(GetEventHandler(), event);
             
             Refresh();

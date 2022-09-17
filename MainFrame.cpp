@@ -76,7 +76,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         use_gtp = false;
         m_gtpKata = nullptr;
     }
-    m_panelBoard->setGTP(m_gtpKata);
 
     GTP::setup_default_parameters(lang, use_gtp);
 
@@ -473,49 +472,9 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     stopEngine();
 
     if (cfg_use_gtp) {
-        if (wxConfig::Get()->ReadBool(wxT("showProbabilitiesEnabled"), false)) {
-            int boardsize = m_State.board.get_boardsize();
-            auto policy = m_gtpKata->get_policy();
-
-            std::vector<float> conv_policy((boardsize + 2) * (boardsize + 2), 0.0);
-            float maxProbability = 0.0f;
-            float policyPass = 0.0f;
-            int x, y, pos;
-            for (const auto& pair : policy) {
-                if (pair.second == boardsize * boardsize) {
-                    policyPass = pair.first;
-                    continue;
-                }
-                x = pair.second % boardsize;
-                y = pair.second / boardsize;
-                y = -1 * (y - boardsize) - 1;
-                pos = m_State.board.get_vertex(x, y);
-                conv_policy[pos] = pair.first;
-                if (pair.first > maxProbability) {
-                    maxProbability = pair.first;
-                }
-            }
-            conv_policy[0] = maxProbability;
-            conv_policy[1] = policyPass;
-            m_State.m_policy.clear();
-            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-                m_State.m_policy.emplace_back(*itr);
-            }
-        } else if (wxConfig::Get()->ReadBool(wxT("showOwnerEnabled"), false)) {
-            int boardsize = m_State.board.get_boardsize();
-            auto owners = m_gtpKata->get_owner();
-
-            int vertex = 0;
-            int x, y, pos;
-            m_State.m_owner.clear();
-            for (const auto& owner : owners) {
-                x = vertex % boardsize;
-                y = vertex / boardsize;
-                y = -1 * (y - boardsize) - 1;
-                pos = m_State.board.get_vertex(x, y);
-                m_State.m_owner.emplace_back(-1 * (owner / 2) + 0.5);
-                vertex++;
-            }
+        std::pair<int, int>* cellxy = static_cast<std::pair<int, int>*>(event.GetClientData());
+        if (cellxy) {
+            m_gtpKata->play(cellxy->first, cellxy->second);
         }
     }
 

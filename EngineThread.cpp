@@ -93,6 +93,47 @@ void TEngineThread::Run() {
                 m_state->play_move(who, m_state->board.text_to_move(response));
             }
 
+            int boardsize = m_state->board.get_boardsize();
+            auto policy = m_gtpKata->get_policy();
+
+            std::vector<float> conv_policy((boardsize + 2) * (boardsize + 2), 0.0);
+            float maxProbability = 0.0f;
+            float policyPass = 0.0f;
+            int x, y, pos;
+            for (const auto& pair : policy) {
+                if (pair.second == boardsize * boardsize) {
+                    policyPass = pair.first;
+                    continue;
+                }
+                x = pair.second % boardsize;
+                y = pair.second / boardsize;
+                y = -1 * (y - boardsize) - 1;
+                pos = m_state->board.get_vertex(x, y);
+                conv_policy[pos] = pair.first;
+                if (pair.first > maxProbability) {
+                    maxProbability = pair.first;
+                }
+            }
+            conv_policy[0] = maxProbability;
+            conv_policy[1] = policyPass;
+            m_state->m_policy.clear();
+            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+                m_state->m_policy.emplace_back(*itr);
+            }
+
+            auto owners = m_gtpKata->get_owner();
+
+            int vertex = 0;
+            m_state->m_owner.clear();
+            for (const auto& owner : owners) {
+                x = vertex % boardsize;
+                y = vertex / boardsize;
+                y = -1 * (y - boardsize) - 1;
+                pos = m_state->board.get_vertex(x, y);
+                m_state->m_owner.emplace_back(-1 * (owner / 2) + 0.5);
+                vertex++;
+            }
+
             if (m_update_score) {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
