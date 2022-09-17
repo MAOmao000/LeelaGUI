@@ -860,17 +860,29 @@ msgstr "モンテカルロ"
 msgid "Network"
 msgstr "ネットワーク"
 
-#: cpp\gtpKata.cpp:1657
+#: cpp\gtpKata.cpp:1612
+msgid "Argument error when starting KataGo"
+msgstr "KataGo起動時の引数エラー"
+
+#: cpp\gtpKata.cpp:1620
 msgid "Key 'modelFile'("
 msgstr "キー 'modelFile'("
 
-#: cpp\gtpKata.cpp:1657
+#: cpp\gtpKata.cpp:1620
 msgid ") dose not exist"
 msgstr ") が存在しません"
 
-#: cpp\gtpKata.cpp:1661
+#: cpp\gtpKata.cpp:1625
 msgid "Key 'modelFile' not specified in config file "
 msgstr "キー 'modelFile' が構成ファイル に定義されていません: "
+
+#: cpp\gtpKata.cpp:1630
+msgid "Cannot specify both logFile and logDir in config"
+msgstr "config で logFile と logDir の両方を指定することはできません"
+
+#: cpp\gtpKata.cpp:1691
+msgid "Cannot specify both cleanupBeforePass = true and friendlyPass = true at the same time"
+msgstr "cleanupBeforePass = true と FriendlyPass = true の両方を同時に指定することはできません"
 
 #: engine\UCTSearch.cpp:213
 msgid "MC Win%"
