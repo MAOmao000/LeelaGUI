@@ -39,11 +39,12 @@ extern std::string cfg_logfile;
 extern FILE* cfg_logfile_handle;
 extern bool cfg_quiet;
 extern int cfg_lang;
+extern bool cfg_use_gtp;
 
 class GTP {
 public:
     static bool execute(GameState & game, std::string xinput);
-    static void setup_default_parameters(int m_lang);
+    static void setup_default_parameters(int lang=0, bool use_gtp=false);
     static bool perform_self_test(GameState & state);
 private:
     static const int GTP_VERSION = 2;
