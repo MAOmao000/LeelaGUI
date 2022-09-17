@@ -33,9 +33,9 @@
 
 #define PROGRAM_NAME "LeelaI18N"
 #ifdef KGS
-#define PROGRAM_VERSION "1.3.0. I will resign when I have lost. If you are sure you are winning but I haven't resigned yet, the status of some groups is not yet clear to me. I will pass out the game when I have won. You can download the latest stable version at https://sjeng.org/leela"
+#define PROGRAM_VERSION "1.3.1. I will resign when I have lost. If you are sure you are winning but I haven't resigned yet, the status of some groups is not yet clear to me. I will pass out the game when I have won. You can download the latest stable version at https://sjeng.org/leela"
 #else
-#define PROGRAM_VERSION "1.3.0"
+#define PROGRAM_VERSION "1.3.1"
 #endif
 
 // OpenBLAS limitation
