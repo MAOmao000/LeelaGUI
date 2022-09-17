@@ -99,7 +99,6 @@ class MainFrame : public TMainFrame {
 	int m_playerColor;
 	int m_visitLimit;
 	int m_ratedSize;
-	int m_lang;
 	bool m_netsEnabled;
 	bool m_soundEnabled;
 	bool m_resignEnabled;
@@ -130,7 +129,5 @@ class MainFrame : public TMainFrame {
 			m_locale.AddCatalog(_T("wxstd"));
 		}
 	}
-
 };
-
 #endif

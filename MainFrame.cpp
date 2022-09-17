@@ -49,14 +49,36 @@ static constexpr long MIN_RANK = -30L;
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title) {
 
-    m_gtpKata = nullptr;
-
     m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
-    m_lang = 0;
+    int lang = 0;
     if (m_japaneseEnabled) {
-        m_lang = 1;
+        lang = 1;
     }
-    GTP::setup_default_parameters(m_lang);
+
+    const char* argv[] = {" ", "gtp", "-config", "default_gtp.cfg"};
+
+    std::vector<std::string> args;
+    args.reserve(sizeof(argv));
+    for (int i = 0; i < sizeof(argv) / sizeof(argv[0]); i++)
+        args.push_back(std::string(argv[i]));
+
+    MainArgs::makeCoutAndCerrAcceptUTF8();
+
+    std::vector<std::string> subArgs(args.begin()+1, args.end());
+
+    bool use_gtp = true;
+    try {
+        m_gtpKata = new GTPKata(subArgs);
+    } catch (const StringError &e) {
+        wxString errorString;
+        errorString.Printf(_("KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"), e.what());
+        ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+        use_gtp = false;
+        m_gtpKata = nullptr;
+    }
+    m_panelBoard->setGTP(m_gtpKata);
+
+    GTP::setup_default_parameters(lang, use_gtp);
 
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(NULL);
@@ -170,52 +192,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_panelBoard->setPlayerColor(m_playerColor);
     m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Check(false);
 
-    m_panelBoard->setGTP(nullptr);
-    const char* argv[] = {" ", "gtp", "-config", "default_gtp.cfg"};
-
-    std::vector<std::string> args;
-    args.reserve(sizeof(argv));
-    for (int i = 0; i < sizeof(argv) / sizeof(argv[0]); i++)
-        args.push_back(std::string(argv[i]));
-
-    MainArgs::makeCoutAndCerrAcceptUTF8();
-
-    std::vector<std::string> subArgs(args.begin()+1, args.end());
-    try {
-        m_gtpKata = new GTPKata(
-            subArgs,
-            false,           // allowResignation
-            enabled_t::Auto, // cleanupBeforePass
-            0.0,             // forcedKomi
-            enabled_t::Auto, // friendlyPass
-            false,           // isForcingKomi
-            false,           // logSearchInfo
-            false,           // loggingToStder
-            false,           // ogsChatToStderr
-            3,               // resignConsecTurns
-            -1e10,           // resignMinScoreDifference
-            -1.0,            // resignThreshold
-            1.0,             // searchFactorWhenWinning
-            1.0,             // searchFactorWhenWinningThreshold
-            false,           // maybeStartPondering
-            false            // logAllGTPCommunication
-        );
-
-    } catch (const StringError &e) {
-        wxString errorString;
-        errorString.Printf(_("KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"), e.what());
-        ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
-        if (m_gtpKata) {
-            delete m_gtpKata;
-            m_gtpKata = nullptr;
-        }
-    }
-
-    if (m_gtpKata)
-        m_panelBoard->setGTP(m_gtpKata);
-    else
-        m_panelBoard->setGTP(nullptr);
-
     // set us as the global message receiver
     Utils::setGUIQueue(this->GetEventHandler(), wxEVT_STATUS_UPDATE);
 
@@ -226,6 +202,15 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     SetIcon(wxICON(aaaa));
 
+    if (cfg_use_gtp) {
+        m_menu2->FindItem(ID_REDO)->Enable(false);
+        m_menu2->FindItem(ID_FWD10)->Enable(false);
+        m_menu2->FindItem(ID_FORCE)->Enable(false);
+        GetToolBar()->EnableTool(ID_REDO, false);
+        GetToolBar()->EnableTool(ID_FWD10, false);
+        GetToolBar()->EnableTool(ID_FORCE, false);
+    }
+
 #ifdef __WXGTK__
     SetSize(530, 640);
 #elif defined(__WXMAC__)
@@ -235,13 +220,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #endif
     Center();
     setActiveMenus();
-
-    if (m_gtpKata) {
-        m_menu2->FindItem(ID_REDO)->Enable(false);
-        m_menu2->FindItem(ID_FWD10)->Enable(false);
-        GetToolBar()->EnableTool(ID_REDO, false);
-        GetToolBar()->EnableTool(ID_FWD10, false);
-    }
 
     // Create the window already, so we start saving move evaluations
     m_scoreHistogramWindow = new ScoreHistogram(this);
@@ -307,7 +285,6 @@ MainFrame::~MainFrame() {
     delete wxLog::SetActiveTarget(new wxLogStderr(NULL));
 #endif
     m_panelBoard->setState(NULL);
-    m_panelBoard->setGTP(NULL);
 
     Unbind(wxEVT_EVALUATION_UPDATE, &MainFrame::doEvalUpdate, this);
     Unbind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
@@ -350,10 +327,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        if (m_gtpKata)
-            m_engineThread = std::make_unique<TEngineThread>(m_State, m_gtpKata, this);
-        else
-            m_engineThread = std::make_unique<TEngineThread>(m_State, nullptr, this);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, m_gtpKata, this);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -497,6 +471,54 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     wxLogDebug(_("New move arrived"));
 
     stopEngine();
+
+    if (cfg_use_gtp) {
+        if (wxConfig::Get()->ReadBool(wxT("showProbabilitiesEnabled"), false)) {
+            int boardsize = m_State.board.get_boardsize();
+            auto policy = m_gtpKata->get_policy();
+
+            std::vector<float> conv_policy((boardsize + 2) * (boardsize + 2), 0.0);
+            float maxProbability = 0.0f;
+            float policyPass = 0.0f;
+            int x, y, pos;
+            for (const auto& pair : policy) {
+                if (pair.second == boardsize * boardsize) {
+                    policyPass = pair.first;
+                    continue;
+                }
+                x = pair.second % boardsize;
+                y = pair.second / boardsize;
+                y = -1 * (y - boardsize) - 1;
+                pos = m_State.board.get_vertex(x, y);
+                conv_policy[pos] = pair.first;
+                if (pair.first > maxProbability) {
+                    maxProbability = pair.first;
+                }
+            }
+            conv_policy[0] = maxProbability;
+            conv_policy[1] = policyPass;
+            m_State.m_policy.clear();
+            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+                m_State.m_policy.emplace_back(*itr);
+            }
+        } else if (wxConfig::Get()->ReadBool(wxT("showOwnerEnabled"), false)) {
+            int boardsize = m_State.board.get_boardsize();
+            auto owners = m_gtpKata->get_owner();
+
+            int vertex = 0;
+            int x, y, pos;
+            m_State.m_owner.clear();
+            for (const auto& owner : owners) {
+                x = vertex % boardsize;
+                y = vertex / boardsize;
+                y = -1 * (y - boardsize) - 1;
+                pos = m_State.board.get_vertex(x, y);
+                m_State.m_owner.emplace_back(-1 * (owner / 2) + 0.5);
+                vertex++;
+            }
+        }
+    }
+
     m_panelBoard->unlockState();
     m_panelBoard->clearViz();
 
@@ -662,7 +684,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         m_disputing = false;
         gameNoLongerCounts();
 
-        if (m_gtpKata) {
+        if (cfg_use_gtp) {
             m_gtpKata->komi(mydialog.getKomi());
             m_gtpKata->boardsize(mydialog.getBoardsize(), mydialog.getBoardsize());
             m_gtpKata->clear_board();
@@ -1068,7 +1090,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_panelBoard->setShowTerritory(false);
         m_ratedGame = true;
 
-        if (m_gtpKata) {
+        if (cfg_use_gtp) {
             m_gtpKata->komi(komi);
             m_gtpKata->boardsize(m_ratedSize, m_ratedSize);
             m_gtpKata->clear_board();
@@ -1278,7 +1300,7 @@ void MainFrame::doPass(wxCommandEvent& event) {
 
     m_State.play_pass();
     //::wxLogMessage("User passes");
-    if (m_gtpKata)
+    if (cfg_use_gtp)
         m_gtpKata->play(-1, 0);
 
     wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
@@ -1300,7 +1322,7 @@ void MainFrame::doRealUndo(int count) {
     for (int i = 0; i < count; i++) {
         if (m_State.undo_move()) {
             wxLogDebug(_("Undoing one move"));
-            if (m_gtpKata)
+            if (cfg_use_gtp)
                 m_gtpKata->undo();
         }
     }
@@ -1475,7 +1497,7 @@ void MainFrame::doResign(wxCommandEvent& event) {
         stopEngine();
 
         m_State.play_move(FastBoard::RESIGN);
-        if (m_gtpKata)
+        if (cfg_use_gtp)
             m_gtpKata->play(-1, 0);
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
