@@ -164,7 +164,7 @@ static int parseByoYomiPeriods(const vector<string>& args, int argIdx) {
 }
 
 //Assumes that stones are worth 15 points area and 14 points territory, and that 7 komi is fair
-static double initialBlackAdvantage(const BoardHistory& hist) { // stack 34808
+static double initialBlackAdvantage(const BoardHistory& hist) {
   BoardHistory histCopy = hist;
   histCopy.setAssumeMultipleStartingBlackMovesAreHandicap(true);
   int handicapStones = histCopy.computeNumHandicapStones();
@@ -385,7 +385,7 @@ void GTPEngine::clearStatsForNewGame() {
   //Currently nothing
 }
 
-//Specify -1 for the sizes for a default                   stack 39624
+//Specify -1 for the sizes for a default
 void GTPEngine::setOrResetBoardSize(ConfigParser& cfg, Logger& logger, Rand& seedRand, int boardXSize, int boardYSize, bool loggingToStderr) {
   if(nnEval != NULL && boardXSize == nnEval->getNNXLen() && boardYSize == nnEval->getNNYLen())
     return;
@@ -452,7 +452,7 @@ void GTPEngine::setOrResetBoardSize(ConfigParser& cfg, Logger& logger, Rand& see
   setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
   clearStatsForNewGame();
 }
-// stack 34840
+
 void GTPEngine::setPositionAndRules(Player pla, const Board& board, const BoardHistory& h, const Board& newInitialBoard, Player newInitialPla, const vector<Move> newMoveHistory) {
   BoardHistory hist(h);
   //Ensure we always have this value correct
@@ -466,7 +466,7 @@ void GTPEngine::setPositionAndRules(Player pla, const Board& board, const BoardH
   updateDynamicPDA();
 }
 
-void GTPEngine::clearBoard() { // stack 39508
+void GTPEngine::clearBoard() {
   assert(bot->getRootHist().rules == currentRules);
   int newXSize = bot->getRootBoard().x_size;
   int newYSize = bot->getRootBoard().y_size;
@@ -478,7 +478,7 @@ void GTPEngine::clearBoard() { // stack 39508
   clearStatsForNewGame();
 }
 
-bool GTPEngine::setPosition(const vector<Move>& initialStones) { // stack 39528
+bool GTPEngine::setPosition(const vector<Move>& initialStones) {
   assert(bot->getRootHist().rules == currentRules);
   int newXSize = bot->getRootBoard().x_size;
   int newYSize = bot->getRootBoard().y_size;
@@ -548,7 +548,7 @@ bool GTPEngine::play(Loc loc, Player pla) {
   return suc;
 }
 
-bool GTPEngine::undo() { // stack 39536
+bool GTPEngine::undo() {
   if(moveHistory.size() <= 0)
     return false;
   assert(bot->getRootHist().rules == currentRules);
@@ -1041,7 +1041,7 @@ void GTPEngine::clearCache() {
   nnEval->clearCache();
 }
 
-void GTPEngine::placeFixedHandicap(int n, string& response, bool& responseIsError) { // stack 39540
+void GTPEngine::placeFixedHandicap(int n, string& response, bool& responseIsError) {
   int xSize = bot->getRootBoard().x_size;
   int ySize = bot->getRootBoard().y_size;
   Board board(xSize,ySize);
@@ -1081,7 +1081,7 @@ void GTPEngine::placeFixedHandicap(int n, string& response, bool& responseIsErro
   clearStatsForNewGame();
 }
 
-void GTPEngine::placeFreeHandicap(int n, string& response, bool& responseIsError, Rand& rand) { // stack 39560
+void GTPEngine::placeFreeHandicap(int n, string& response, bool& responseIsError, Rand& rand) {
   stopAndWait();
 
   //If asked to place more, we just go ahead and only place up to 30, or a quarter of the board
@@ -1156,7 +1156,7 @@ void GTPEngine::analyze(Player pla, AnalyzeArgs args) {
   bot->analyzeAsync(pla, searchFactor, args.secondsPerReport, callback);
 }
 
-void GTPEngine::computeAnticipatedWinnerAndScore(Player& winner, double& finalWhiteMinusBlackScore) { // stack 79600
+void GTPEngine::computeAnticipatedWinnerAndScore(Player& winner, double& finalWhiteMinusBlackScore) {
   stopAndWait();
 
   //No playoutDoublingAdvantage to avoid bias
@@ -1208,7 +1208,7 @@ void GTPEngine::computeAnticipatedWinnerAndScore(Player& winner, double& finalWh
   bot->setParams(params);
 }
 
-vector<bool> GTPEngine::computeAnticipatedStatuses() { // stack 79008
+vector<bool> GTPEngine::computeAnticipatedStatuses() {
   stopAndWait();
 
   //Make absolutely sure we can restore the bot's old state
@@ -1241,7 +1241,7 @@ vector<bool> GTPEngine::computeAnticipatedStatuses() { // stack 79008
   return isAlive;
 }
 
-string GTPEngine::rawNN(int whichSymmetry) { // stack 40028
+string GTPEngine::rawNN(int whichSymmetry) {
   if(nnEval == NULL)
     return "";
   ostringstream out;
@@ -1311,6 +1311,15 @@ string GTPEngine::rawNN(int whichSymmetry) { // stack 40028
   }
 
   return Global::trim(out.str());
+}
+
+SearchParams GTPEngine::getParams() {
+  return params;
+}
+
+void GTPEngine::setParams(SearchParams p) {
+  params = p;
+  bot->setParams(params);
 }
 
 std::vector<std::pair<float, int> > GTPEngine::get_policy() {
@@ -1390,15 +1399,6 @@ std::vector<float> GTPEngine::get_owner() {
     first = false;
   }
   return result;
-}
-
-SearchParams GTPEngine::getParams() {
-  return params;
-}
-
-void GTPEngine::setParams(SearchParams p) {
-  params = p;
-  bot->setParams(params);
 }
 
 //User should pre-fill pla with a default value, as it will not get filled in if the parsed command doesn't specify
@@ -1583,235 +1583,201 @@ static GTPEngine::AnalyzeArgs parseAnalyzeCommand(
   return args;
 }
 
-GTPKata::GTPKata(
-    const vector<string>& args,
-    bool allowResignation_p,
-    enabled_t cleanupBeforePass_p,
-    float forcedKomi_p,
-    enabled_t friendlyPass_p,
-    bool isForcingKomi_p,
-    bool logSearchInfo_p,
-    bool loggingToStder_p,
-    bool ogsChatToStderr_p,
-    int resignConsecTurns_p,
-    double resignMinScoreDifference_p,
-    double resignThreshold_p,
-    double searchFactorWhenWinning_p,
-    double searchFactorWhenWinningThreshold_p,
-    bool maybeStartPondering_p,
-    bool logAllGTPCommunication_p
-)
-    :allowResignation(allowResignation_p), //(false)
-    cleanupBeforePass(cleanupBeforePass_p), //(enabled_t::Auto)
-    forcedKomi(forcedKomi_p), //(0.0)
-    friendlyPass(friendlyPass_p), //(enabled_t::Auto)
-    isForcingKomi(isForcingKomi_p), //(false)
-    logSearchInfo(logSearchInfo_p), //(false)
-    loggingToStderr(loggingToStder_p), //(false)
-    ogsChatToStderr(ogsChatToStderr_p), //(false)
-    resignConsecTurns(resignConsecTurns_p), //(3)
-    resignMinScoreDifference(resignMinScoreDifference_p), //(-1e10)
-    resignThreshold(resignThreshold_p), //(-1.0)
-    searchFactorWhenWinning(searchFactorWhenWinning_p), //(1.0)
-    searchFactorWhenWinningThreshold(searchFactorWhenWinningThreshold_p), //(1.0)
-    maybeStartPondering(maybeStartPondering_p), //(false)
-    logAllGTPCommunication(logAllGTPCommunication_p), //(false)
-    engine(nullptr), //(nullptr)
-    seedRand(),
-    cfg(),
-    logger(),
-    patternBonusTable(),
-    tables()
-{
-    Board::initHash();
-    ScoreValue::initTables();
+GTPKata::GTPKata(const vector<string>& args) {
+  engine = nullptr;
+  Board::initHash();
+  ScoreValue::initTables();
+  //Rand seedRand;
 
-    string nnModelFile;
-    string overrideVersion;
-    KataGoCommandLine cmd("Run KataGo main GTP engine for playing games or casual analysis.");
-    try {
-        cmd.addConfigFileArg(KataGoCommandLine::defaultGtpConfigFileName(), "gtp_example.cfg");
-        //cmd.addModelFileArg();
-        cmd.setShortUsageArgLimit();
-        cmd.addOverrideConfigArg();
+  //ConfigParser cfg;
+  //string nnModelFile;
+  //string overrideVersion;
+  KataGoCommandLine cmd("Run KataGo main GTP engine for playing games or casual analysis.");
+  try {
+    cmd.addConfigFileArg(KataGoCommandLine::defaultGtpConfigFileName(), "gtp_example.cfg");
+    //cmd.addModelFileArg();
+    cmd.setShortUsageArgLimit();
+    cmd.addOverrideConfigArg();
 
-        TCLAP::ValueArg<string> overrideVersionArg("", "override-version", "Force KataGo to say a certain value in response to gtp version command", false, string(), "VERSION");
-        cmd.add(overrideVersionArg);
-        cmd.parseArgs(args);
-        //nnModelFile = cmd.getModelFile();
-        overrideVersion = overrideVersionArg.getValue();
+    TCLAP::ValueArg<string> overrideVersionArg("", "override-version", "Force KataGo to say a certain value in response to gtp version command", false, string(), "VERSION");
+    cmd.add(overrideVersionArg);
+    cmd.parseArgs(args);
+    //nnModelFile = cmd.getModelFile();
+    overrideVersion = overrideVersionArg.getValue();
 
-        cmd.getConfig(cfg);
-    }
-    catch (TCLAP::ArgException& e) {
-        cerr << "Error: " << e.error() << " for argument " << e.argId() << endl;
-        //return 1;
-        throw StringError("Argument error when starting KataGo");
-    }
+    cmd.getConfig(cfg);
+  }
+  catch (TCLAP::ArgException& e) {
+    cerr << "Error: " << e.error() << " for argument " << e.argId() << endl;
+    throw StringError(_("Argument error when starting KataGo"));
+    //return 1;
+  }
 
-    if (cfg.contains("modelFile")) {
-        nnModelFile = cfg.getString("modelFile");
-        FILE* fp = fopen(nnModelFile.c_str(), "r");
-        if (fp == NULL)
-            throw StringError(_("Key 'modelFile'(") + nnModelFile + _(") dose not exist"));
-        fclose(fp);
+  if (cfg.contains("modelFile")) {
+    nnModelFile = cfg.getString("modelFile");
+    FILE* fp = fopen(nnModelFile.c_str(), "r");
+    if (fp == NULL) {
+      throw StringError(_("Key 'modelFile'(") + nnModelFile + _(") dose not exist"));
     } else {
-        throw StringError(_("Key 'modelFile' not specified in config file ") + KataGoCommandLine::defaultGtpConfigFileName());
+      fclose(fp);
     }
+  } else {
+    throw StringError(_("Key 'modelFile' not specified in config file ") + KataGoCommandLine::defaultGtpConfigFileName());
+  }
 
-    //Logger logger;
-    if (cfg.contains("logFile") && cfg.contains("logDir"))
-        throw StringError("Cannot specify both logFile and logDir in config");
-    else if (cfg.contains("logFile"))
-        logger.addFile(cfg.getString("logFile"));
-    else if (cfg.contains("logDir")) {
-        MakeDir::make(cfg.getString("logDir"));
-        Rand rand;
-        logger.addFile(cfg.getString("logDir") + "/" + DateTime::getCompactDateTimeString() + "-" + Global::uint32ToHexString(rand.nextUInt()) + ".log");
-    }
+  //Logger logger;
+  if (cfg.contains("logFile") && cfg.contains("logDir"))
+    throw StringError(_("Cannot specify both logFile and logDir in config"));
+  else if (cfg.contains("logFile"))
+    logger.addFile(cfg.getString("logFile"));
+  else if (cfg.contains("logDir")) {
+    MakeDir::make(cfg.getString("logDir"));
+    Rand rand;
+    logger.addFile(cfg.getString("logDir") + "/" + DateTime::getCompactDateTimeString() + "-" + Global::uint32ToHexString(rand.nextUInt()) + ".log");
+  }
 
-    /*const bool*/ logAllGTPCommunication = cfg.getBool("logAllGTPCommunication");
-    /*const bool*/ logSearchInfo = cfg.getBool("logSearchInfo");
-    //bool loggingToStderr = false;
+  /*const bool */logAllGTPCommunication = cfg.getBool("logAllGTPCommunication");
+  /*const bool */logSearchInfo = cfg.getBool("logSearchInfo");
+  /*bool */loggingToStderr = false;
 
-    const bool logTimeStamp = cfg.contains("logTimeStamp") ? cfg.getBool("logTimeStamp") : true;
-    if (!logTimeStamp)
-        logger.setLogTime(false);
+  /*const bool */logTimeStamp = cfg.contains("logTimeStamp") ? cfg.getBool("logTimeStamp") : true;
+  if (!logTimeStamp)
+    logger.setLogTime(false);
 
-    bool startupPrintMessageToStderr = true;
-    if (cfg.contains("startupPrintMessageToStderr"))
-        startupPrintMessageToStderr = cfg.getBool("startupPrintMessageToStderr");
+  /*bool */startupPrintMessageToStderr = true;
+  if (cfg.contains("startupPrintMessageToStderr"))
+    startupPrintMessageToStderr = cfg.getBool("startupPrintMessageToStderr");
 
-    if (cfg.contains("logToStderr") && cfg.getBool("logToStderr")) {
-        loggingToStderr = true;
-        logger.setLogToStderr(true);
-    }
+  if (cfg.contains("logToStderr") && cfg.getBool("logToStderr")) {
+    loggingToStderr = true;
+    logger.setLogToStderr(true);
+  }
 
-    logger.write("GTP Engine starting...");
-    logger.write(Version::getKataGoVersionForHelp());
-    //Also check loggingToStderr so that we don't duplicate the message from the log file
-    if (startupPrintMessageToStderr && !loggingToStderr) {
-        cerr << Version::getKataGoVersionForHelp() << endl;
-    }
+  logger.write("GTP Engine starting...");
+  logger.write(Version::getKataGoVersionForHelp());
+  //Also check loggingToStderr so that we don't duplicate the message from the log file
+  if (startupPrintMessageToStderr && !loggingToStderr) {
+    cerr << Version::getKataGoVersionForHelp() << endl;
+  }
 
-    //Defaults to 7.5 komi, gtp will generally override this
-    const bool loadKomiFromCfg = false;
-    Rules initialRules = Setup::loadSingleRules(cfg, loadKomiFromCfg);
-    logger.write("Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this");
-    if (startupPrintMessageToStderr && !loggingToStderr) {
-        cerr << "Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this" << endl;
-    }
-    //bool isForcingKomi = false;
-    //float forcedKomi = 0;
-    if (cfg.contains("ignoreGTPAndForceKomi")) {
-        isForcingKomi = true;
-        forcedKomi = cfg.getFloat("ignoreGTPAndForceKomi", Rules::MIN_USER_KOMI, Rules::MAX_USER_KOMI);
-        initialRules.komi = forcedKomi;
-    }
+  //Defaults to 7.5 komi, gtp will generally override this
+  /*const bool */loadKomiFromCfg = false;
+  /*Rules */initialRules = Setup::loadSingleRules(cfg, loadKomiFromCfg);
+  logger.write("Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this");
+  if (startupPrintMessageToStderr && !loggingToStderr) {
+    cerr << "Using " + initialRules.toStringNoKomiMaybeNice() + " rules initially, unless GTP/GUI overrides this" << endl;
+  }
+  /*bool */isForcingKomi = false;
+  /*float */forcedKomi = 0;
+  if (cfg.contains("ignoreGTPAndForceKomi")) {
+    isForcingKomi = true;
+    forcedKomi = cfg.getFloat("ignoreGTPAndForceKomi", Rules::MIN_USER_KOMI, Rules::MAX_USER_KOMI);
+    initialRules.komi = forcedKomi;
+  }
 
-    SearchParams initialParams = Setup::loadSingleParams(cfg, Setup::SETUP_FOR_GTP);
-    logger.write("Using " + Global::intToString(initialParams.numThreads) + " CPU thread(s) for search");
-    //Set a default for conservativePass that differs from matches or selfplay
-    if (!cfg.contains("conservativePass") && !cfg.contains("conservativePass0"))
-        initialParams.conservativePass = true;
-    if (!cfg.contains("fillDameBeforePass") && !cfg.contains("fillDameBeforePass0"))
-        initialParams.fillDameBeforePass = true;
+  /*SearchParams */initialParams = Setup::loadSingleParams(cfg, Setup::SETUP_FOR_GTP);
+  logger.write("Using " + Global::intToString(initialParams.numThreads) + " CPU thread(s) for search");
+  //Set a default for conservativePass that differs from matches or selfplay
+  if (!cfg.contains("conservativePass") && !cfg.contains("conservativePass0"))
+    initialParams.conservativePass = true;
+  if (!cfg.contains("fillDameBeforePass") && !cfg.contains("fillDameBeforePass0"))
+    initialParams.fillDameBeforePass = true;
 
-    const bool ponderingEnabled = cfg.getBool("ponderingEnabled");
+  /*const bool */ponderingEnabled = cfg.getBool("ponderingEnabled");
 
-    /*const enabled_t*/ cleanupBeforePass = cfg.contains("cleanupBeforePass") ? cfg.getEnabled("cleanupBeforePass") : enabled_t::Auto;
-    /*const enabled_t*/ friendlyPass = cfg.contains("friendlyPass") ? cfg.getEnabled("friendlyPass") : enabled_t::Auto;
-    if (cleanupBeforePass == enabled_t::True && friendlyPass == enabled_t::True)
-        throw StringError("Cannot specify both cleanupBeforePass = true and friendlyPass = true at the same time");
+  /*const enabled_t */cleanupBeforePass = cfg.contains("cleanupBeforePass") ? cfg.getEnabled("cleanupBeforePass") : enabled_t::Auto;
+  /*const enabled_t */friendlyPass = cfg.contains("friendlyPass") ? cfg.getEnabled("friendlyPass") : enabled_t::Auto;
+  if (cleanupBeforePass == enabled_t::True && friendlyPass == enabled_t::True)
+    throw StringError(_("Cannot specify both cleanupBeforePass = true and friendlyPass = true at the same time"));
 
-    /*const bool*/ allowResignation = cfg.contains("allowResignation") ? cfg.getBool("allowResignation") : false;
-    /*const double*/ resignThreshold = cfg.contains("allowResignation") ? cfg.getDouble("resignThreshold", -1.0, 0.0) : -1.0; //Threshold on [-1,1], regardless of winLossUtilityFactor
-    /*const int*/ resignConsecTurns = cfg.contains("resignConsecTurns") ? cfg.getInt("resignConsecTurns", 1, 100) : 3;
-    /*const double*/ resignMinScoreDifference = cfg.contains("resignMinScoreDifference") ? cfg.getDouble("resignMinScoreDifference", 0.0, 1000.0) : -1e10;
+  /*const bool */allowResignation = cfg.contains("allowResignation") ? cfg.getBool("allowResignation") : false;
+  /*const double */resignThreshold = cfg.contains("allowResignation") ? cfg.getDouble("resignThreshold", -1.0, 0.0) : -1.0; //Threshold on [-1,1], regardless of winLossUtilityFactor
+  /*const int */resignConsecTurns = cfg.contains("resignConsecTurns") ? cfg.getInt("resignConsecTurns", 1, 100) : 3;
+  /*const double */resignMinScoreDifference = cfg.contains("resignMinScoreDifference") ? cfg.getDouble("resignMinScoreDifference", 0.0, 1000.0) : -1e10;
 
-    Setup::initializeSession(cfg);
+  Setup::initializeSession(cfg);
 
-    /*const double*/ searchFactorWhenWinning = cfg.contains("searchFactorWhenWinning") ? cfg.getDouble("searchFactorWhenWinning", 0.01, 1.0) : 1.0;
-    /*const double*/ searchFactorWhenWinningThreshold = cfg.contains("searchFactorWhenWinningThreshold") ? cfg.getDouble("searchFactorWhenWinningThreshold", 0.0, 1.0) : 1.0;
-    /*const bool*/ ogsChatToStderr = cfg.contains("ogsChatToStderr") ? cfg.getBool("ogsChatToStderr") : false;
-    const int analysisPVLen = cfg.contains("analysisPVLen") ? cfg.getInt("analysisPVLen", 1, 1000) : 13;
-    const bool assumeMultipleStartingBlackMovesAreHandicap =
-        cfg.contains("assumeMultipleStartingBlackMovesAreHandicap") ? cfg.getBool("assumeMultipleStartingBlackMovesAreHandicap") : true;
-    const bool preventEncore = cfg.contains("preventCleanupPhase") ? cfg.getBool("preventCleanupPhase") : true;
-    const double dynamicPlayoutDoublingAdvantageCapPerOppLead =
-        cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead") ? cfg.getDouble("dynamicPlayoutDoublingAdvantageCapPerOppLead", 0.0, 0.5) : 0.045;
-    double staticPlayoutDoublingAdvantage = initialParams.playoutDoublingAdvantage;
-    const bool staticPDATakesPrecedence = cfg.contains("playoutDoublingAdvantage") && !cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead");
-    const bool avoidMYTDaggerHack = cfg.contains("avoidMYTDaggerHack") ? cfg.getBool("avoidMYTDaggerHack") : false;
-    const double normalAvoidRepeatedPatternUtility = initialParams.avoidRepeatedPatternUtility;
-    const double handicapAvoidRepeatedPatternUtility = (cfg.contains("avoidRepeatedPatternUtility") || cfg.contains("avoidRepeatedPatternUtility0")) ?
-        initialParams.avoidRepeatedPatternUtility : 0.005;
+  /*const double */searchFactorWhenWinning = cfg.contains("searchFactorWhenWinning") ? cfg.getDouble("searchFactorWhenWinning", 0.01, 1.0) : 1.0;
+  /*const double */searchFactorWhenWinningThreshold = cfg.contains("searchFactorWhenWinningThreshold") ? cfg.getDouble("searchFactorWhenWinningThreshold", 0.0, 1.0) : 1.0;
+  /*const bool */ogsChatToStderr = cfg.contains("ogsChatToStderr") ? cfg.getBool("ogsChatToStderr") : false;
+  /*const int */analysisPVLen = cfg.contains("analysisPVLen") ? cfg.getInt("analysisPVLen", 1, 1000) : 13;
+  /*const bool */assumeMultipleStartingBlackMovesAreHandicap =
+    cfg.contains("assumeMultipleStartingBlackMovesAreHandicap") ? cfg.getBool("assumeMultipleStartingBlackMovesAreHandicap") : true;
+  /*const bool */preventEncore = cfg.contains("preventCleanupPhase") ? cfg.getBool("preventCleanupPhase") : true;
+  /*const double */dynamicPlayoutDoublingAdvantageCapPerOppLead =
+    cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead") ? cfg.getDouble("dynamicPlayoutDoublingAdvantageCapPerOppLead", 0.0, 0.5) : 0.045;
+  /*double */staticPlayoutDoublingAdvantage = initialParams.playoutDoublingAdvantage;
+  /*const bool */staticPDATakesPrecedence = cfg.contains("playoutDoublingAdvantage") && !cfg.contains("dynamicPlayoutDoublingAdvantageCapPerOppLead");
+  /*const bool */avoidMYTDaggerHack = cfg.contains("avoidMYTDaggerHack") ? cfg.getBool("avoidMYTDaggerHack") : false;
+  /*const double */normalAvoidRepeatedPatternUtility = initialParams.avoidRepeatedPatternUtility;
+  /*const double */handicapAvoidRepeatedPatternUtility = (cfg.contains("avoidRepeatedPatternUtility") || cfg.contains("avoidRepeatedPatternUtility0")) ?
+    initialParams.avoidRepeatedPatternUtility : 0.005;
 
-    int defaultBoardXSize = -1;
-    int defaultBoardYSize = -1;
-    Setup::loadDefaultBoardXYSize(cfg, logger, defaultBoardXSize, defaultBoardYSize);
+  /*int */defaultBoardXSize = -1;
+  /*int */defaultBoardYSize = -1;
+  Setup::loadDefaultBoardXYSize(cfg, logger, defaultBoardXSize, defaultBoardYSize);
 
-    const bool forDeterministicTesting =
-        cfg.contains("forDeterministicTesting") ? cfg.getBool("forDeterministicTesting") : false;
+  /*const bool */forDeterministicTesting =
+    cfg.contains("forDeterministicTesting") ? cfg.getBool("forDeterministicTesting") : false;
 
-    if (forDeterministicTesting)
-        seedRand.init("forDeterministicTesting");
+  if (forDeterministicTesting)
+    seedRand.init("forDeterministicTesting");
 
-    const double genmoveWideRootNoise = initialParams.wideRootNoise;
-    const double analysisWideRootNoise =
-        cfg.contains("analysisWideRootNoise") ? cfg.getDouble("analysisWideRootNoise", 0.0, 5.0) : Setup::DEFAULT_ANALYSIS_WIDE_ROOT_NOISE;
-    const bool analysisAntiMirror = initialParams.antiMirror;
-    const bool genmoveAntiMirror =
-        cfg.contains("genmoveAntiMirror") ? cfg.getBool("genmoveAntiMirror") : cfg.contains("antiMirror") ? cfg.getBool("antiMirror") : true;
+  /*const double */genmoveWideRootNoise = initialParams.wideRootNoise;
+  /*const double */analysisWideRootNoise =
+    cfg.contains("analysisWideRootNoise") ? cfg.getDouble("analysisWideRootNoise", 0.0, 5.0) : Setup::DEFAULT_ANALYSIS_WIDE_ROOT_NOISE;
+  /*const bool */analysisAntiMirror = initialParams.antiMirror;
+  /*const bool */genmoveAntiMirror =
+    cfg.contains("genmoveAntiMirror") ? cfg.getBool("genmoveAntiMirror") : cfg.contains("antiMirror") ? cfg.getBool("antiMirror") : true;
 
-    std::unique_ptr<PatternBonusTable> patternBonusTable = nullptr;
-    {
-        std::vector<std::unique_ptr<PatternBonusTable>> tables = Setup::loadAvoidSgfPatternBonusTables(cfg, logger);
-        assert(tables.size() == 1);
-        patternBonusTable = std::move(tables[0]);
-    }
+  /*std::unique_ptr<PatternBonusTable> */patternBonusTable = nullptr;
+  {
+    std::vector<std::unique_ptr<PatternBonusTable>> tables = Setup::loadAvoidSgfPatternBonusTables(cfg, logger);
+    assert(tables.size() == 1);
+    patternBonusTable = std::move(tables[0]);
+  }
 
-    Player perspective = Setup::parseReportAnalysisWinrates(cfg, C_EMPTY);
+  /*Player */perspective = Setup::parseReportAnalysisWinrates(cfg, C_EMPTY);
 
-    engine = new GTPEngine(
-        nnModelFile, initialParams, initialRules,
-        assumeMultipleStartingBlackMovesAreHandicap, preventEncore,
-        dynamicPlayoutDoublingAdvantageCapPerOppLead,
-        staticPlayoutDoublingAdvantage, staticPDATakesPrecedence,
-        normalAvoidRepeatedPatternUtility, handicapAvoidRepeatedPatternUtility,
-        avoidMYTDaggerHack,
-        genmoveWideRootNoise, analysisWideRootNoise,
-        genmoveAntiMirror, analysisAntiMirror,
-        perspective, analysisPVLen,
-        std::move(patternBonusTable)
-    );
-    engine->setOrResetBoardSize(cfg, logger, seedRand, defaultBoardXSize, defaultBoardYSize, loggingToStderr);
+  engine = new GTPEngine(
+    nnModelFile, initialParams, initialRules,
+    assumeMultipleStartingBlackMovesAreHandicap, preventEncore,
+    dynamicPlayoutDoublingAdvantageCapPerOppLead,
+    staticPlayoutDoublingAdvantage, staticPDATakesPrecedence,
+    normalAvoidRepeatedPatternUtility, handicapAvoidRepeatedPatternUtility,
+    avoidMYTDaggerHack,
+    genmoveWideRootNoise, analysisWideRootNoise,
+    genmoveAntiMirror, analysisAntiMirror,
+    perspective, analysisPVLen,
+    std::move(patternBonusTable)
+  );
+  engine->setOrResetBoardSize(cfg, logger, seedRand, defaultBoardXSize, defaultBoardYSize, loggingToStderr);
 
-    //If nobody specified any time limit in any way, then assume a relatively fast time control
-    if (!cfg.contains("maxPlayouts") && !cfg.contains("maxVisits") && !cfg.contains("maxTime")) {
-        double mainTime = 1.0;
-        double byoYomiTime = 5.0;
-        int byoYomiPeriods = 5;
-        TimeControls tc = TimeControls::canadianOrByoYomiTime(mainTime, byoYomiTime, byoYomiPeriods, 1);
-        engine->bTimeControls = tc;
-        engine->wTimeControls = tc;
-    }
+  //If nobody specified any time limit in any way, then assume a relatively fast time control
+  if (!cfg.contains("maxPlayouts") && !cfg.contains("maxVisits") && !cfg.contains("maxTime")) {
+    double mainTime = 1.0;
+    double byoYomiTime = 5.0;
+    int byoYomiPeriods = 5;
+    TimeControls tc = TimeControls::canadianOrByoYomiTime(mainTime, byoYomiTime, byoYomiPeriods, 1);
+    engine->bTimeControls = tc;
+    engine->wTimeControls = tc;
+  }
 
-    //Check for unused config keys
-    cfg.warnUnusedKeys(cerr, &logger);
+  //Check for unused config keys
+  cfg.warnUnusedKeys(cerr, &logger);
 
-    logger.write("Loaded config " + cfg.getFileName());
-    logger.write("Loaded model " + nnModelFile);
-    cmd.logOverrides(logger);
-    logger.write("Model name: " + (engine->nnEval == NULL ? string() : engine->nnEval->getInternalModelName()));
-    logger.write("GTP ready, beginning main protocol loop");
-    //Also check loggingToStderr so that we don't duplicate the message from the log file
-    if (startupPrintMessageToStderr && !loggingToStderr) {
-        cerr << "Loaded config " << cfg.getFileName() << endl;
-        cerr << "Loaded model " << nnModelFile << endl;
-        cerr << "Model name: " + (engine->nnEval == NULL ? string() : engine->nnEval->getInternalModelName()) << endl;
-        cerr << "GTP ready, beginning main protocol loop" << endl;
-    }
+  logger.write("Loaded config " + cfg.getFileName());
+  logger.write("Loaded model " + nnModelFile);
+  cmd.logOverrides(logger);
+  logger.write("Model name: " + (engine->nnEval == NULL ? string() : engine->nnEval->getInternalModelName()));
+  logger.write("GTP ready, beginning main protocol loop");
+  //Also check loggingToStderr so that we don't duplicate the message from the log file
+  if (startupPrintMessageToStderr && !loggingToStderr) {
+    cerr << "Loaded config " << cfg.getFileName() << endl;
+    cerr << "Loaded model " << nnModelFile << endl;
+    cerr << "Model name: " + (engine->nnEval == NULL ? string() : engine->nnEval->getInternalModelName()) << endl;
+    cerr << "GTP ready, beginning main protocol loop" << endl;
+  }
 }
 
 GTPKata::~GTPKata() {
@@ -1824,84 +1790,84 @@ GTPKata::~GTPKata() {
 }
 
 void GTPKata::boardsize(int boardsizex, int boardsizey) {
-    engine->setOrResetBoardSize(cfg, logger, seedRand, boardsizex, boardsizey, loggingToStderr);
+  engine->setOrResetBoardSize(cfg, logger, seedRand, boardsizex, boardsizey, loggingToStderr);
 }
 
 void GTPKata::clear_board() {
-    engine->clearBoard();
+  engine->clearBoard();
 }
 
 void GTPKata::komi(float komi) {
-    if(isForcingKomi)
-        engine->updateKomiIfNew(forcedKomi);
-    else
-        engine->updateKomiIfNew(komi);
+  if(isForcingKomi)
+    engine->updateKomiIfNew(forcedKomi);
+  else
+    engine->updateKomiIfNew(komi);
 }
 
-string GTPKata::gen_move(Player pla, double& winRate, double& scoreLead) {  // stack 39536
-    bool debug = false;
-    bool playChosenMove = true;
-    bool responseIsError = false;
-    string response;
+string GTPKata::gen_move(Player pla, double& winRate, double& scoreLead) {
+  bool debug = false;
+  bool playChosenMove = true;
+  bool responseIsError = false;
+  string response;
 
-    engine->genMove(
-      pla,
-      logger,searchFactorWhenWinningThreshold,searchFactorWhenWinning,
-      cleanupBeforePass,friendlyPass,ogsChatToStderr,
-      allowResignation,resignThreshold,resignConsecTurns,resignMinScoreDifference,
-      logSearchInfo,debug,playChosenMove,
-      response,responseIsError,maybeStartPondering,
-      winRate,scoreLead,
-      GTPEngine::AnalyzeArgs()
-    );
-    if(logAllGTPCommunication)
-      logger.write(response);
-    return response;
+  engine->genMove(
+    pla,
+    logger,searchFactorWhenWinningThreshold,searchFactorWhenWinning,
+    cleanupBeforePass,friendlyPass,ogsChatToStderr,
+    allowResignation,resignThreshold,resignConsecTurns,resignMinScoreDifference,
+    logSearchInfo,debug,playChosenMove,
+    response,responseIsError,maybeStartPondering,
+    winRate,scoreLead,
+    GTPEngine::AnalyzeArgs()
+  );
+  if(logAllGTPCommunication)
+    logger.write(response);
+  return response;
 }
 
 void GTPKata::ponder() {
-    if(maybeStartPondering)
-      engine->ponder();
+  if(maybeStartPondering)
+    engine->ponder();
 }
 
 void GTPKata::play(int cellX, int cellY) {
-    Player pla = engine->bot->getRootPla();
-    int ySize = engine->bot->getRootBoard().y_size;
-    cellY = -1 * (cellY - (ySize - 1));
-    Loc loc = ((cellY + 1) * (ySize + 1)) + (cellX + 1);
-    engine->play(loc,pla);
-    maybeStartPondering = true;
+  Player pla = engine->bot->getRootPla();
+  int ySize = engine->bot->getRootBoard().y_size;
+  cellY = -1 * (cellY - (ySize - 1));
+  Loc loc = ((cellY + 1) * (ySize + 1)) + (cellX + 1);
+  engine->play(loc,pla);
+  maybeStartPondering = true;
 }
 
 void GTPKata::undo() {
-    engine->undo();
+  engine->undo();
 }
 
 void GTPKata::set_free_handicap(const std::vector<int> & move_handi) {
-    int xSize = engine->bot->getRootBoard().x_size;
-    int ySize = engine->bot->getRootBoard().y_size;
-    Board board(xSize,ySize);
-    for(auto itr = move_handi.begin(); itr != move_handi.end(); ++itr) {
-        int handi_move = *itr;
-        int x = (handi_move % (xSize + 2)) - 1;
-        int y = (handi_move / (ySize + 2)) - 1;
-        y = -1 * (y - (ySize - 1));
-        handi_move = (x + 1) + (y + 1) * (ySize + 1);
-        board.setStone(handi_move,P_BLACK);
-    }
-    Player pla = P_WHITE;
-    BoardHistory hist(board,pla, engine->getCurrentRules(),0);
-    hist.setInitialTurnNumber(board.numStonesOnBoard());
-    vector<Move> newMoveHistory;
-    engine->setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
+  int xSize = engine->bot->getRootBoard().x_size;
+  int ySize = engine->bot->getRootBoard().y_size;
+  Board board(xSize,ySize);
+  for(auto itr = move_handi.begin(); itr != move_handi.end(); ++itr) {
+    int handi_move = *itr;
+    int x = (handi_move % (xSize + 2)) - 1;
+    int y = (handi_move / (ySize + 2)) - 1;
+    y = -1 * (y - (ySize - 1));
+    handi_move = (x + 1) + (y + 1) * (ySize + 1);
+    board.setStone(handi_move,P_BLACK);
+  }
+  Player pla = P_WHITE;
+  BoardHistory hist(board,pla, engine->getCurrentRules(),0);
+  hist.setInitialTurnNumber(board.numStonesOnBoard());
+  vector<Move> newMoveHistory;
+  engine->setPositionAndRules(pla,board,hist,board,pla,newMoveHistory);
 }
 
 std::vector<std::pair<float, int> > GTPKata::get_policy() {
-    return engine->get_policy();
+  return engine->get_policy();
 }
 
 std::vector<float> GTPKata::get_owner() {
-    return engine->get_owner();
+  return engine->get_owner();
 }
 
 string Version::getKataGoVersion() {

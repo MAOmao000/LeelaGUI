@@ -16,7 +16,6 @@
 #include "../program/play.h"
 #include "../tests/tests.h"
 #include "../command/commandline.h"
-//#include "../main.h"
 #ifdef NO_GIT_REVISION
 #define GIT_REVISION "<omitted>"
 #else
@@ -26,15 +25,14 @@
 using namespace std;
 
 namespace Version {
-    std::string getKataGoVersion();
-    std::string getKataGoVersionForHelp();
-    std::string getKataGoVersionFullInfo();
-    std::string getGitRevision();
-    std::string getGitRevisionWithBackend();
+  std::string getKataGoVersion();
+  std::string getKataGoVersionForHelp();
+  std::string getKataGoVersionFullInfo();
+  std::string getGitRevision();
+  std::string getGitRevisionWithBackend();
 }
 
-struct GTPEngine
-{
+struct GTPEngine {
   GTPEngine(const GTPEngine&) = delete;
   GTPEngine& operator=(const GTPEngine&) = delete;
 
@@ -92,6 +90,7 @@ struct GTPEngine
     std::unique_ptr<PatternBonusTable>&& pbTable
   );
   ~GTPEngine();
+
   void stopAndWait();
   Rules getCurrentRules();
   void clearStatsForNewGame();
@@ -111,20 +110,20 @@ struct GTPEngine
   void ponder();
 
   struct AnalyzeArgs {
-    bool analyzing = false;
-    bool lz = false;
-    bool kata = false;
-    int minMoves = 0;
-    int maxMoves = 10000000;
-    bool showOwnership = false;
-    bool showOwnershipStdev = false;
-    bool showMovesOwnership = false;
-    bool showMovesOwnershipStdev = false;
-    bool showPVVisits = false;
-    bool showPVEdgeVisits = false;
-    double secondsPerReport = TimeControls::UNLIMITED_TIME_DEFAULT;
-    std::vector<int> avoidMoveUntilByLocBlack;
-    std::vector<int> avoidMoveUntilByLocWhite;
+      bool analyzing = false;
+      bool lz = false;
+      bool kata = false;
+      int minMoves = 0;
+      int maxMoves = 10000000;
+      bool showOwnership = false;
+      bool showOwnershipStdev = false;
+      bool showMovesOwnership = false;
+      bool showMovesOwnershipStdev = false;
+      bool showPVVisits = false;
+      bool showPVEdgeVisits = false;
+      double secondsPerReport = TimeControls::UNLIMITED_TIME_DEFAULT;
+      std::vector<int> avoidMoveUntilByLocBlack;
+      std::vector<int> avoidMoveUntilByLocWhite;
   };
 
   void filterZeroVisitMoves(const AnalyzeArgs& args, std::vector<AnalysisData> buf);
@@ -147,65 +146,72 @@ struct GTPEngine
   std::vector<bool> computeAnticipatedStatuses();
   std::string rawNN(int whichSymmetry);
   std::vector<std::pair<float, int> > get_policy();
-  SearchParams getParams();
   void setParams(SearchParams p);
+  SearchParams getParams();
   std::vector<float> get_owner();
+
 };
 
 class GTPKata {
 public:
-    GTPKata(
-        const vector<string>& args,
-        bool allowResignation,
-        enabled_t cleanupBeforePass,
-        float forcedKomi,
-        enabled_t friendlyPass,
-        bool isForcingKomi,
-        bool logSearchInfo,
-        bool loggingToStder,
-        bool ogsChatToStderr,
-        int resignConsecTurns,
-        double resignMinScoreDifference,
-        double resignThreshold,
-        double searchFactorWhenWinning,
-        double searchFactorWhenWinningThreshold,
-        bool maybeStartPondering,
-        bool logAllGTPCommunication
-    );
-    ~GTPKata();
-    void boardsize(int boardsizex, int boardsizey);
-    void clear_board();
-    void komi(float komi);
-    string gen_move(Player pla, double& winRate, double& scoreLead);
-    void ponder();
-    void play(int cellX, int cellY);
-    void undo();
-    void set_free_handicap(const std::vector<int>& move_handi);
-    std::vector<std::pair<float, int> > get_policy();
-    std::vector<float> get_owner();
+  GTPKata(const vector<string>& args);
+  ~GTPKata();
+  void boardsize(int boardsizex, int boardsizey);
+  void clear_board();
+  void komi(float komi);
+  string gen_move(Player pla, double& winRate, double& scoreLead);
+  void ponder();
+  void play(int cellX, int cellY);
+  void undo();
+  void set_free_handicap(const std::vector<int>& move_handi);
+  std::vector<std::pair<float, int> > get_policy();
+  std::vector<float> get_owner();
+  GTPEngine* engine;
 private:
-    bool allowResignation;
-    enabled_t cleanupBeforePass;
-    float forcedKomi;
-    enabled_t friendlyPass;
-    bool isForcingKomi;
-    bool logSearchInfo;
-    bool loggingToStderr;
-    bool ogsChatToStderr;
-    int resignConsecTurns;
-    double resignMinScoreDifference;
-    double resignThreshold;
-    double searchFactorWhenWinning;
-    double searchFactorWhenWinningThreshold;
-    bool maybeStartPondering;
-    bool logAllGTPCommunication;
-
-    GTPEngine* engine;
-    Rand seedRand;
-    ConfigParser cfg;
-    Logger logger;
-    std::unique_ptr<PatternBonusTable> patternBonusTable;
-    std::vector<std::unique_ptr<PatternBonusTable>> tables;
+  Rand seedRand;
+  ConfigParser cfg;
+  string nnModelFile;
+  string overrideVersion;
+  Logger logger;
+  bool logAllGTPCommunication;
+  bool logSearchInfo;
+  bool loggingToStderr;
+  bool logTimeStamp;
+  bool startupPrintMessageToStderr;
+  bool loadKomiFromCfg;
+  Rules initialRules;
+  bool isForcingKomi;
+  float forcedKomi;
+  SearchParams initialParams;
+  bool ponderingEnabled;
+  enabled_t cleanupBeforePass;
+  enabled_t friendlyPass;
+  bool allowResignation;
+  double resignThreshold;
+  int resignConsecTurns;
+  double resignMinScoreDifference;
+  double searchFactorWhenWinning;
+  double searchFactorWhenWinningThreshold;
+  bool ogsChatToStderr;
+  int analysisPVLen;
+  bool assumeMultipleStartingBlackMovesAreHandicap;
+  bool preventEncore;
+  double dynamicPlayoutDoublingAdvantageCapPerOppLead;
+  double staticPlayoutDoublingAdvantage;
+  bool staticPDATakesPrecedence;
+  bool avoidMYTDaggerHack;
+  double normalAvoidRepeatedPatternUtility;
+  double handicapAvoidRepeatedPatternUtility;
+  int defaultBoardXSize;
+  int defaultBoardYSize;
+  bool forDeterministicTesting;
+  double genmoveWideRootNoise;
+  double analysisWideRootNoise;
+  bool analysisAntiMirror;
+  bool genmoveAntiMirror;
+  std::unique_ptr<PatternBonusTable> patternBonusTable;
+  Player perspective;
+  bool maybeStartPondering;
 };
 
 #endif
