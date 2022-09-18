@@ -300,6 +300,9 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 }
 
 MainFrame::~MainFrame() {
+    if (m_engineThread) {
+        m_engineThread->force_stop_engine();
+    }
     stopEngine();
 
     if (cfg_use_gtp) {
@@ -1305,13 +1308,17 @@ wxString MainFrame::rankToString(int rank) {
 }
 
 void MainFrame::doPass(wxCommandEvent& event) {
-    stopEngine();
-
     if (cfg_use_gtp) {
+        if (m_engineThread) {
+            return;
+        }
+        stopEngine();
         if (m_State.get_to_move() == FastBoard::BLACK)
             GTPSend(wxString("play b pass\n\n"));
         else
             GTPSend(wxString("play w pass\n\n"));
+    } else {
+        stopEngine();
     }
 
     m_State.play_pass();
@@ -1330,6 +1337,9 @@ void MainFrame::gameNoLongerCounts() {
 }
 
 void MainFrame::doRealUndo(int count) {
+    if (cfg_use_gtp && m_engineThread) {
+        return;
+    }
     bool wasAnalyzing = m_analyzing && !m_pondering;
     bool wasRunning = stopEngine();
 
@@ -1508,6 +1518,9 @@ void MainFrame::doForceMove(wxCommandEvent& event) {
 
 void MainFrame::doResign(wxCommandEvent& event) {
     if (m_State.get_to_move() == m_playerColor) {
+        if (cfg_use_gtp && m_engineThread) {
+            return;
+        }
         stopEngine();
 
         if (cfg_use_gtp) {

@@ -30,7 +30,8 @@ TEngineThread::TEngineThread(const GameState& state,
      m_quiet(false),
      m_nopass(false),
      m_update_score(true),
-     m_runflag(true)
+     m_runflag(true),
+     m_stopflag(false)
 {
 }
 
@@ -184,6 +185,10 @@ void TEngineThread::stop_engine() {
     m_runflag = false;
 }
 
+void TEngineThread::force_stop_engine() {
+    m_stopflag = true;
+}
+
 void TEngineThread::set_resigning(bool res) {
     m_resigning = res;
 }
@@ -328,12 +333,12 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
     }
     m_out->Write(sendCmd.c_str(), sendCmd.length());
     while ( true ) {
-        if (!m_runflag) {
+        if (m_stopflag) {
             res_msg = "";
             return;
         }
         sleep_for(chrono::milliseconds(sleep_ms));
-        if (!m_runflag) {
+        if (m_stopflag) {
             res_msg = "";
             return;
         }
@@ -342,7 +347,7 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
             res_msg += buffer;
             while (res_msg.rfind("\n\n") == string::npos && res_msg.rfind("\r\n\r\n") == string::npos) {
                 sleep_for(chrono::milliseconds(sleep_ms));
-                if (!m_runflag) {
+                if (m_stopflag) {
                     res_msg = "";
                     return;
                 }
@@ -351,7 +356,7 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
             }
             break;
         }
-        if (!m_runflag) {
+        if (m_stopflag) {
             res_msg = "";
             return;
         }

@@ -26,6 +26,7 @@ class TEngineThread {
         void set_quiet(bool flag);
         void set_nets(bool flag);
         void stop_engine(void);
+        void force_stop_engine(void);
         void kill_score_update(void);
         GameState& get_state(void) {
             return *m_state;
@@ -48,6 +49,7 @@ class TEngineThread {
         bool m_update_score;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
+        std::atomic<bool> m_stopflag;
 };
 
 #endif
