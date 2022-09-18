@@ -471,13 +471,17 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         int vtx = m_State->board.get_vertex(cellX, cellY);
         
         if (m_State->legal_move(vtx)) {
-            m_State->play_move(vtx);
-            std::pair<int, int> cellxy = std::make_pair(cellX, cellY);
-            
+            wxString msg;
+            if (m_State->get_to_move() == FastBoard::BLACK)
+                msg = wxString("play b " + m_State->move_to_text(vtx));
+            else
+                msg = wxString("play w " + m_State->move_to_text(vtx));
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
             event.SetEventObject(this);
-            event.SetClientData((void*)new auto(cellxy));
+            event.SetString(msg);
             ::wxPostEvent(GetEventHandler(), event);
+            
+            m_State->play_move(vtx);
             
             Refresh();
         }
@@ -539,10 +543,10 @@ bool TBoardPanel::getShowBestMoves() {
 
 void TBoardPanel::doMoyo() {
     std::vector<int> moyo = m_State->board.moyo();
-    
-    m_Hatch.resize(FastBoard::MAXSQ);    
+
+    m_Hatch.resize(FastBoard::MAXSQ);
     std::fill(m_Hatch.begin(), m_Hatch.end(), FastBoard::EMPTY);
-    
+
     for (size_t i = 0; i < moyo.size(); i++) {
         if (moyo[i] > 0) {
             m_Hatch[i] = FastBoard::BLACK;

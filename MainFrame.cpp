@@ -32,8 +32,11 @@
 #include "snd/tock.h"
 #include <wx/utils.h>
 #endif
+#include <chrono>
+#include <thread>
+#include <fstream>
 
-#include "../command/gtpKata.h"
+using std::this_thread::sleep_for;
 
 wxDEFINE_EVENT(wxEVT_NEW_MOVE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_BOARD_UPDATE, wxCommandEvent);
@@ -55,26 +58,55 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         lang = 1;
     }
 
-    const char* argv[] = {" ", "gtp", "-config", "default_gtp.cfg"};
-
-    std::vector<std::string> args;
-    args.reserve(sizeof(argv));
-    for (int i = 0; i < sizeof(argv) / sizeof(argv[0]); i++)
-        args.push_back(std::string(argv[i]));
-
-    MainArgs::makeCoutAndCerrAcceptUTF8();
-
-    std::vector<std::string> subArgs(args.begin()+1, args.end());
-
-    bool use_gtp = true;
-    try {
-        m_gtpKata = new GTPKata(subArgs);
-    } catch (const StringError &e) {
-        wxString errorString;
-        errorString.Printf(_("KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"), e.what());
-        ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
-        use_gtp = false;
-        m_gtpKata = nullptr;
+    bool use_gtp = false;
+    std::vector<wxString> GTPCmd;
+#ifdef USE_GPU
+    std::ifstream fin("LeelaGUI_OpenCL.ini");
+#else
+    std::ifstream fin("LeelaGUI.ini");
+#endif
+    if (fin) {
+        std::string line;
+        while (std::getline(fin, line)) {
+            if (line[0] == '#')
+                continue;
+            GTPCmd.emplace_back(line);
+        }
+        if (GTPCmd.size() > 0) {
+            if ( !(m_process = wxProcess::Open(GTPCmd[0])) ) {
+                wxLogDebug(_("Failed to launch the command."));
+            } else if ( !(m_in = m_process->GetInputStream()) ) {
+                wxLogDebug(_("Failed to connect to child stdout"));
+                wxProcess::Kill(m_process->GetPid());
+            } else if ( !(m_err = m_process->GetErrorStream()) ) {
+                wxLogDebug(_("Failed to connect to child stderr"));
+                wxProcess::Kill(m_process->GetPid());
+            } else if ( !(m_out = m_process->GetOutputStream()) ) {
+                wxLogDebug(_("Failed to connect to child stdin"));
+                wxProcess::Kill(m_process->GetPid());
+            } else {
+                use_gtp = true;
+            }
+        }
+    }
+    if (use_gtp) {
+        for (auto it = GTPCmd.begin() + 1; it != GTPCmd.end(); ++it) {
+            std::string res_msg = GTPSend(*it + wxString("\n\n"));
+            if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
+                wxLogMessage(_("GTP response error: ") + wxString(res_msg));
+                m_process->CloseOutput();
+                use_gtp = false;
+                m_in = nullptr;
+                m_out = nullptr;
+                m_err = nullptr;
+                wxProcess::Kill(m_process->GetPid());
+                break;
+            }
+        }
+    } else {
+        m_in = nullptr;
+        m_out = nullptr;
+        m_err = nullptr;
     }
 
     GTP::setup_default_parameters(lang, use_gtp);
@@ -270,9 +302,9 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 MainFrame::~MainFrame() {
     stopEngine();
 
-    if (m_gtpKata) {
-        delete m_gtpKata;
-        m_gtpKata = nullptr;
+    if (cfg_use_gtp) {
+        GTPSend(wxString("quit\n\n"));
+        m_process->CloseOutput();
     }
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
@@ -326,7 +358,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, m_gtpKata, this);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_err, m_out);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -472,9 +504,11 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     stopEngine();
 
     if (cfg_use_gtp) {
-        std::pair<int, int>* cellxy = static_cast<std::pair<int, int>*>(event.GetClientData());
-        if (cellxy) {
-            m_gtpKata->play(cellxy->first, cellxy->second);
+        wxString GTPCmd = event.GetString();
+        if (!GTPCmd.IsEmpty()) {
+            std::string response = GTPSend(GTPCmd + wxString("\n\n"));
+            if (response.length() > 0 && response.substr(0, 1) != "=")
+                wxLogMessage(_("Illegal move: ") + wxString(GTPCmd));
         }
     }
 
@@ -644,11 +678,19 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         gameNoLongerCounts();
 
         if (cfg_use_gtp) {
-            m_gtpKata->komi(mydialog.getKomi());
-            m_gtpKata->boardsize(mydialog.getBoardsize(), mydialog.getBoardsize());
-            m_gtpKata->clear_board();
-            if (move_handi.size() > 0)
-                m_gtpKata->set_free_handicap(move_handi);
+            GTPSend(wxString::Format("komi %.1f\n\n", mydialog.getKomi()));
+            GTPSend(wxString::Format("boardsize %d\n\n", mydialog.getBoardsize()));
+            GTPSend(wxString("clear_board\n\n"));
+            if (move_handi.size() > 0) {
+                wxString s = wxString("set_free_handicap");
+                for(auto itr = move_handi.begin(); itr != move_handi.end(); ++itr) {
+                    int handi_move = *itr;
+                    s += " ";
+                    s += wxString(m_State.move_to_text(handi_move));
+                }
+                s += "\n\n";
+                GTPSend(s);
+            }
         }
 
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
@@ -1050,11 +1092,19 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_ratedGame = true;
 
         if (cfg_use_gtp) {
-            m_gtpKata->komi(komi);
-            m_gtpKata->boardsize(m_ratedSize, m_ratedSize);
-            m_gtpKata->clear_board();
-            if (move_handi.size() > 0)
-                m_gtpKata->set_free_handicap(move_handi);
+            GTPSend(wxString::Format("komi %.1f\n\n", komi));
+            GTPSend(wxString::Format("boardsize %d\n\n", m_ratedSize));
+            GTPSend(wxString("clear_board\n\n"));
+            if (move_handi.size() > 0) {
+                wxString s = wxString("set_free_handicap");
+                for(auto itr = move_handi.begin(); itr != move_handi.end(); ++itr) {
+                    int handi_move = *itr;
+                    s += " ";
+                    s += wxString(m_State.move_to_text(handi_move));
+                }
+                s += "\n\n";
+                GTPSend(s);
+            }
         }
 
         setActiveMenus();
@@ -1257,10 +1307,15 @@ wxString MainFrame::rankToString(int rank) {
 void MainFrame::doPass(wxCommandEvent& event) {
     stopEngine();
 
+    if (cfg_use_gtp) {
+        if (m_State.get_to_move() == FastBoard::BLACK)
+            GTPSend(wxString("play b pass\n\n"));
+        else
+            GTPSend(wxString("play w pass\n\n"));
+    }
+
     m_State.play_pass();
     //::wxLogMessage("User passes");
-    if (cfg_use_gtp)
-        m_gtpKata->play(-1, 0);
 
     wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
     myevent.SetEventObject(this);
@@ -1282,7 +1337,7 @@ void MainFrame::doRealUndo(int count) {
         if (m_State.undo_move()) {
             wxLogDebug(_("Undoing one move"));
             if (cfg_use_gtp)
-                m_gtpKata->undo();
+                GTPSend(wxString("undo\n\n"));
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
@@ -1455,9 +1510,15 @@ void MainFrame::doResign(wxCommandEvent& event) {
     if (m_State.get_to_move() == m_playerColor) {
         stopEngine();
 
+        if (cfg_use_gtp) {
+            if (m_playerColor == FastBoard::BLACK)
+                GTPSend(wxString("play b pass\n\n"));
+            else
+                GTPSend(wxString("play w pass\n\n"));
+        }
+
         m_State.play_move(FastBoard::RESIGN);
-        if (cfg_use_gtp)
-            m_gtpKata->play(-1, 0);
+
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
         ::wxPostEvent(GetEventHandler(), myevent);
@@ -1673,4 +1734,34 @@ void MainFrame::loadSGF(const wxString & filename, int movenum) {
             loadSGFString(SGF, movenum);
         }
     }
+}
+
+std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
+    std::string res_msg = "";
+    char buffer[4096];
+    while (m_in->CanRead()) {
+        m_in->Read(buffer, WXSIZEOF(buffer) - 1);
+    }
+    while (m_err->CanRead()) {
+        m_err->Read(buffer, WXSIZEOF(buffer) - 1);
+    }
+    m_out->Write(s.c_str(), s.length());
+    while ( true ) {
+        sleep_for(std::chrono::milliseconds(sleep_ms));
+        if ( m_in->CanRead() ) {
+            buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+            res_msg += buffer;
+            while (res_msg.rfind("\n\n") == std::string::npos &&
+                   res_msg.rfind("\r\n\r\n") == std::string::npos) {
+                sleep_for(std::chrono::milliseconds(sleep_ms));
+                buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                res_msg += buffer;
+            }
+            break;
+        }
+    }
+    if (res_msg[0] != '=') {
+        wxLogDebug(_("GTP error response: ") + wxString(res_msg));
+    }
+    return res_msg;
 }

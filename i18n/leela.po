@@ -56,7 +56,7 @@ msgstr "行選択を解除"
 msgid "Leela"
 msgstr ""
 
-#: EngineThread.cpp:50
+#: EngineThread.cpp:164
 #, c-format
 msgid "Win rate:%3.1f%% Score:%.1f"
 msgstr "勝率:%3.1f%% %.1f目差"
@@ -633,48 +633,67 @@ msgstr "対局を続ける(&D)"
 msgid "Win Rate Histogram"
 msgstr "勝率グラフ"
 
-#: MainFrame.cpp:106
+#: MainFrame.cpp:77
+msgid "Failed to launch the command."
+msgstr "コマンドの起動に失敗しました。"
+
+#: MainFrame.cpp:79
+msgid "Failed to connect to child stdout"
+msgstr "子プロセスの標準出力への接続に失敗しました"
+
+#: MainFrame.cpp:82
+msgid "Failed to connect to child stderr"
+msgstr "子プロセスの標準エラー出力への接続に失敗しました"
+
+#: MainFrame.cpp:85
+msgid "Failed to connect to child stdin"
+msgstr "子プロセスの標準入力への接続に失敗しました"
+
+#: MainFrame.cpp:96
+msgid "GTP response error: "
+msgstr "GTP 応答エラー: "
+
+#: MainFrame.cpp:163
 #, c-format
 msgid "Error initializing OpenCL: %s (error %d)"
 msgstr "エラー OpenCL初期化: %s (エラー %d)"
 
-#: MainFrame.cpp:112
+#: MainFrame.cpp:169
 #, c-format
 msgid "Error initializing OpenCL: %s"
 msgstr "エラー OpenCL初期化: %s"
 
-#: MainFrame.cpp:144
+#: MainFrame.cpp:201
 msgid "OpenCL self-test failed. Check your graphics drivers."
 msgstr "OpenCLのセルフテストに失敗しました。グラフィックドライバを確認してください。"
 
-#: MainFrame.cpp:152
+#: MainFrame.cpp:209
 msgid ""
 "The GPU and OpenCL drivers on macOS are often outdated and of poor quality. "
 "Try switching to the regular version if you run into stability issues. If "
 "your GPU is slow, it may even be faster."
 msgstr "macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。安定性に問題がある場合は、通常バージョンに切り替えてみてください。GPUが遅ければ、もっと速くなるかもしれません。"
 
-#: MainFrame.cpp:207
-#, c-format
-msgid "KataGo's engine fails to initialize, so it starts with Leela's engine:\n%s"
-msgstr "KataGoエンジンの初期化に失敗したため、Leelaエンジンで起動します:\n%s"
-
-#: MainFrame.cpp:275
+#: MainFrame.cpp:346
 #, c-format
 msgid "Komi: %d.5; Prisoners white: %d/black: %d"
 msgstr "コミ: %d.5; アゲハマ 黒: %d/白: %d"
 
-#: MainFrame.cpp:308
+#: MainFrame.cpp:380
 msgid "Engine thinking..."
 msgstr "エンジン思考中..."
 
-#: MainFrame.cpp:310
+#: MainFrame.cpp:383
 msgid "Engine already running"
 msgstr "エンジンはすでに稼働しています"
 
-#: MainFrame.cpp:429
+#: MainFrame.cpp:502
 msgid "New move arrived"
 msgstr "新しい着手"
+
+#: MainFrame.cpp:511
+msgid "Illegal move: "
+msgstr "誤った指し手: "
 
 #: MainFrame.cpp:457
 msgid "Computer passes"
@@ -859,30 +878,6 @@ msgstr "モンテカルロ"
 #: TScorePanel.cpp:123
 msgid "Network"
 msgstr "ネットワーク"
-
-#: cpp\gtpKata.cpp:1612
-msgid "Argument error when starting KataGo"
-msgstr "KataGo起動時の引数エラー"
-
-#: cpp\gtpKata.cpp:1620
-msgid "Key 'modelFile'("
-msgstr "キー 'modelFile'("
-
-#: cpp\gtpKata.cpp:1620
-msgid ") dose not exist"
-msgstr ") が存在しません"
-
-#: cpp\gtpKata.cpp:1625
-msgid "Key 'modelFile' not specified in config file "
-msgstr "キー 'modelFile' が構成ファイル に定義されていません: "
-
-#: cpp\gtpKata.cpp:1630
-msgid "Cannot specify both logFile and logDir in config"
-msgstr "config で logFile と logDir の両方を指定することはできません"
-
-#: cpp\gtpKata.cpp:1691
-msgid "Cannot specify both cleanupBeforePass = true and friendlyPass = true at the same time"
-msgstr "cleanupBeforePass = true と FriendlyPass = true の両方を同時に指定することはできません"
 
 #: engine\UCTSearch.cpp:213
 msgid "MC Win%"

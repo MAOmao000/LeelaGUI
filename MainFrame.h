@@ -2,13 +2,14 @@
 #define MAINFRAME_H
 
 #include <memory>
+#include <wx/process.h>
+
 #include "stdafx.h"
 #include "GUI.h"
 #include "FastBoard.h"
 #include "GameState.h"
 #include "EngineThread.h"
 #include "GTP.h"
-#include "../core/mainargs.h"
 
 class AnalysisWindow;
 class ScoreHistogram;
@@ -91,10 +92,11 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
+	std::string GTPSend( const wxString& s, const int& sleep_ms = 500 );
+
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
 	GameState m_State;
-	GTPKata* m_gtpKata;
 	std::vector<GameState> m_StateStack;
 	int m_playerColor;
 	int m_visitLimit;
@@ -117,6 +119,11 @@ class MainFrame : public TMainFrame {
 	friend class TBoardPanel;
 
 	public:
+	wxProcess* m_process{nullptr};
+	wxOutputStream* m_out{nullptr};
+	wxInputStream* m_in{nullptr};
+	wxInputStream* m_err{nullptr};
+
 	static void setLocale(bool japanese) {
 		if (japanese) {
 			if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
@@ -130,4 +137,5 @@ class MainFrame : public TMainFrame {
 		}
 	}
 };
+
 #endif

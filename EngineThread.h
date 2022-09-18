@@ -6,14 +6,16 @@
 #include "Utils.h"
 #include <atomic>
 
-#include "../command/gtpKata.h"
-
 class MainFrame;
 using Utils::ThreadGroup;
 
 class TEngineThread {
     public:
-        TEngineThread(const GameState& gamestate, GTPKata * gtpKata, MainFrame * frame);
+        TEngineThread(const GameState& gamestate,
+                      MainFrame * frame,
+                      wxInputStream *std_in,
+                      wxInputStream* std_err,
+                      wxOutputStream *std_out);
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -29,8 +31,13 @@ class TEngineThread {
             return *m_state;
         }
     private:
+        void kata_raw_nn(void);
+        void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=500);
         std::unique_ptr<GameState> m_state;
         MainFrame * m_frame;
+        wxInputStream *m_in;
+        wxInputStream *m_err;
+        wxOutputStream *m_out;
         int m_maxvisits;
         bool m_nets;
         bool m_resigning;
@@ -41,7 +48,6 @@ class TEngineThread {
         bool m_update_score;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
-        GTPKata* m_gtpKata;
 };
 
 #endif

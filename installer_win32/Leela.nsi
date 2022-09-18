@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.3.1"
+!define VERSION   "1.4.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -332,10 +332,13 @@ Section "LeelaI18N" leela
   File "bin\libopenblas.dll"
   #File "bin\libgfortran-3.dll"
   #File "bin\libquadmath-0.dll"
-  File "license.rtf"
+  File "bin\zip.dll"
   File "bin\zlib.dll"
+  File "bin\katago.exe"
+  File "bin\LeelaGUI.ini"
   File "bin\default_gtp.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
+  File "license.rtf"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\LeelaI18N.lnk" "$INSTDIR\${LEELABIN}" ""
@@ -363,6 +366,8 @@ SectionEnd
 Section /o "LeelaI18N (GPU accelerated)" leela_ocl
   File "bin\${LEELAOCL}"
   #File "bin\OpenCL.dll"
+  File "bin\katago_OpenCL.exe"
+  File "bin\LeelaGUI_OpenCL.ini"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\LeelaI18N (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}" ""
@@ -488,16 +493,24 @@ Section "Uninstall"
   Delete "$INSTDIR\${LEELAOCL}"
   #Delete "$INSTDIR\libgcc_s_dw2-1.dll"
   Delete "$INSTDIR\libopenblas.dll"
+  Delete "$INSTDIR\zip.dll"
+  Delete "$INSTDIR\zlib.dll"
+  Delete "$INSTDIR\katago.exe"
+  Delete "$INSTDIR\katago_OpenCL.exe"
+  Delete "$INSTDIR\LeelaGUI.ini"
+  Delete "$INSTDIR\LeelaGUI_OpenCL.ini"
+  Delete "$INSTDIR\default_gtp.cfg"
+  Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   #Delete "$INSTDIR\libgfortran-3.dll"
   #Delete "$INSTDIR\libquadmath-0.dll"
   #Delete "$INSTDIR\OpenCL.dll"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"
+  Delete "$INSTDIR\gtp.log"
   RMDir /r "$INSTDIR\catalogs"
-  Delete "$INSTDIR\zlib.dll"
-  Delete "$INSTDIR\default_gtp.cfg"
-  Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
+  RMDir /r "$INSTDIR\gtp_logs"
+  RMDir /r "$INSTDIR\KataGoData"
 
   Delete "$DESKTOP\LeelaI18N.lnk"
   Delete "$DESKTOP\LeelaI18N (GPU accelerated).lnk"
