@@ -35,6 +35,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <regex>
 
 using std::this_thread::sleep_for;
 
@@ -67,10 +68,38 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #endif
     if (fin) {
         std::string line;
-        while (std::getline(fin, line)) {
-            if (line[0] == '#')
+        for (int i = 0; std::getline(fin, line); i++) {
+            std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
+            if (trim_line.length() <= 0 || trim_line[0] == '#') {
                 continue;
-            GTPCmd.emplace_back(line);
+            }
+            auto pos = trim_line.find('#');
+            std::string erase_line = trim_line;
+            if (pos != std::string::npos) {
+                erase_line = trim_line.erase(pos);
+            }
+            std::string last_line = std::regex_replace(erase_line, std::regex("\\s+$"), std::string(""));
+            std::regex reg(R"(\s+)");
+            std::string s = std::regex_replace(last_line, reg, " ");
+            if (i == 0) {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 15 && s.substr(0, 15) == "kata-set-rules ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 14 && s.substr(0, 14) == "kata-set-rule ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 10 && s.substr(0, 10) == "kgs-rules ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 15 && s.substr(0, 15) == "kata-set-param ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 14 && s.substr(0, 14) == "time_settings ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 18 && s.substr(0, 18) == "kgs-time_settings ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 19 && s.substr(0, 19) == "kata-time_settings ") {
+                GTPCmd.emplace_back(s);
+            } else if (s.length() > 10 && s.substr(0, 10) == "time_left ") {
+                GTPCmd.emplace_back(s);
+            }
         }
         if (GTPCmd.size() > 0) {
             if ( !(m_process = wxProcess::Open(GTPCmd[0])) ) {
@@ -93,7 +122,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         for (auto it = GTPCmd.begin() + 1; it != GTPCmd.end(); ++it) {
             std::string res_msg = GTPSend(*it + wxString("\n\n"));
             if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
-                wxLogMessage(_("GTP response error: ") + wxString(res_msg));
+                wxLogMessage(_("GTP response error: ") + wxString('(') +  wxString(*it) + wxString(')') +  wxString(res_msg));
                 m_process->CloseOutput();
                 use_gtp = false;
                 m_in = nullptr;
@@ -1768,13 +1797,22 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
         m_err->Read(buffer, WXSIZEOF(buffer) - 1);
     }
     m_out->Write(s.c_str(), s.length());
+    int sleep_cnt = 0;
     while ( true ) {
+        sleep_cnt++;
+        if (sleep_cnt > 120) {
+            return "";
+        }
         sleep_for(std::chrono::milliseconds(sleep_ms));
         if ( m_in->CanRead() ) {
             buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
             res_msg += buffer;
             while (res_msg.rfind("\n\n") == std::string::npos &&
                    res_msg.rfind("\r\n\r\n") == std::string::npos) {
+                sleep_cnt++;
+                if (sleep_cnt > 120) {
+                    return "";
+                }
                 sleep_for(std::chrono::milliseconds(sleep_ms));
                 buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                 res_msg += buffer;
