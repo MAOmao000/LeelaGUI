@@ -234,11 +234,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     SetIcon(wxICON(aaaa));
 
     if (cfg_use_gtp) {
-        m_menu2->FindItem(ID_REDO)->Enable(false);
-        m_menu2->FindItem(ID_FWD10)->Enable(false);
+        //m_menu2->FindItem(ID_REDO)->Enable(false);
+        //m_menu2->FindItem(ID_FWD10)->Enable(false);
         m_menu2->FindItem(ID_FORCE)->Enable(false);
-        GetToolBar()->EnableTool(ID_REDO, false);
-        GetToolBar()->EnableTool(ID_FWD10, false);
+        //GetToolBar()->EnableTool(ID_REDO, false);
+        //GetToolBar()->EnableTool(ID_FWD10, false);
         GetToolBar()->EnableTool(ID_FORCE, false);
     }
 
@@ -1354,12 +1354,21 @@ void MainFrame::doRealUndo(int count) {
 }
 
 void MainFrame::doRealForward(int count) {
+    if (cfg_use_gtp && m_engineThread) {
+        return;
+    }
     bool wasAnalyzing = m_analyzing && !m_pondering;
     bool wasRunning = stopEngine();
 
     for (int i = 0; i < count; i++) {
         if (m_State.forward_move()) {
             wxLogDebug(_("Forward one move"));
+            std::string cmd;
+            if (m_State.get_to_move() == FastBoard::BLACK)
+                cmd = "play w " + m_State.move_to_text(m_State.get_last_move());
+            else
+                cmd = "play b " + m_State.move_to_text(m_State.get_last_move());
+            GTPSend(cmd + "\n\n");
         }
     }
     doPostMoveChange(wasAnalyzing && wasRunning);
