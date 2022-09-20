@@ -22,41 +22,41 @@ msgstr ""
 msgid "Leela version "
 msgstr "Leela バージョン "
 
-#: AnalysisWindow.cpp:112 GUI.cpp:644 engine\UCTSearch.cpp:203
+#: AnalysisWindow.cpp:113 GUI.cpp:644 engine\UCTSearch.cpp:203
 msgid "Move"
 msgstr "着手"
 
-#: AnalysisWindow.cpp:116 AnalysisWindow.cpp:184 AnalysisWindow.cpp:227
-#: GUI.cpp:655 engine\UCTSearch.cpp:225
+#: AnalysisWindow.cpp:117 AnalysisWindow.cpp:188 AnalysisWindow.cpp:227
+#: GUI.cpp:649 GUI.cpp:655 engine\UCTSearch.cpp:225
 msgid "PV"
 msgstr "予想手順"
 
-#: AnalysisWindow.cpp:128 GUI.cpp:647 engine\UCTSearch.cpp:208
+#: AnalysisWindow.cpp:129 GUI.cpp:647 engine\UCTSearch.cpp:208
 msgid "Win%"
 msgstr "勝率%"
 
-#: AnalysisWindow.cpp:153
+#: AnalysisWindow.cpp:157
 msgid "Analysis - Score Estimate "
 msgstr "検討 - 地合見積り"
 
-#: AnalysisWindow.cpp:209
+#: AnalysisWindow.cpp:213
 msgid "Copy PV"
 msgstr "探索手順コピー"
 
-#: AnalysisWindow.cpp:210
+#: AnalysisWindow.cpp:214
 msgid "Copy entire line"
 msgstr "行全体をコピー"
 
-#: AnalysisWindow.cpp:212
+#: AnalysisWindow.cpp:216
 msgid "Deselect line"
 msgstr "行選択を解除"
 
-#: App.cpp:83 MainFrame.cpp:108 MainFrame.cpp:113 MainFrame.cpp:145
-#: MainFrame.cpp:155 MainFrame.cpp:502 MainFrame.cpp:1190 GUI.h:194
+#: App.cpp:83 MainFrame.cpp:194 MainFrame.cpp:199 MainFrame.cpp:231
+#: MainFrame.cpp:241 MainFrame.cpp:627 MainFrame.cpp:1363 GUI.h:194
 msgid "Leela"
 msgstr ""
 
-#: EngineThread.cpp:164
+#: EngineThread.cpp:165
 #, c-format
 msgid "Win rate:%3.1f%% Score:%.1f"
 msgstr "勝率:%3.1f%% %.1f目差"
@@ -385,7 +385,7 @@ msgstr "ツール"
 msgid "Start/Stop analysis"
 msgstr "検討開始・停止"
 
-#: GUI.cpp:295 MainFrame.cpp:457
+#: GUI.cpp:295 MainFrame.cpp:572
 msgid "Pass"
 msgstr "パス"
 
@@ -633,196 +633,200 @@ msgstr "対局を続ける(&D)"
 msgid "Win Rate Histogram"
 msgstr "勝率グラフ"
 
-#: MainFrame.cpp:77
+#: MainFrame.cpp:106
 msgid "Failed to launch the command."
 msgstr "コマンドの起動に失敗しました。"
 
-#: MainFrame.cpp:79
+#: MainFrame.cpp:108
 msgid "Failed to connect to child stdout"
 msgstr "子プロセスの標準出力への接続に失敗しました"
 
-#: MainFrame.cpp:82
+#: MainFrame.cpp:111
 msgid "Failed to connect to child stderr"
 msgstr "子プロセスの標準エラー出力への接続に失敗しました"
 
-#: MainFrame.cpp:85
+#: MainFrame.cpp:114
 msgid "Failed to connect to child stdin"
 msgstr "子プロセスの標準入力への接続に失敗しました"
 
-#: MainFrame.cpp:96
+#: MainFrame.cpp:125
 msgid "GTP response error: "
 msgstr "GTP 応答エラー: "
 
-#: MainFrame.cpp:163
+#: MainFrame.cpp:192
 #, c-format
 msgid "Error initializing OpenCL: %s (error %d)"
 msgstr "エラー OpenCL初期化: %s (エラー %d)"
 
-#: MainFrame.cpp:169
+#: MainFrame.cpp:198
 #, c-format
 msgid "Error initializing OpenCL: %s"
 msgstr "エラー OpenCL初期化: %s"
 
-#: MainFrame.cpp:201
+#: MainFrame.cpp:230
 msgid "OpenCL self-test failed. Check your graphics drivers."
 msgstr "OpenCLのセルフテストに失敗しました。グラフィックドライバを確認してください。"
 
-#: MainFrame.cpp:209
+#: MainFrame.cpp:238
 msgid ""
 "The GPU and OpenCL drivers on macOS are often outdated and of poor quality. "
 "Try switching to the regular version if you run into stability issues. If "
 "your GPU is slow, it may even be faster."
 msgstr "macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。安定性に問題がある場合は、通常バージョンに切り替えてみてください。GPUが遅ければ、もっと速くなるかもしれません。"
 
-#: MainFrame.cpp:346
+#: MainFrame.cpp:378
 #, c-format
 msgid "Komi: %d.5; Prisoners white: %d/black: %d"
 msgstr "コミ: %d.5; アゲハマ 黒: %d/白: %d"
 
-#: MainFrame.cpp:380
+#: MainFrame.cpp:412
 msgid "Engine thinking..."
 msgstr "エンジン思考中..."
 
-#: MainFrame.cpp:383
+#: MainFrame.cpp:415
 msgid "Engine already running"
 msgstr "エンジンはすでに稼働しています"
 
-#: MainFrame.cpp:502
+#: MainFrame.cpp:534
 msgid "New move arrived"
 msgstr "新しい着手"
 
-#: MainFrame.cpp:511
+#: MainFrame.cpp:543
 msgid "Illegal move: "
 msgstr "誤った指し手: "
 
-#: MainFrame.cpp:457
+#: MainFrame.cpp:572
 msgid "Computer passes"
 msgstr "コンピュータはパスします"
 
-#: MainFrame.cpp:473 MainFrame.cpp:483
+#: MainFrame.cpp:593 MainFrame.cpp:608
 msgid "Computer to move"
 msgstr "コンピュータの着手"
 
-#: MainFrame.cpp:503 MainFrame.cpp:1191
+#: MainFrame.cpp:628 MainFrame.cpp:1364
 msgid " - move "
 msgstr " - 手数 "
 
-#: MainFrame.cpp:537 MainFrame.cpp:558
+#: MainFrame.cpp:658 MainFrame.cpp:679
 msgid "OK clicked"
 msgstr "OKがクリックされました"
 
-#: MainFrame.cpp:642
+#: MainFrame.cpp:780
 #, c-format
 msgid "Last rank was: %d"
 msgstr "最終ランク: %d"
 
-#: MainFrame.cpp:644 MainFrame.cpp:1053
+#: MainFrame.cpp:782 MainFrame.cpp:1209
 msgid "Your rank: "
 msgstr "あなたのランク: "
 
-#: MainFrame.cpp:649
+#: MainFrame.cpp:787
 msgid "Leela - "
 msgstr ""
 
-#: MainFrame.cpp:961
+#: MainFrame.cpp:1099
 #, c-format
 msgid "Handicap %d Simulations %d"
 msgstr "置き石 %d シミュレーション %d"
 
-#: MainFrame.cpp:1099
+#: MainFrame.cpp:1255
 msgid "BLACK wins by resignation"
 msgstr "白が投了しました"
 
-#: MainFrame.cpp:1102
+#: MainFrame.cpp:1258
 #, c-format
 msgid ""
 "BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n"
 "= %.1f points"
 msgstr "黒地: %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
 
-#: MainFrame.cpp:1105
+#: MainFrame.cpp:1261
 #, c-format
 msgid ""
 "BLACK wins by %.0f - %.1f (komi)\n"
 "= %.1f points"
 msgstr "黒地: %.0f - %.1f (コミ)\n= %.1f 目"
 
-#: MainFrame.cpp:1114
+#: MainFrame.cpp:1270
 msgid "WHITE wins by resignation"
 msgstr "黒が投了しました"
 
-#: MainFrame.cpp:1117
+#: MainFrame.cpp:1273
 #, c-format
 msgid ""
 "WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n"
 "= %.1f points"
 msgstr "白地: %.0f + %.1f (コミ) + %0.f (置き石)\n= %.1f 目"
 
-#: MainFrame.cpp:1120
+#: MainFrame.cpp:1276
 #, c-format
 msgid ""
 "WHITE wins by %.0f + %.1f (komi)\n"
 "= %.1f points"
 msgstr "白地: %.0f + %.1f (コミ)\n= %.1f 目"
 
-#: MainFrame.cpp:1129
+#: MainFrame.cpp:1285
 msgid "BLACK wins."
 msgstr "黒の勝ちです"
 
-#: MainFrame.cpp:1131
+#: MainFrame.cpp:1287
 msgid "WHITE wins."
 msgstr "白の勝ちです"
 
-#: MainFrame.cpp:1135
+#: MainFrame.cpp:1297
 msgid "I am not sure I am scoring this correctly."
 msgstr "この目数の数値は不確かです"
 
-#: MainFrame.cpp:1165
+#: MainFrame.cpp:1327
 #, c-format
 msgid "%d kyu"
 msgstr "%d 級"
 
-#: MainFrame.cpp:1168
+#: MainFrame.cpp:1330
 #, c-format
 msgid "%d dan"
 msgstr "アマ %d 段"
 
-#: MainFrame.cpp:1170
+#: MainFrame.cpp:1332
 #, c-format
 msgid "%d pro"
 msgstr "プロ %d 段"
 
-#: MainFrame.cpp:1201
+#: MainFrame.cpp:1377
 msgid "Undoing one move"
 msgstr "1手戻す"
 
-#: MainFrame.cpp:1213
+#: MainFrame.cpp:1394
 msgid "Forward one move"
 msgstr "1手進める"
 
-#: MainFrame.cpp:1272
+#: MainFrame.cpp:1459
 msgid "Read %d moves, going to move %d"
 msgstr "読み込み %d 手, %d 手へ"
 
-#: MainFrame.cpp:1311 MainFrame.cpp:1337
+#: MainFrame.cpp:1498 MainFrame.cpp:1524
 msgid "Choose a file"
 msgstr "ファイルを選択"
 
-#: MainFrame.cpp:1312 MainFrame.cpp:1338
+#: MainFrame.cpp:1499 MainFrame.cpp:1525
 msgid "Go games (*.sgf)|*.sgf"
 msgstr ""
 
-#: MainFrame.cpp:1318
+#: MainFrame.cpp:1505
 msgid "Opening: "
 msgstr "開く: "
 
-#: MainFrame.cpp:1345
+#: MainFrame.cpp:1532
 msgid "Saving: "
 msgstr "保存: "
 
-#: MainFrame.cpp:1409
+#: MainFrame.cpp:1607
 msgid "Adjust clocks clicked"
 msgstr "時間調整がクリックされました"
+
+#: MainFrame.cpp:1824
+msgid "GTP error response: "
+msgstr "GTP エラー応答: "
 
 #: TBoardPanel.cpp:105
 #, c-format
@@ -838,24 +842,24 @@ msgstr "セルサイズ: %d"
 msgid "Paint on empty state"
 msgstr "空の状態を描画"
 
-#: TBoardPanel.cpp:438
+#: TBoardPanel.cpp:439
 #, c-format
 msgid "Left down at %d %d"
 msgstr "左クリック %d %d"
 
-#: TBoardPanel.cpp:441
+#: TBoardPanel.cpp:442
 msgid "Click on empty board"
 msgstr "空きボードクリック"
 
-#: TBoardPanel.cpp:446
+#: TBoardPanel.cpp:447
 msgid "Game has been resigned"
 msgstr "対局は投了で終了しました"
 
-#: TBoardPanel.cpp:451
+#: TBoardPanel.cpp:452
 msgid "Click on locked state"
 msgstr "ロック状態でのクリック"
 
-#: TBoardPanel.cpp:483
+#: TBoardPanel.cpp:490
 msgid "It's not your move!"
 msgstr "あなたの手番ではありません！"
 
@@ -891,46 +895,46 @@ msgstr "Net 勝率%"
 msgid "Eval"
 msgstr "評価値"
 
-#: engine\UCTSearch.cpp:715
+#: engine\UCTSearch.cpp:720
 #, c-format
 msgid "Nodes: %d, Win: %5.2f%%, PV: %s"
 msgstr "ノード: %d, 勝率: %5.2f%%, 予想手順: %s"
 
-#: engine\UCTSearch.cpp:718
+#: engine\UCTSearch.cpp:723
 #, c-format
 msgid "%d nodes searched"
 msgstr "%d ノード探索"
 
-#: engine\UCTSearch.cpp:783
+#: engine\UCTSearch.cpp:788
 #, c-format
 msgid "Thinking at most %.1f seconds..."
 msgstr "最大%.1f秒で思考中..."
 
-#: engine\UCTSearch.cpp:802
+#: engine\UCTSearch.cpp:807
 msgid "Thinking..."
 msgstr "思考中..."
 
-#: engine\UCTSearch.cpp:951
+#: engine\UCTSearch.cpp:956
 #, c-format
 msgid "%d visits, %d nodes, %d playouts, %d p/s"
 msgstr "%d 訪問, %d ノード, %d プレイアウト, %d プレイアウト/秒"
 
-#: engine\UCTSearch.cpp:964
+#: engine\UCTSearch.cpp:979
 #, c-format
 msgid "Best move: pass(Win rate:%3.1f%%)"
 msgstr "最善手: パス(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:966
+#: engine\UCTSearch.cpp:981
 #, c-format
 msgid "Best move: resign(Win rate:%3.1f%%)"
 msgstr "最善手: 投了(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:968
+#: engine\UCTSearch.cpp:983
 #, c-format
 msgid "Best move: error(Win rate:%3.1f%%)"
 msgstr "最善手: エラー(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:970
+#: engine\UCTSearch.cpp:985
 #, c-format
 msgid "Best move: %s(Win rate:%3.1f%%)"
 msgstr "最善手: %s(勝率:%3.1f%%)"
