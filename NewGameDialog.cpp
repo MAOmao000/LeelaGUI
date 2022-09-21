@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "NewGameDialog.h"
 #include "UCTSearch.h"
+#include "GTP.h"
 
 NewGameDialog::NewGameDialog( wxWindow* parent )
 :
@@ -30,6 +31,11 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
 
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
+
+    if (cfg_use_gtp) {
+        m_spinCtrlTime->Enable(false);
+        m_staticText13->Enable(false);
+    }
 
     checkNetsEnabled();
     checkHandicapRange();

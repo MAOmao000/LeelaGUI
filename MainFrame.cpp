@@ -263,11 +263,18 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     SetIcon(wxICON(aaaa));
 
     if (cfg_use_gtp) {
-        //m_menu2->FindItem(ID_REDO)->Enable(false);
-        //m_menu2->FindItem(ID_FWD10)->Enable(false);
+        m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(false);
+        m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(false);
+        m_menuAnalyze->FindItem(ID_POPPOS)->Enable(false);
+        m_menuAnalyze->FindItem(ID_MAINLINE)->Enable(false);
+        m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Enable(false);
         m_menu2->FindItem(ID_FORCE)->Enable(false);
-        //GetToolBar()->EnableTool(ID_REDO, false);
-        //GetToolBar()->EnableTool(ID_FWD10, false);
+        m_menuTools->FindItem(ID_BEST_MOVES)->Enable(false);
+        m_menuTools->FindItem(ID_ADJUSTCLOCKS)->Enable(false);
+        GetToolBar()->EnableTool(ID_ANALYZE, false);
+        GetToolBar()->EnableTool(ID_PUSHPOS, false); 
+        GetToolBar()->EnableTool(ID_POPPOS, false); 
+        GetToolBar()->EnableTool(ID_MAINLINE, false); 
         GetToolBar()->EnableTool(ID_FORCE, false);
     }
 
