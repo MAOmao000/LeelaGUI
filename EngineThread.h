@@ -5,6 +5,7 @@
 #include "GameState.h"
 #include "Utils.h"
 #include <atomic>
+#include <vector>
 
 class MainFrame;
 using Utils::ThreadGroup;
@@ -14,7 +15,6 @@ class TEngineThread {
         TEngineThread(const GameState& gamestate,
                       MainFrame * frame,
                       wxInputStream *std_in,
-                      wxInputStream* std_err,
                       wxOutputStream *std_out);
         void Wait();
         void Run();
@@ -25,6 +25,7 @@ class TEngineThread {
         void set_nopass(bool flag);
         void set_quiet(bool flag);
         void set_nets(bool flag);
+        void set_handi(std::vector<int> handi);
         void stop_engine(void);
         void force_stop_engine(void);
         void kill_score_update(void);
@@ -37,7 +38,6 @@ class TEngineThread {
         std::unique_ptr<GameState> m_state;
         MainFrame * m_frame;
         wxInputStream *m_in;
-        wxInputStream *m_err;
         wxOutputStream *m_out;
         int m_maxvisits;
         bool m_nets;
@@ -47,6 +47,7 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
+        std::vector<int> m_handi;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
         std::atomic<bool> m_stopflag;

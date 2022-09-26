@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.4.0"
+!define VERSION   "1.5.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -338,6 +338,7 @@ Section "LeelaI18N" leela
   File "bin\libzip.dll"
   File "bin\katago.exe"
   File "bin\LeelaGUI.ini"
+  File "bin\analysis_example.cfg"
   File "bin\default_gtp.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "license.rtf"
@@ -503,6 +504,7 @@ Section "Uninstall"
   Delete "$INSTDIR\katago_OpenCL.exe"
   Delete "$INSTDIR\LeelaGUI.ini"
   Delete "$INSTDIR\LeelaGUI_OpenCL.ini"
+  Delete "$INSTDIR\analysis_example.cfg"
   Delete "$INSTDIR\default_gtp.cfg"
   Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   #Delete "$INSTDIR\libgfortran-3.dll"

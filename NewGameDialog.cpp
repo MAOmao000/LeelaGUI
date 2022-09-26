@@ -32,7 +32,7 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
 
-    if (cfg_use_gtp) {
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         m_spinCtrlTime->Enable(false);
         m_staticText13->Enable(false);
     }

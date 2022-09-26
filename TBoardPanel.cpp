@@ -471,16 +471,19 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         int vtx = m_State->board.get_vertex(cellX, cellY);
         
         if (m_State->legal_move(vtx)) {
-            wxString msg;
-            if (m_State->get_to_move() == FastBoard::BLACK)
-                msg = wxString("play b " + m_State->move_to_text(vtx));
-            else
-                msg = wxString("play w " + m_State->move_to_text(vtx));
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
             event.SetEventObject(this);
-            event.SetString(msg);
+            if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                wxString msg;
+                if (m_State->get_to_move() == FastBoard::BLACK) {
+                    msg = wxString("play b " + m_State->move_to_text(vtx));
+                } else {
+                    msg = wxString("play w " + m_State->move_to_text(vtx));
+                }
+                event.SetString(msg);
+            }
             ::wxPostEvent(GetEventHandler(), event);
-            
+
             m_State->play_move(vtx);
             
             Refresh();
@@ -557,7 +560,7 @@ void TBoardPanel::doMoyo() {
 }
 
 void TBoardPanel::doOwner() {
-    if (cfg_use_gtp) {
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         if (m_State->m_owner.size() > 0) {
             m_Owner.clear();
             for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
@@ -644,7 +647,7 @@ void TBoardPanel::doDisplayMainline(wxCommandEvent& event) {
 
 void TBoardPanel::doProbabilities() {
     if (m_State->board.get_hash() != m_DisplayedStateHash) {
-        if (cfg_use_gtp) {
+        if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
             if (m_State->m_policy.size() > 0) {
                 m_Probabilities.clear();
                 for (auto itr = m_State->m_policy.begin(); itr != m_State->m_policy.end(); ++itr) {

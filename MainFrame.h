@@ -92,7 +92,7 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
-	std::string GTPSend( const wxString& s, const int& sleep_ms = 500 );
+	std::string GTPSend(const wxString& s, const int& sleep_ms = 500);
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -112,6 +112,7 @@ class MainFrame : public TMainFrame {
 	bool m_pondering;
 	bool m_disputing;
 	bool m_ponderedOnce;
+	std::vector<int> m_move_handi;
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
@@ -122,7 +123,6 @@ class MainFrame : public TMainFrame {
 	wxProcess* m_process{nullptr};
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
-	wxInputStream* m_err{nullptr};
 
 	static void setLocale(bool japanese) {
 		if (japanese) {

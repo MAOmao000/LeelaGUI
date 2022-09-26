@@ -39,12 +39,14 @@ extern std::string cfg_logfile;
 extern FILE* cfg_logfile_handle;
 extern bool cfg_quiet;
 extern int cfg_lang;
-extern bool cfg_use_gtp;
-
+extern int cfg_use_engine;
 class GTP {
 public:
+    static constexpr int ORIGINE_ENGINE = 0;
+    static constexpr int USE_KATAGO_GTP = 1;
+    static constexpr int USE_KATAGO_ANALYSIS = 2;
     static bool execute(GameState & game, std::string xinput);
-    static void setup_default_parameters(int lang=0, bool use_gtp=false);
+    static void setup_default_parameters(int lang=0, int use_engine=ORIGINE_ENGINE);
     static bool perform_self_test(GameState & state);
 private:
     static const int GTP_VERSION = 2;
