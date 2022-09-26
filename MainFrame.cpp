@@ -109,19 +109,20 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             }
         }
     }
+    m_overrideSettings = NULL;
     if (use_engine == GTP::ORIGINE_ENGINE) {
         m_in = nullptr;
         m_out = nullptr;
     } else if (use_engine == GTP::USE_KATAGO_GTP) {
         for (auto it = GTPCmd.begin() + 1; it != GTPCmd.end(); ++it) {
-            if ((it->length() > 15 && it->substr(0, 15) == "kata-set-rules ") ||
-                (it->length() > 14 && it->substr(0, 14) == "kata-set-rule ") ||
-                (it->length() > 10 && it->substr(0, 10) == "kgs-rules ") ||
-                (it->length() > 15 && it->substr(0, 15) == "kata-set-param ") ||
-                (it->length() > 14 && it->substr(0, 14) == "time_settings ") ||
-                (it->length() > 18 && it->substr(0, 18) == "kgs-time_settings ") ||
-                (it->length() > 19 && it->substr(0, 19) == "kata-time_settings ") ||
-                (it->length() > 10 && it->substr(0, 10) == "time_left ")) {
+            if ((it->length() > sizeof("kata-set-rules ") - 1 && it->substr(0, sizeof("kata-set-rules ") - 1) == "kata-set-rules ") ||
+                (it->length() > sizeof("kata-set-rule ") - 1 && it->substr(0, sizeof("kata-set-rule ") - 1) == "kata-set-rule ") ||
+                (it->length() > sizeof("kgs-rules ") - 1 && it->substr(0, sizeof("kgs-rules ") - 1) == "kgs-rules ") ||
+                (it->length() > sizeof("kata-set-param ") - 1 && it->substr(0, sizeof("kata-set-param ") - 1) == "kata-set-param ") ||
+                (it->length() > sizeof("time_settings ") - 1 && it->substr(0, sizeof("time_settings ") ) == "time_settings ") ||
+                (it->length() > sizeof("kgs-time_settings ") - 1 && it->substr(0, sizeof("kgs-time_settings ") - 1) == "kgs-time_settings ") ||
+                (it->length() > sizeof("kata-time_settings ") - 1 && it->substr(0, sizeof("kata-time_settings ") - 1) == "kata-time_settings ") ||
+                (it->length() > sizeof("time_left ") - 1 && it->substr(0, sizeof("time_left ") - 1) == "time_left ")) {
                 std::string res_msg = GTPSend(*it + wxString("\n\n"));
                 if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
                     wxLogMessage(_("GTP response error: ") + wxString('(') +  wxString(*it) + wxString(')') +  wxString(res_msg));
@@ -134,6 +135,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 }
             }
         }
+    } else if (use_engine == GTP::USE_KATAGO_ANALYSIS && GTPCmd.size() > 1) {
+        m_overrideSettings = nlohmann::json::parse(GTPCmd[1]);
     }
 
     GTP::setup_default_parameters(lang, use_engine);
@@ -397,7 +400,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out, m_overrideSettings);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();

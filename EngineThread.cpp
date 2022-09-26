@@ -8,7 +8,6 @@
 #include "MainFrame.h"
 #include "Utils.h"
 #include "MCOTable.h"
-#include "json.hpp"
 
 using namespace std;
 using std::this_thread::sleep_for;
@@ -16,11 +15,13 @@ using std::this_thread::sleep_for;
 TEngineThread::TEngineThread(const GameState& state,
                              MainFrame * frame,
                              wxInputStream *std_in,
-                             wxOutputStream *std_out)
+                             wxOutputStream *std_out,
+                             nlohmann::json& overrideSettings)
     :m_state(std::make_unique<GameState>(state)),
      m_frame(frame),
      m_in(std_in),
      m_out(std_out),
+     m_overrideSettings(overrideSettings),
      m_maxvisits(0),
      m_nets(true),
      m_resigning(true),
@@ -202,10 +203,6 @@ void TEngineThread::Run() {
                     "whiteHandicapBonus":"N",
                     "boardXSize":19,
                     "boardYSize":19,
-                    "overrideSettings":
-                        {
-                            "wideRootNoise":0.04
-                        },
                     "initialStones":[],
                     "initialPlayer":"B",
                     "moves":[]
@@ -215,6 +212,9 @@ void TEngineThread::Run() {
             send_1_json["komi"] = m_state->get_komi();
             send_1_json["boardXSize"] = board_size;
             send_1_json["boardYSize"] = board_size;
+            if (m_overrideSettings != NULL) {
+                send_1_json["overrideSettings"] = m_overrideSettings;
+            }
             int i = 0;
             if (m_handi.size() > 0) {
                 for (auto itr = m_handi.begin(); itr != m_handi.end(); ++itr) {

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "GameState.h"
 #include "Utils.h"
+#include "json.hpp"
 #include <atomic>
 #include <vector>
 
@@ -15,7 +16,8 @@ class TEngineThread {
         TEngineThread(const GameState& gamestate,
                       MainFrame * frame,
                       wxInputStream *std_in,
-                      wxOutputStream *std_out);
+                      wxOutputStream *std_out,
+                       nlohmann::json& overrideSettings);
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -47,6 +49,7 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
+        nlohmann::json m_overrideSettings;
         std::vector<int> m_handi;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;

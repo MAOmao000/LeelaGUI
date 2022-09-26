@@ -10,6 +10,7 @@
 #include "GameState.h"
 #include "EngineThread.h"
 #include "GTP.h"
+#include "json.hpp"
 
 class AnalysisWindow;
 class ScoreHistogram;
@@ -116,6 +117,7 @@ class MainFrame : public TMainFrame {
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
+	nlohmann::json m_overrideSettings;
 	friend class TEngineThread;
 	friend class TBoardPanel;
 
