@@ -119,7 +119,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 (it->length() > sizeof("kata-set-rule ") - 1 && it->substr(0, sizeof("kata-set-rule ") - 1) == "kata-set-rule ") ||
                 (it->length() > sizeof("kgs-rules ") - 1 && it->substr(0, sizeof("kgs-rules ") - 1) == "kgs-rules ") ||
                 (it->length() > sizeof("kata-set-param ") - 1 && it->substr(0, sizeof("kata-set-param ") - 1) == "kata-set-param ") ||
-                (it->length() > sizeof("time_settings ") - 1 && it->substr(0, sizeof("time_settings ") ) == "time_settings ") ||
+                (it->length() > sizeof("time_settings ") - 1 && it->substr(0, sizeof("time_settings ") - 1) == "time_settings ") ||
                 (it->length() > sizeof("kgs-time_settings ") - 1 && it->substr(0, sizeof("kgs-time_settings ") - 1) == "kgs-time_settings ") ||
                 (it->length() > sizeof("kata-time_settings ") - 1 && it->substr(0, sizeof("kata-time_settings ") - 1) == "kata-time_settings ") ||
                 (it->length() > sizeof("time_left ") - 1 && it->substr(0, sizeof("time_left ") - 1) == "time_left ")) {
