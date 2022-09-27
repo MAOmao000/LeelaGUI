@@ -109,6 +109,48 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             }
         }
     }
+    if (use_engine != GTP::ORIGINE_ENGINE) {
+        bool launch_OK = true;
+        wxInputStream* std_err = m_process->GetErrorStream();
+        if (std_err) {
+            std::string res_msg = "";
+            char buffer[2048];
+            int sleep_cnt = 0;
+            while ( true ) {
+                sleep_cnt++;
+                if (sleep_cnt > 600) {
+                    launch_OK = false;
+                    break;
+                }
+                sleep_for(std::chrono::milliseconds(1000));
+                if ( std_err->CanRead() ) {
+                    buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                    res_msg += buffer;
+                    while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
+                           res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos) {
+                        sleep_cnt++;
+                        if (sleep_cnt > 600) {
+                            launch_OK = false;
+                            break;
+                        }
+                        sleep_for(std::chrono::milliseconds(1000));
+                        buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                        res_msg += buffer;
+                    }
+                    break;
+                }
+            }
+            if (!launch_OK) {
+                wxLogDebug(_("Failed to launch the command."));
+                wxProcess::Kill(m_process->GetPid());
+                use_engine = GTP::ORIGINE_ENGINE;
+            }
+        } else {
+            wxLogDebug(_("Failed to connect to child stdin"));
+            wxProcess::Kill(m_process->GetPid());
+            use_engine = GTP::ORIGINE_ENGINE;
+        }
+    }
     m_overrideSettings = NULL;
     if (use_engine == GTP::ORIGINE_ENGINE) {
         m_in = nullptr;
