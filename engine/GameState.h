@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <array>
 
 #include "FastState.h"
 #include "FullBoard.h"
@@ -46,6 +47,7 @@ public:
 
     std::vector<float> m_policy;
     std::vector<float> m_owner;
+    std::array<float, 3> m_win_rate;
 private:
     bool valid_handicap(int stones);
 
