@@ -301,7 +301,7 @@ void TEngineThread::Run() {
                     TRowVector row;
                     row.emplace_back(_("Move").utf8_str(), j2["move"]);
                     row.emplace_back(_("Effort%").utf8_str(),
-                        std::to_string(100.0 * j2["visits"] / (double)res_1_json["rootInfo"]["visits"]));
+                        std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                     row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
                     if (who == FastBoard::BLACK) {
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
@@ -320,7 +320,7 @@ void TEngineThread::Run() {
                     }
                     row.emplace_back(_("PV").utf8_str(), pvstring);
                     analysis_data.emplace_back(row);
-                    move_data->emplace_back(j2["move"], (float)(j2["visits"] / (double)res_1_json["rootInfo"]["visits"]));
+                    move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                 }
                 if (who == FastBoard::BLACK) {
                     Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
