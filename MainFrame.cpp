@@ -127,7 +127,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                     res_msg += buffer;
                     while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
-                           res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos) {
+                           res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos &&
+                           res_msg.rfind("Initializing board with boardXSize") == std::string::npos) {
                         sleep_cnt++;
                         if (sleep_cnt > 600) {
                             launch_OK = false;
@@ -142,16 +143,17 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             }
             if (!launch_OK) {
                 wxLogDebug(_("Failed to launch the command."));
+                m_process->CloseOutput();
                 wxProcess::Kill(m_process->GetPid());
                 use_engine = GTP::ORIGINE_ENGINE;
             }
         } else {
-            wxLogDebug(_("Failed to connect to child stdin"));
+            wxLogDebug(_("Failed to connect to child stderr"));
+            m_process->CloseOutput();
             wxProcess::Kill(m_process->GetPid());
             use_engine = GTP::ORIGINE_ENGINE;
         }
     }
-    m_overrideSettings = NULL;
     if (use_engine == GTP::ORIGINE_ENGINE) {
         m_in = nullptr;
         m_out = nullptr;
@@ -178,7 +180,23 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             }
         }
     } else if (use_engine == GTP::USE_KATAGO_ANALYSIS && GTPCmd.size() > 1) {
-        m_overrideSettings = nlohmann::json::parse(GTPCmd[1]);
+        std::string tmp_query = "";
+        for (auto it = GTPCmd.begin() + 1; it != GTPCmd.end(); ++it) {
+            m_overrideSettings.emplace_back(*it);
+            tmp_query += *it;
+        }
+        if (tmp_query.length() > 0) {
+            try {
+                nlohmann::json::parse(tmp_query);
+            } catch(const std::exception& e) {
+                wxLogMessage(_("Engine thread error:") + wxString(e.what()));
+                m_process->CloseOutput();
+                use_engine = GTP::ORIGINE_ENGINE;
+                m_in = nullptr;
+                m_out = nullptr;
+                wxProcess::Kill(m_process->GetPid());
+            }
+        }
     }
 
     GTP::setup_default_parameters(lang, use_engine);
@@ -306,19 +324,22 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     SetIcon(wxICON(aaaa));
 
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
-        m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(false);
-        m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(false);
-        m_menuAnalyze->FindItem(ID_POPPOS)->Enable(false);
-        m_menuAnalyze->FindItem(ID_MAINLINE)->Enable(false);
-        m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Enable(false);
-        m_menu2->FindItem(ID_FORCE)->Enable(false);
-        m_menuTools->FindItem(ID_BEST_MOVES)->Enable(false);
         m_menuTools->FindItem(ID_ADJUSTCLOCKS)->Enable(false);
-        GetToolBar()->EnableTool(ID_ANALYZE, false);
-        GetToolBar()->EnableTool(ID_PUSHPOS, false); 
-        GetToolBar()->EnableTool(ID_POPPOS, false); 
-        GetToolBar()->EnableTool(ID_MAINLINE, false); 
-        GetToolBar()->EnableTool(ID_FORCE, false);
+        /*
+        if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+            m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(false);
+            m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(false);
+            m_menuAnalyze->FindItem(ID_POPPOS)->Enable(false);
+            m_menuAnalyze->FindItem(ID_MAINLINE)->Enable(false);
+            m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Enable(false);
+            GetToolBar()->EnableTool(ID_ANALYZE, false);
+            GetToolBar()->EnableTool(ID_PUSHPOS, false); 
+            GetToolBar()->EnableTool(ID_POPPOS, false); 
+            GetToolBar()->EnableTool(ID_MAINLINE, false); 
+            m_menu2->FindItem(ID_FORCE)->Enable(false);
+            GetToolBar()->EnableTool(ID_FORCE, false);
+        }
+        */
     }
 
 #ifdef __WXGTK__
@@ -379,9 +400,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 }
 
 MainFrame::~MainFrame() {
-    if (m_engineThread) {
-        m_engineThread->force_stop_engine();
-    }
     stopEngine();
 
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
@@ -442,7 +460,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out, m_overrideSettings);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out, &m_GTPmutex, m_overrideSettings);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -773,7 +791,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
             GTPSend(wxString("clear_board\n\n"));
             if (m_move_handi.size() > 0) {
                 wxString s = wxString("set_free_handicap");
-                for(auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
+                for (auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
                     int handi_move = *itr;
                     s += " ";
                     s += wxString(m_State.move_to_text(handi_move));
@@ -1395,29 +1413,25 @@ wxString MainFrame::rankToString(int rank) {
 }
 
 void MainFrame::doPass(wxCommandEvent& event) {
-    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
-        if (m_engineThread) {
-            return;
-        }
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE || m_State.get_to_move() == m_playerColor) {
         stopEngine();
+
+        m_State.play_pass();
+        //::wxLogMessage("User passes");
+
         if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-            if (m_State.get_to_move() == FastBoard::BLACK) {
+            if (m_playerColor == FastBoard::BLACK) {
                 GTPSend(wxString("play b pass\n\n"));
             } else {
                 GTPSend(wxString("play w pass\n\n"));
             }
         }
-    } else {
-        stopEngine();
+
+        wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
+        myevent.SetEventObject(this);
+        ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+        broadcastCurrentMove();
     }
-
-    m_State.play_pass();
-    //::wxLogMessage("User passes");
-
-    wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
-    myevent.SetEventObject(this);
-    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
-    broadcastCurrentMove();
 }
 
 void MainFrame::gameNoLongerCounts() {
@@ -1427,45 +1441,43 @@ void MainFrame::gameNoLongerCounts() {
 }
 
 void MainFrame::doRealUndo(int count) {
-    if ((cfg_use_engine != GTP::ORIGINE_ENGINE) && m_engineThread) {
-        return;
-    }
-    bool wasAnalyzing = m_analyzing && !m_pondering;
-    bool wasRunning = stopEngine();
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE || m_State.get_to_move() == m_playerColor) {
+        bool wasAnalyzing = m_analyzing && !m_pondering;
+        bool wasRunning = stopEngine();
 
-    for (int i = 0; i < count; i++) {
-        if (m_State.undo_move()) {
-            wxLogDebug(_("Undoing one move"));
-            if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-                GTPSend(wxString("undo\n\n"));
+        for (int i = 0; i < count; i++) {
+            if (m_State.undo_move()) {
+                wxLogDebug(_("Undoing one move"));
+                if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                    GTPSend(wxString("undo\n\n"));
+                }
             }
         }
+        doPostMoveChange(wasAnalyzing && wasRunning);
     }
-    doPostMoveChange(wasAnalyzing && wasRunning);
 }
 
 void MainFrame::doRealForward(int count) {
-    if ((cfg_use_engine != GTP::ORIGINE_ENGINE) && m_engineThread) {
-        return;
-    }
-    bool wasAnalyzing = m_analyzing && !m_pondering;
-    bool wasRunning = stopEngine();
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE || m_State.get_to_move() == m_playerColor) {
+        bool wasAnalyzing = m_analyzing && !m_pondering;
+        bool wasRunning = stopEngine();
 
-    for (int i = 0; i < count; i++) {
-        if (m_State.forward_move()) {
-            wxLogDebug(_("Forward one move"));
-            if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-                std::string cmd;
-                if (m_State.get_to_move() == FastBoard::BLACK) {
-                    cmd = "play w " + m_State.move_to_text(m_State.get_last_move());
-                } else {
-                    cmd = "play b " + m_State.move_to_text(m_State.get_last_move());
+        for (int i = 0; i < count; i++) {
+            if (m_State.forward_move()) {
+                wxLogDebug(_("Forward one move"));
+                if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                    std::string cmd;
+                    if (m_State.get_to_move() == FastBoard::BLACK) {
+                        cmd = "play w " + m_State.move_to_text(m_State.get_last_move());
+                    } else {
+                        cmd = "play b " + m_State.move_to_text(m_State.get_last_move());
+                    }
+                    GTPSend(cmd + "\n\n");
                 }
-                GTPSend(cmd + "\n\n");
             }
         }
+        doPostMoveChange(wasAnalyzing && wasRunning);
     }
-    doPostMoveChange(wasAnalyzing && wasRunning);
 }
 
 void MainFrame::doPostMoveChange(bool wasAnalyzing) {
@@ -1523,6 +1535,19 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         movenum = std::max(1, movenum);
         wxLogDebug(_("Read %d moves, going to move %d"), last_move, movenum);
         m_State.rewind();
+        m_State.m_policy.clear();
+        m_State.m_owner.clear();
+        for (int i = 0; i < m_State.m_win_rate.size(); i++) {
+            m_State.m_win_rate[i] = 100.0;
+        }
+        m_move_handi.clear();
+        for (int i = 0; i < m_State.board.get_boardsize(); i++) {
+            for (int j = 0; j < m_State.board.get_boardsize(); j++) {
+                if (m_State.board.get_square(i, j) == FastBoard::BLACK) {
+                    m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+                }
+            }
+        }
         for (int i = 1; i < movenum; ++i) {
             m_State.forward_move();
         }
@@ -1621,9 +1646,6 @@ void MainFrame::doForceMove(wxCommandEvent& event) {
 
 void MainFrame::doResign(wxCommandEvent& event) {
     if (m_State.get_to_move() == m_playerColor) {
-        if ((cfg_use_engine != GTP::ORIGINE_ENGINE) && m_engineThread) {
-            return;
-        }
         stopEngine();
 
         m_State.play_move(FastBoard::RESIGN);
@@ -1658,6 +1680,7 @@ void MainFrame::doAnalyze(wxCommandEvent& event) {
         startEngine();
     } else if (wasAnalyzing) {
         m_analyzing = false;
+        Utils::GUIprintf(cfg_lang, _("Analysis stopped").utf8_str());
     }
     m_panelBoard->unlockState();
     m_playerColor = m_State.get_to_move();
@@ -1817,6 +1840,21 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
             if (!games.empty()) {
                 sgftree->load_from_string(games[0]);
                 m_State = sgftree->follow_mainline_state();
+                m_State.m_policy.clear();
+                m_State.m_owner.clear();
+                for (int i = 0; i < m_State.m_win_rate.size(); i++) {
+                    m_State.m_win_rate[i] = 100.0;
+                }
+                m_move_handi.clear();
+                std::unique_ptr<GameState> tmp_state = std::make_unique<GameState>(m_State);
+                tmp_state->rewind();
+                for (int i = 0; i < m_State.board.get_boardsize(); i++) {
+                    for (int j = 0; j < m_State.board.get_boardsize(); j++) {
+                        if (tmp_state->board.get_square(i, j) == FastBoard::BLACK) {
+                            m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+                        }
+                    }
+                }
 
                 m_StateStack.clear();
                 m_StateStack.push_back(m_State);
@@ -1854,6 +1892,7 @@ void MainFrame::loadSGF(const wxString & filename, int movenum) {
 }
 
 std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
+    std::lock_guard<std::mutex> guard(m_GTPmutex);
     std::string res_msg = "";
     char buffer[2048];
     m_out->Write(s.c_str(), s.length());

@@ -113,11 +113,12 @@ class MainFrame : public TMainFrame {
 	bool m_pondering;
 	bool m_disputing;
 	bool m_ponderedOnce;
+	std::mutex m_GTPmutex;
 	std::vector<int> m_move_handi;
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
-	nlohmann::json m_overrideSettings;
+	std::vector<std::string> m_overrideSettings;
 	friend class TEngineThread;
 	friend class TBoardPanel;
 

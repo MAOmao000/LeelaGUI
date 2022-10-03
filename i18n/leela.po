@@ -22,11 +22,12 @@ msgstr ""
 msgid "Leela version "
 msgstr "Leela バージョン "
 
-#: AnalysisWindow.cpp:113 GUI.cpp:644 engine\UCTSearch.cpp:203
+#: AnalysisWindow.cpp:113 EngineThread.cpp:322 GUI.cpp:644 engine\UCTSearch.cpp:203
 msgid "Move"
 msgstr "着手"
 
 #: AnalysisWindow.cpp:117 AnalysisWindow.cpp:188 AnalysisWindow.cpp:227
+#: EngineThread.cpp:341
 #: GUI.cpp:649 GUI.cpp:655 engine\UCTSearch.cpp:225
 msgid "PV"
 msgstr "予想手順"
@@ -56,10 +57,26 @@ msgstr "行選択を解除"
 msgid "Leela"
 msgstr ""
 
-#: EngineThread.cpp:165
+#: EngineThread.cpp:189 EngineThread.cpp:352 EngineThread.cpp:354 EngineThread.cpp:462 EngineThread.cpp:464
 #, c-format
 msgid "Win rate:%3.1f%% Score:%.1f"
 msgstr "勝率:%3.1f%% %.1f目差"
+
+#: EngineThread.cpp:323 GUI.cpp:645 engine\UCTSearch.cpp:204
+msgid "Effort%"
+msgstr "探索比率%"
+
+#: EngineThread.cpp:325 GUI.cpp:646 engine\UCTSearch.cpp:206
+msgid "Simulations"
+msgstr "試行回数"
+
+#: EngineThread.cpp:328 EngineThread.cpp:331
+msgid "Lead"
+msgstr "目数差"
+
+#: EngineThread.cpp:352 EngineThread.cpp:354
+msgid "Under analysis... "
+msgstr "検討中... "
 
 #: GUI.cpp:98
 msgid "&New Game..."
@@ -553,14 +570,6 @@ msgstr "計算中、お待ちください..."
 msgid "Analysis"
 msgstr "検討"
 
-#: GUI.cpp:645 engine\UCTSearch.cpp:204
-msgid "Effort%"
-msgstr "探索比率%"
-
-#: GUI.cpp:646 engine\UCTSearch.cpp:206
-msgid "Simulations"
-msgstr "試行回数"
-
 #: GUI.cpp:648 engine\UCTSearch.cpp:223
 msgid "Net Prob%"
 msgstr "Net確率%"
@@ -641,7 +650,7 @@ msgstr "コマンドの起動に失敗しました。"
 msgid "Failed to connect to child stdout"
 msgstr "子プロセスの標準出力への接続に失敗しました"
 
-#: MainFrame.cpp:111
+#: MainFrame.cpp:150
 msgid "Failed to connect to child stderr"
 msgstr "子プロセスの標準エラー出力への接続に失敗しました"
 
@@ -823,6 +832,10 @@ msgstr "保存: "
 #: MainFrame.cpp:1607
 msgid "Adjust clocks clicked"
 msgstr "時間調整がクリックされました"
+
+#: MainFrame.cpp:1669
+msgid "Analysis stopped"
+msgstr "検討を停止しました"
 
 #: MainFrame.cpp:1824
 msgid "GTP error response: "
