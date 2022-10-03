@@ -76,11 +76,14 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
     }
 
     double topWinRate = 0.0f;
+    double topLead = 0.0f;
 
     wxFont base;
     if (rows > 0 && cols > 0) {
          base = m_moveGrid->GetCellFont(0, 0).GetBaseFont();
     }
+
+    m_moveGrid->ClearGrid();
 
     int pv_col = -1;
     for (size_t currrow = 0; currrow < data.size(); currrow++) {
@@ -133,6 +136,20 @@ void AnalysisWindow::doUpdate(wxCommandEvent& event) {
                     double compareVal;
                     value.ToCDouble(&compareVal);
                     if (compareVal > topWinRate) {
+                        wxFont bold(base);
+                        bold.SetWeight(wxFONTWEIGHT_BOLD);
+                        m_moveGrid->SetCellFont(currrow, currcol, bold);
+                    }
+                }
+            }
+
+            if (label.Cmp(_("Lead")) == 0) {
+                if (currrow == 0) {
+                    value.ToCDouble(&topLead);
+                } else {
+                    double compareVal;
+                    value.ToCDouble(&compareVal);
+                    if (compareVal > topLead) {
                         wxFont bold(base);
                         bold.SetWeight(wxFONTWEIGHT_BOLD);
                         m_moveGrid->SetCellFont(currrow, currcol, bold);
