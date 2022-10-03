@@ -17,7 +17,8 @@ class TEngineThread {
                       MainFrame * frame,
                       wxInputStream *std_in,
                       wxOutputStream *std_out,
-                       nlohmann::json& overrideSettings);
+                      std::mutex *GTPmutex,
+                      std::vector<std::string>& overrideSettings);
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -29,7 +30,6 @@ class TEngineThread {
         void set_nets(bool flag);
         void set_handi(std::vector<int> handi);
         void stop_engine(void);
-        void force_stop_engine(void);
         void kill_score_update(void);
         GameState& get_state(void) {
             return *m_state;
@@ -49,11 +49,11 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
-        nlohmann::json m_overrideSettings;
+        std::vector<std::string> m_overrideSettings;
         std::vector<int> m_handi;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
-        std::atomic<bool> m_stopflag;
+        std::mutex *m_GTPmutex;
 };
 
 #endif
