@@ -86,6 +86,9 @@ void TEngineThread::Run() {
             }
             return;
         } else if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+            if (m_analyseflag) {
+                return;
+            }
             // do some preprocessing for move ordering
             // Note: Playouts are required to display the "Moyo"
             MCOwnerTable::get_MCO()->clear();
@@ -185,9 +188,9 @@ void TEngineThread::Run() {
 
             Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
 
-            if (!m_analyseflag) {
+            //if (!m_analyseflag) {
                 wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-            }
+            //}
             return;
         }
         using namespace std::chrono;
