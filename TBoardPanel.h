@@ -8,7 +8,7 @@
 
 wxDECLARE_EVENT(wxEVT_DISPLAY_MAINLINE, wxCommandEvent);
 
-class TBoardPanel : public wxPanel {    
+class TBoardPanel : public wxPanel {
 public:
     TBoardPanel(wxWindow *parent,
                wxWindowID winid = wxID_ANY,
