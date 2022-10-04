@@ -39,6 +39,22 @@ katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s118409351
      "wideRootNoise":0.04}
 }
 ```
+Note: The default query sent to KataGo each time is:
+```
+{
+  "id":"xxx_yyy",   <- Assign a string that can uniquely distinguish the outgoing query
+  "komi":7.5,       <- Value specified at game time
+  "boardXSize":19,  <- Value specified at game time
+  "boardYSize":19,  <- Value specified at game time
+  "initialStones":[["B","Q16"],["B","D4"]],     <- When a handicap stone is specified in the game
+  "initialPlayer":"W",                          <- Only for the first move
+  "moves":[["W","Q4"],["B","D16"],["W","F17"]], <- Moves made before the examination phase
+  "reportDuringSearchEvery":1.0,                <- Interval to receive analysis results from KataGo(sec)
+  "maxVisits":100000,   <- Use fixed values for analysis(For games, the values defined above or the values defined in KataGo's configuration file)
+  "overrideSettings":
+    {"maxTime":3600}    <- Use fixed values for analysis(For games, the values defined above or the values defined in KataGo's configuration file)
+}
+```
  - Write the KataGo execution command on the first line. There should be no line breaks in between.
  - From the second line onwards, if there are any settings you want to add to the default query sent to KataGo each time, define them in JSON format.
  - Default query definition values can only be added and cannot be changed, but maxVisits and maxTime used for games can be changed.
@@ -48,7 +64,7 @@ katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s118409351
  - You can comment it out by prefixing it with #. Also, # in the middle of the line invalidates the string after that.
 
 5. Restrictions  
- - In LeelaGUI using GTP command, it doesn't work even if you consider it in the analysis menu..
+ - In LeelaGUI using GTP command, it doesn't work even if you consider it in the analysis menu.
  - There is a dialog for adjusting the time limit, but even if you set it, only the existing Leela engine will be reflected. For KataGo engine, specify it in the configuration file.
  - Setting the ponder in the settings dialog does not work for LeelaGUI with KataGo engine.
 
