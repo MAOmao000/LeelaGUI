@@ -4012,7 +4012,7 @@
             <property name="minimum_size"></property>
             <property name="name">TScoreDialog</property>
             <property name="pos"></property>
-            <property name="size">392,205</property>
+            <property name="size">392,270</property>
             <property name="style">wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP</property>
             <property name="subclass"></property>
             <property name="title">Game Score</property>
