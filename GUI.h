@@ -29,8 +29,8 @@ class TScorePanel;
 #include <wx/frame.h>
 #include <wx/radiobox.h>
 #include <wx/spinctrl.h>
-#include <wx/stattext.h>
 #include <wx/statbox.h>
+#include <wx/stattext.h>
 #include <wx/checkbox.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -208,8 +208,8 @@ class TNewGameDialog : public wxDialog
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
 		void _wxFB_doRadioBox( wxCommandEvent& event ){ doRadioBox( event ); }
 		void _wxFB_doHandicapUpdate( wxSpinEvent& event ){ doHandicapUpdate( event ); }
-		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
+		void _wxFB_doCancel1( wxCommandEvent& event ){ doCancel1( event ); }
 
 
 	protected:
@@ -222,7 +222,6 @@ class TNewGameDialog : public wxDialog
 
 		wxRadioBox* m_radioBoxBoardSize;
 		wxSpinCtrl* m_spinCtrlKomi;
-		wxStaticText* m_staticText2;
 		wxSpinCtrl* m_spinCtrlHandicap;
 		wxStaticText* m_staticText3;
 		wxSpinCtrl* m_spinCtrlTime;
@@ -230,16 +229,15 @@ class TNewGameDialog : public wxDialog
 		wxRadioBox* m_radioBoxColor;
 		wxRadioBox* m_radioBoxLevel;
 		wxCheckBox* m_checkNeuralNet;
-		wxStdDialogButtonSizer* m_sdbSizer1;
-		wxButton* m_sdbSizer1OK;
-		wxButton* m_sdbSizer1Cancel;
+		wxButton* m_button10;
+		wxButton* m_button_new_game_cancel;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void doRadioBox( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doHandicapUpdate( wxSpinEvent& event ) { event.Skip(); }
-		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
+		virtual void doCancel1( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:
@@ -292,8 +290,8 @@ class TClockAdjustDialog : public wxDialog
 
 		// Private event handlers
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
+		void _wxFB_DoOK( wxCommandEvent& event ){ DoOK( event ); }
 		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
-		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 
 
 	protected:
@@ -301,14 +299,13 @@ class TClockAdjustDialog : public wxDialog
 		wxSpinCtrl* m_spinCtrlBlackSecs;
 		wxSpinCtrl* m_spinCtrlWhiteMins;
 		wxSpinCtrl* m_spinCtrlWhiteSecs;
-		wxStdDialogButtonSizer* m_sdbSizer3;
-		wxButton* m_sdbSizer3OK;
-		wxButton* m_sdbSizer3Cancel;
+		wxButton* m_button10;
+		wxButton* m_button_clock_adjust_cancel;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void DoOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
-		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:
@@ -419,8 +416,8 @@ class TSettingsDialog : public wxDialog
 
 		// Private event handlers
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
-		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
+		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
 
 
 	protected:
@@ -445,14 +442,13 @@ class TSettingsDialog : public wxDialog
 		wxCheckBox* m_checkBoxSound;
 		wxCheckBox* m_checkBoxDPIScaling;
 		wxCheckBox* m_checkBoxJapanese;
-		wxStdDialogButtonSizer* m_sdbSizer3;
-		wxButton* m_sdbSizer3OK;
-		wxButton* m_sdbSizer3Cancel;
+		wxButton* m_button10;
+		wxButton* m_button_setting_cancel;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
-		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
+		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:

@@ -307,13 +307,13 @@ BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_INIT_DIALOG( TNewGameDialog::_wxFB_doInit )
 	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doRadioBox )
 	EVT_SPINCTRL( ID_HANDICAPSPIN, TNewGameDialog::_wxFB_doHandicapUpdate )
-	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
+	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel1 )
 END_EVENT_TABLE()
 
 TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	this->SetSizeHints( wxSize( -1,-1 ), wxDefaultSize );
 
 	wxBoxSizer* bSizer7;
 	bSizer7 = new wxBoxSizer( wxVERTICAL );
@@ -339,12 +339,8 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* sbSizer2;
 	sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Komi (+0.5)") ), wxHORIZONTAL );
 
-	m_spinCtrlKomi = new wxSpinCtrl( sbSizer2->GetStaticBox(), ID_KOMISPIN, wxT("7"), wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, -100, 100, 7 );
+	m_spinCtrlKomi = new wxSpinCtrl( sbSizer2->GetStaticBox(), ID_KOMISPIN, wxT("7"), wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, -100, 100, 7 );
 	sbSizer2->Add( m_spinCtrlKomi, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-	m_staticText2 = new wxStaticText( sbSizer2->GetStaticBox(), wxID_ANY, _("Komi"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
-	m_staticText2->Wrap( -1 );
-	sbSizer2->Add( m_staticText2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
 	bSizer9->Add( sbSizer2, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
@@ -352,7 +348,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* sbSizer3;
 	sbSizer3 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Handicap") ), wxHORIZONTAL );
 
-	m_spinCtrlHandicap = new wxSpinCtrl( sbSizer3->GetStaticBox(), ID_HANDICAPSPIN, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 100, 0 );
+	m_spinCtrlHandicap = new wxSpinCtrl( sbSizer3->GetStaticBox(), ID_HANDICAPSPIN, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 0, 100, 0 );
 	sbSizer3->Add( m_spinCtrlHandicap, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	m_staticText3 = new wxStaticText( sbSizer3->GetStaticBox(), wxID_ANY, _("Handicap"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
@@ -365,7 +361,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* sbSizer5;
 	sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game") ), wxHORIZONTAL );
 
-	m_spinCtrlTime = new wxSpinCtrl( sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 1, 720, 90 );
+	m_spinCtrlTime = new wxSpinCtrl( sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 90 );
 	sbSizer5->Add( m_spinCtrlTime, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	m_staticText13 = new wxStaticText( sbSizer5->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
@@ -407,16 +403,28 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer11->Add( bSizer10, 0, wxEXPAND, 5 );
 
 
-	bSizer7->Add( bSizer11, 1, wxEXPAND, 5 );
+	bSizer7->Add( bSizer11, 0, wxEXPAND, 5 );
 
-	m_sdbSizer1 = new wxStdDialogButtonSizer();
-	m_sdbSizer1OK = new wxButton( this, wxID_OK );
-	m_sdbSizer1->AddButton( m_sdbSizer1OK );
-	m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL );
-	m_sdbSizer1->AddButton( m_sdbSizer1Cancel );
-	m_sdbSizer1->Realize();
+	wxBoxSizer* bSizer22;
+	bSizer22 = new wxBoxSizer( wxHORIZONTAL );
 
-	bSizer7->Add( m_sdbSizer1, 0, wxALIGN_LEFT|wxALL, 2 );
+
+	bSizer22->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_button10 = new wxButton( this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button10->SetDefault();
+
+	m_button10->SetBitmapPosition( wxRIGHT );
+	bSizer22->Add( m_button10, 0, wxALL, 5 );
+
+	m_button_new_game_cancel = new wxButton( this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button_new_game_cancel->SetBitmapPosition( wxRIGHT );
+	bSizer22->Add( m_button_new_game_cancel, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+
+	bSizer7->Add( bSizer22, 0, wxALIGN_RIGHT|wxALL|wxEXPAND|wxRIGHT, 5 );
 
 
 	this->SetSizer( bSizer7 );
@@ -475,8 +483,8 @@ TAboutDialog::~TAboutDialog()
 
 BEGIN_EVENT_TABLE( TClockAdjustDialog, wxDialog )
 	EVT_INIT_DIALOG( TClockAdjustDialog::_wxFB_doInit )
+	EVT_BUTTON( wxID_OK, TClockAdjustDialog::_wxFB_DoOK )
 	EVT_BUTTON( wxID_CANCEL, TClockAdjustDialog::_wxFB_doCancel )
-	EVT_BUTTON( wxID_OK, TClockAdjustDialog::_wxFB_doOK )
 END_EVENT_TABLE()
 
 TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
@@ -496,7 +504,7 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	sbSizer4->Add( m_spinCtrlBlackSecs, 1, wxALL|wxEXPAND, 5 );
 
 
-	bSizer9->Add( sbSizer4, 1, wxALL|wxEXPAND, 5 );
+	bSizer9->Add( sbSizer4, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer6;
 	sbSizer6 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("White clock (minutes:seconds)") ), wxHORIZONTAL );
@@ -508,16 +516,28 @@ TClockAdjustDialog::TClockAdjustDialog( wxWindow* parent, wxWindowID id, const w
 	sbSizer6->Add( m_spinCtrlWhiteSecs, 1, wxALL|wxEXPAND, 5 );
 
 
-	bSizer9->Add( sbSizer6, 1, wxALL|wxEXPAND, 5 );
+	bSizer9->Add( sbSizer6, 0, wxALL|wxEXPAND, 5 );
 
-	m_sdbSizer3 = new wxStdDialogButtonSizer();
-	m_sdbSizer3OK = new wxButton( this, wxID_OK );
-	m_sdbSizer3->AddButton( m_sdbSizer3OK );
-	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL );
-	m_sdbSizer3->AddButton( m_sdbSizer3Cancel );
-	m_sdbSizer3->Realize();
+	wxBoxSizer* m_sdbSizer3;
+	m_sdbSizer3 = new wxBoxSizer( wxHORIZONTAL );
 
-	bSizer9->Add( m_sdbSizer3, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+
+	m_sdbSizer3->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_button10 = new wxButton( this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button10->SetDefault();
+
+	m_button10->SetBitmapPosition( wxRIGHT );
+	m_sdbSizer3->Add( m_button10, 0, wxALL, 5 );
+
+	m_button_clock_adjust_cancel = new wxButton( this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button_clock_adjust_cancel->SetBitmapPosition( wxRIGHT );
+	m_sdbSizer3->Add( m_button_clock_adjust_cancel, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+
+	bSizer9->Add( m_sdbSizer3, 0, wxEXPAND, 5 );
 
 
 	this->SetSizer( bSizer9 );
@@ -651,8 +671,8 @@ TAnalysisWindow::~TAnalysisWindow()
 
 BEGIN_EVENT_TABLE( TSettingsDialog, wxDialog )
 	EVT_INIT_DIALOG( TSettingsDialog::_wxFB_doInit )
-	EVT_BUTTON( wxID_CANCEL, TSettingsDialog::_wxFB_doCancel )
 	EVT_BUTTON( wxID_OK, TSettingsDialog::_wxFB_doOK )
+	EVT_BUTTON( wxID_CANCEL, TSettingsDialog::_wxFB_doCancel )
 END_EVENT_TABLE()
 
 TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
@@ -713,20 +733,32 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
 	bSizer15->Add( sbSizer9, 0, wxBOTTOM|wxEXPAND, 5 );
 
-	m_sdbSizer3 = new wxStdDialogButtonSizer();
-	m_sdbSizer3OK = new wxButton( m_panel4, wxID_OK );
-	m_sdbSizer3->AddButton( m_sdbSizer3OK );
-	m_sdbSizer3Cancel = new wxButton( m_panel4, wxID_CANCEL );
-	m_sdbSizer3->AddButton( m_sdbSizer3Cancel );
-	m_sdbSizer3->Realize();
-
-	bSizer15->Add( m_sdbSizer3, 0, wxEXPAND, 5 );
-
 
 	m_panel4->SetSizer( bSizer15 );
 	m_panel4->Layout();
 	bSizer15->Fit( m_panel4 );
 	bSizer13->Add( m_panel4, 1, wxEXPAND | wxALL, 5 );
+
+	wxBoxSizer* m_sdbSizer3;
+	m_sdbSizer3 = new wxBoxSizer( wxHORIZONTAL );
+
+
+	m_sdbSizer3->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_button10 = new wxButton( this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button10->SetDefault();
+
+	m_button10->SetBitmapPosition( wxRIGHT );
+	m_sdbSizer3->Add( m_button10, 0, wxALL, 5 );
+
+	m_button_setting_cancel = new wxButton( this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_button_setting_cancel->SetBitmapPosition( wxRIGHT );
+	m_sdbSizer3->Add( m_button_setting_cancel, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+
+	bSizer13->Add( m_sdbSizer3, 0, wxEXPAND, 5 );
 
 
 	this->SetSizer( bSizer13 );
