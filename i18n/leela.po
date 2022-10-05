@@ -606,13 +606,17 @@ msgstr "インタフェース設定"
 msgid "Sound"
 msgstr "音"
 
-#: GUI.cpp:733
+#: GUI.cpp:690
+msgid "KataGo (needs restart)"
+msgstr "KataGoエンジンの使用(要再起動)"
+
+#: GUI.cpp:707
 msgid "Allow DPI Scaling (needs restart)"
 msgstr "画面のDPIスケーリングを許可(要再起動)"
 
-#: GUI.cpp:736
-msgid "Japanese"
-msgstr "日本語"
+#: GUI.cpp:710
+msgid "Japanese (needs restart)"
+msgstr "日本語表示(要再起動)"
 
 #: GUI.cpp:790 GUI.h:493
 msgid "Game Score"

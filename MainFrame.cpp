@@ -59,52 +59,55 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         lang = 1;
     }
 
+    bool katagoEnabled = wxConfig::Get()->ReadBool(wxT("katagoEnabled"), true);
     int use_engine = GTP::ORIGINE_ENGINE;
     std::vector<wxString> GTPCmd;
+    if (katagoEnabled) {
 #ifdef USE_GPU
-    std::ifstream fin("LeelaGUI_OpenCL.ini");
+        std::ifstream fin("LeelaGUI_OpenCL.ini");
 #else
-    std::ifstream fin("LeelaGUI.ini");
+        std::ifstream fin("LeelaGUI.ini");
 #endif
-    if (fin) {
-        std::string line;
-        for (int i = 0; std::getline(fin, line); i++) {
-            std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
-            if (trim_line.length() <= 0 || trim_line[0] == '#') {
-                continue;
-            }
-            auto pos = trim_line.find('#');
-            std::string erase_line = trim_line;
-            if (pos != std::string::npos) {
-                erase_line = trim_line.erase(pos);
-            }
-            std::string last_line = std::regex_replace(erase_line, std::regex("\\s+$"), std::string(""));
-            std::regex reg(R"(\s+)");
-            std::string s = std::regex_replace(last_line, reg, " ");
-            GTPCmd.emplace_back(s);
-        }
-        if (GTPCmd.size() > 0) {
-            auto pos = GTPCmd[0].find(" gtp ");
-            if (pos != std::string::npos) {
-                use_engine = GTP::USE_KATAGO_GTP;
-            } else {
-                auto pos = GTPCmd[0].find(" analysis ");
-                if (pos != std::string::npos) {
-                    use_engine = GTP::USE_KATAGO_ANALYSIS;
+        if (fin) {
+            std::string line;
+            for (int i = 0; std::getline(fin, line); i++) {
+                std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
+                if (trim_line.length() <= 0 || trim_line[0] == '#') {
+                    continue;
                 }
+                auto pos = trim_line.find('#');
+                std::string erase_line = trim_line;
+                if (pos != std::string::npos) {
+                    erase_line = trim_line.erase(pos);
+                }
+                std::string last_line = std::regex_replace(erase_line, std::regex("\\s+$"), std::string(""));
+                std::regex reg(R"(\s+)");
+                std::string s = std::regex_replace(last_line, reg, " ");
+                GTPCmd.emplace_back(s);
             }
-            if (use_engine != GTP::ORIGINE_ENGINE) {
-                if ( !(m_process = wxProcess::Open(GTPCmd[0])) ) {
-                    wxLogDebug(_("Failed to launch the command."));
-                    use_engine = GTP::ORIGINE_ENGINE;
-                } else if ( !(m_in = m_process->GetInputStream()) ) {
-                    wxLogDebug(_("Failed to connect to child stdout"));
-                    wxProcess::Kill(m_process->GetPid());
-                    use_engine = GTP::ORIGINE_ENGINE;
-                } else if ( !(m_out = m_process->GetOutputStream()) ) {
-                    wxLogDebug(_("Failed to connect to child stdin"));
-                    wxProcess::Kill(m_process->GetPid());
-                    use_engine = GTP::ORIGINE_ENGINE;
+            if (GTPCmd.size() > 0) {
+                auto pos = GTPCmd[0].find(" gtp ");
+                if (pos != std::string::npos) {
+                    use_engine = GTP::USE_KATAGO_GTP;
+                } else {
+                    auto pos = GTPCmd[0].find(" analysis ");
+                    if (pos != std::string::npos) {
+                        use_engine = GTP::USE_KATAGO_ANALYSIS;
+                    }
+                }
+                if (use_engine != GTP::ORIGINE_ENGINE) {
+                    if ( !(m_process = wxProcess::Open(GTPCmd[0])) ) {
+                        wxLogDebug(_("Failed to launch the command."));
+                        use_engine = GTP::ORIGINE_ENGINE;
+                    } else if ( !(m_in = m_process->GetInputStream()) ) {
+                        wxLogDebug(_("Failed to connect to child stdout"));
+                        wxProcess::Kill(m_process->GetPid());
+                        use_engine = GTP::ORIGINE_ENGINE;
+                    } else if ( !(m_out = m_process->GetOutputStream()) ) {
+                        wxLogDebug(_("Failed to connect to child stdin"));
+                        wxProcess::Kill(m_process->GetPid());
+                        use_engine = GTP::ORIGINE_ENGINE;
+                    }
                 }
             }
         }
@@ -197,6 +200,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 wxProcess::Kill(m_process->GetPid());
             }
         }
+    }
+
+    if (use_engine == GTP::ORIGINE_ENGINE) {
+        wxConfig::Get()->Write(wxT("katagoEnabled"), false);
     }
 
     GTP::setup_default_parameters(lang, use_engine);

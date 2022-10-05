@@ -1,4 +1,5 @@
 #include "SettingsDialog.h"
+#include "GTP.h"
 
 SettingsDialog::SettingsDialog( wxWindow* parent )
 :
@@ -14,6 +15,10 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool resignEnabled = wxConfig::Get()->ReadBool(wxT("resignEnabled"), true);
     m_checkBoxResignations->SetValue(resignEnabled);
 
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+        m_checkBoxPondering->Enable(false);
+        wxConfig::Get()->Write(wxT("ponderEnabled"), false);
+    }
     bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
     m_checkBoxPondering->SetValue(ponderEnabled);
 
@@ -28,6 +33,9 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
 
     bool japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     m_checkBoxJapanese->SetValue(japaneseEnabled);
+
+    bool katagoEnabled = wxConfig::Get()->ReadBool(wxT("katagoEnabled"), true);
+    m_checkBoxKataGo->SetValue(katagoEnabled);
 
 #ifdef __WXGTK__
     m_checkBoxDPIScaling->Disable();
@@ -64,6 +72,9 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
 
     bool japaneseEnabled = m_checkBoxJapanese->GetValue();
     wxConfig::Get()->Write(wxT("japaneseEnabled"), japaneseEnabled);
+
+    bool katagoEnabled = m_checkBoxKataGo->GetValue();
+    wxConfig::Get()->Write(wxT("katagoEnabled"), katagoEnabled);
 
     event.Skip();
 }
