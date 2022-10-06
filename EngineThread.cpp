@@ -307,11 +307,15 @@ void TEngineThread::Run() {
                         std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                     row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
                     if (who == FastBoard::BLACK) {
-                        row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                        row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
-                    } else {
+                        //row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
+                        //row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
                         row.emplace_back(_("Lead").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
+                    } else {
+                        //row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
+                        //row.emplace_back(_("Lead").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
+                        row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
+                        row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                     }
                     std::string pvstring;
                     nlohmann::json j3 = j2["pv"];
@@ -326,9 +330,11 @@ void TEngineThread::Run() {
                     move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                 }
                 if (who == FastBoard::BLACK) {
-                    Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
-                } else {
+                    //Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
                     Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+                } else {
+                    //Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+                    Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
                 }
                 Utils::GUIAnalysis((void*)analysis_packet.release());
                 Utils::GUIBestMoves((void*)move_data.release());
@@ -358,7 +364,7 @@ void TEngineThread::Run() {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
-                auto scoretuple = make_tuple(movenum, winrate, winrate, winrate);
+                auto scoretuple = make_tuple(movenum, 1.0 - winrate, 1.0 - winrate, 1.0 - winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
