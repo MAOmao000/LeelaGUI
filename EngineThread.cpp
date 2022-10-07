@@ -180,7 +180,7 @@ void TEngineThread::Run() {
                 } else {
                     black_winrate = -1.0 * (winrate - 1.0);
                 }
-                auto scoretuple = make_tuple(movenum, black_winrate, black_winrate, black_winrate);
+                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, black_winrate, black_winrate, black_winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
@@ -364,7 +364,7 @@ void TEngineThread::Run() {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
-                auto scoretuple = make_tuple(movenum, 1.0 - winrate, 1.0 - winrate, 1.0 - winrate);
+                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, 1.0 - winrate, 1.0 - winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
@@ -542,7 +542,7 @@ void TEngineThread::Run() {
             // Broadcast result from search
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_state->get_movenum();
-            auto scoretuple = make_tuple(movenum, winrate, winrate, winrate);
+            std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, winrate, winrate);
             event->SetClientData((void*)new auto(scoretuple));
 
             wxQueueEvent(m_frame->GetEventHandler(), event);
