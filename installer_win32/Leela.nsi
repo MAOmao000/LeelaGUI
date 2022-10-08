@@ -296,7 +296,8 @@ Function PreDir
     ${EndIf}
   ${Else}
     ReadRegStr $0 HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
-    ${If} $INSTDIR == "$PROGRAMFILES\LeelaI18N"
+    #${If} $INSTDIR == "$PROGRAMFILES\LeelaI18N"
+    ${If} $INSTDIR == "$APPDATA\LeelaI18N"
     ${OrIf} $INSTDIR == $0
       StrCpy $INSTDIR ""
     ${EndIf}
@@ -307,7 +308,8 @@ Function PreDir
       ${If} $install_for_all == 0
         StrCpy $INSTDIR "$LOCALAPPDATA\Programs\LeelaI18N"
       ${Else}
-        StrCpy $INSTDIR "$PROGRAMFILES\LeelaI18N"
+        #StrCpy $INSTDIR "$PROGRAMFILES\LeelaI18N"
+        StrCpy $INSTDIR "$APPDATA\LeelaI18N"
       ${EndIf}
     ${EndIf}
   ${EndIf}
