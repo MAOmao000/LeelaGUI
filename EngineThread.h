@@ -36,7 +36,7 @@ class TEngineThread {
         }
     private:
         void kata_raw_nn(void);
-        void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=500);
+        void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=100);
         std::unique_ptr<GameState> m_state;
         MainFrame * m_frame;
         wxInputStream *m_in;

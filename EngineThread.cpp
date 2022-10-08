@@ -188,9 +188,8 @@ void TEngineThread::Run() {
 
             Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
 
-            //if (!m_analyseflag) {
-                wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-            //}
+            wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+
             return;
         }
         using namespace std::chrono;
@@ -224,10 +223,10 @@ void TEngineThread::Run() {
         std::unique_ptr<GameState> state(new GameState);
         *state = *m_state;
         state->rewind();
-        i = 0;
         send_json["moves"] = nlohmann::json::array();
         if (m_state->get_movenum() > 0) {
-            while (state->forward_move()) {
+            for (int i = 0; i < m_state->get_movenum(); i++) {
+                state->forward_move();
                 int move = state->get_last_move();
                 if (move == FastBoard::RESIGN) {
                     break;
@@ -239,7 +238,6 @@ void TEngineThread::Run() {
                     send_json["moves"][i][0] = "B";
                 }
                 send_json["moves"][i][1] = movestr;
-                i++;
             }
         } else {
             if (m_handi.size() > 0) {
@@ -248,9 +246,23 @@ void TEngineThread::Run() {
                 send_json["initialPlayer"] = "B";
             }
         }
-        send_json["reportDuringSearchEvery"] = 1.0;
-        if (m_analyseflag) {
-            send_json["maxVisits"] = 100000;
+        if (!send_json.contains("reportDuringSearchEvery")) {
+            send_json["reportDuringSearchEvery"] = 1.0;
+        }
+        if (send_json.contains("maxVisitsAnalysis")) {
+            if (m_analyseflag) {
+                send_json["maxVisits"] = send_json["maxVisitsAnalysis"];
+            }
+            send_json.erase("maxVisitsAnalysis");
+        } else if (m_analyseflag) {
+            send_json["maxVisits"] = 1000000;
+        }
+        if (send_json.contains("maxTimeAnalysis")) {
+            if (m_analyseflag) {
+                send_json["overrideSettings"]["maxTime"] = send_json["maxTimeAnalysis"];
+            }
+            send_json.erase("maxTimeAnalysis");
+        } else if (m_analyseflag) {
             send_json["overrideSettings"]["maxTime"] = 3600;
         }
         string req_query = send_json.dump();
@@ -307,13 +319,9 @@ void TEngineThread::Run() {
                         std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                     row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
                     if (who == FastBoard::BLACK) {
-                        //row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                        //row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
                         row.emplace_back(_("Lead").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
                     } else {
-                        //row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
-                        //row.emplace_back(_("Lead").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
                         row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                     }
@@ -330,10 +338,8 @@ void TEngineThread::Run() {
                     move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                 }
                 if (who == FastBoard::BLACK) {
-                    //Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
                     Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
                 } else {
-                    //Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
                     Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
                 }
                 Utils::GUIAnalysis((void*)analysis_packet.release());
@@ -354,6 +360,41 @@ void TEngineThread::Run() {
                     }
                     if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
                         isDuringSearch = false;
+                        
+                        string winrate_str = "";
+                        string scoreMean_str = "";
+                        pos = res_query.rfind("winrate ", pos);
+                        if (pos == string::npos) {
+                            pos = 0;
+                            winrate_str = "";
+                        } else {
+                            for (int i = pos + sizeof("winrate ") - 1; i < res_query.length(); i++) {
+                                if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
+                                    winrate_str += res_query[i];
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        pos = res_query.rfind("scoreMean ", pos);
+                        if (pos == string::npos) {
+                            scoreMean_str = "";
+                        } else {
+                            for (int i = pos + sizeof("scoreMean ") - 1; i < res_query.length(); i++) {
+                                if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
+                                    scoreMean_str += res_query[i];
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        if (winrate_str.length() > 0) {
+                            winrate = stof(winrate_str);
+                        }
+                        if (scoreMean_str.length() > 0) {
+                             scoreMean = stof(scoreMean_str);
+                        }
+                        
                     }
                     if (terminate_res && !isDuringSearch) {
                         break;
@@ -442,8 +483,8 @@ void TEngineThread::Run() {
             return;
         }
         nlohmann::json res_2_json = nlohmann::json::parse(res_query);
-        winrate = res_2_json["rootInfo"]["winrate"].get<float>();
-        scoreMean = res_2_json["rootInfo"]["scoreLead"].get<float>();
+        winrate = res_1_json["rootInfo"]["winrate"].get<float>();
+        scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
 
         if (move_str.length() > 0) {
             float initialBlackAdvantageInPoints;
