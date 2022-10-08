@@ -7,7 +7,7 @@ The KataGo engine has been incorporated into LeelaGUI.
 
 Engine used by creating a file named LeelaI18N_OpenCL.ini (for LeelaGUI with GPU) or LeelaI18N.ini (for LeelaGUI without GPU) in the folder where LeelaGUI's executable file is located and defining it as follows. can be selected.
 
-1. Do not put the above .ini file.
+1. If the above .ini file is not in the LeelaGUI executable folder:
   - Works with the traditional Leela engine.
 
 2. If you want to operate with the KataGo engine by sending and receiving GTP commands, define as follows.  
@@ -31,12 +31,18 @@ time_settings 0 5 1 # GTP commands to send to KataGo right after KataGo starts
 ```
 katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "logAllRequests=true,logAllResponses=true"  
 {
-  "maxVisits":500,
-  "rules":"Chinese",
-  "whiteHandicapBonus":"N",
+  "maxVisits":500,               # The maximum number of times KataGo searches in a game (smaller value means it finishes earlier)
+  "rules":"chinese",             # Rules of Baduk used to determine winners and losers
+  "whiteHandicapBonus":"N",      # Designation to add the number of handicaped stones to the calculation of komi
+  "analysisPVLen":15,            # KataGo search depth (shallower is lighter)
+  "reportDuringSearchEvery":2.0, # Interval (in seconds) at which KataGo sends analysis data to LeelaGUI during the study
   "overrideSettings":
-    {"maxTime":5,
-     "wideRootNoise":0.04}
+    {
+      "maxTime":5,               # KataGo's search time when playing a game (smaller search time means quicker completion) (seconds)
+      "wideRootNoise":0.04       # KataGo search range (the larger the range, the more moves to search)
+    },
+  "maxVisitsAnalysis":1000000,   # Maximum number of KataGo searches at the time of study
+  "maxTimeAnalysis":3600         # Maximum KataGo search time at the time of study (seconds)
 }
 ```
 Note: The default query sent to KataGo each time is:
@@ -56,14 +62,15 @@ Note: The default query sent to KataGo each time is:
 }
 ```
  - Write the KataGo execution command on the first line. There should be no line breaks in between.
- - From the second line onwards, if there are any settings you want to add to the default query sent to KataGo each time, define them in JSON format.
- - Default query definition values can only be added and cannot be changed, but maxVisits and maxTime used for games can be changed.
- - These definitions are basically unnecessary if defined in the KataGo configuration file (analysis_example.cfg).
+ - After the second line, define the query to be sent to KataGo each time the board changes, in JSON format.
+ - The KataGo configuration file (analysis_example.cfg) also defines the various information on which KataGo operates.
+ - Setting values such as memory size and number of concurrent operations to appropriate values for your PC will improve performance.
 
 4. Description of comments  
  - You can comment it out by prefixing it with #. Also, # in the middle of the line invalidates the string after that.
 
 5. Restrictions  
+ - When KataGo is run outside of Chinese rules, there are no problems with basic operation, but there are some display flaws.
  - In LeelaGUI using GTP command, it doesn't work even if you consider it in the analysis menu.
  - There is a dialog for adjusting the time limit, but even if you set it, only the existing Leela engine will be reflected. For KataGo engine, specify it in the configuration file.
  - Setting the ponder in the settings dialog does not work for LeelaGUI with KataGo engine.
