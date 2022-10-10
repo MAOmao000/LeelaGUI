@@ -34,6 +34,7 @@ ManifestDPIAware true
   ShowUninstDetails       hide
   ShowInstDetails         hide
   RequestExecutionLevel   user
+  #RequestExecutionLevel   admin
 
 ;  !if "${V4}" != ""
 ;  OutFile "setupLeela${V1}${V2}${V3}${V4}.exe"
@@ -296,7 +297,7 @@ Function PreDir
     ${EndIf}
   ${Else}
     ReadRegStr $0 HKLM "Software\Sjeng.Org\LeelaI18N" "InstallDir"
-    ${If} $INSTDIR == "$PROGRAMFILES\LeelaI18N"
+    ${If} $INSTDIR == "$PROGRAMFILES64\LeelaI18N"
     ${OrIf} $INSTDIR == $0
       StrCpy $INSTDIR ""
     ${EndIf}
@@ -307,13 +308,16 @@ Function PreDir
       ${If} $install_for_all == 0
         StrCpy $INSTDIR "$LOCALAPPDATA\Programs\LeelaI18N"
       ${Else}
-        StrCpy $INSTDIR "$PROGRAMFILES\LeelaI18N"
+        StrCpy $INSTDIR "$PROGRAMFILES64\LeelaI18N"
       ${EndIf}
     ${EndIf}
   ${EndIf}
   ${If} $install_for_all == 1
     AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-11)" "FullAccess"
     Pop $0
+  #${Else}
+  #  AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-32-545)" "FullAccess"
+  #  Pop $0
   ${EndIf}
 FunctionEnd
 
