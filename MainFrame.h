@@ -93,7 +93,7 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
-	std::string GTPSend(const wxString& s, const int& sleep_ms = 500);
+	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 

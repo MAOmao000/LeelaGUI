@@ -646,11 +646,10 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         if (m_soundEnabled) {
 #ifdef WIN32
             wxSound tock("IDW_TOCK", true);
-            tock.Play(wxSOUND_ASYNC);
 #else
             wxSound tock(tock_data_length, tock_data);
-            tock.Play(wxSOUND_ASYNC);
 #endif
+            tock.Play(wxSOUND_ASYNC);
 
         }
     } else {
@@ -673,9 +672,9 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             m_State.undo_move();
             m_State.undo_move();
             // signal update of visible board
-            wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
-            myevent.SetEventObject(this);
-            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+            //wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+            //myevent.SetEventObject(this);
+            //::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
 
             if (m_State.get_to_move() != m_playerColor) {
                 wxLogDebug(_("Computer to move"));
@@ -687,9 +686,9 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         }
     } else {
         // signal update of visible board
-        wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
-        myevent.SetEventObject(this);
-        ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+        //wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+        //myevent.SetEventObject(this);
+        //::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
 
         if (!m_analyzing) {
             if (m_State.get_to_move() != m_playerColor) {
@@ -716,6 +715,10 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
                  _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     }
 
+    // signal update of visible board
+    wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+    myevent.SetEventObject(this);
+    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
     broadcastCurrentMove();
 }
 
@@ -820,7 +823,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
 
 void MainFrame::setActiveMenus() {
     int boardsize = m_State.board.get_boardsize();
-    if (boardsize != 19) {
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE && boardsize != 19) {
         m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(false);
     } else {
         m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(true);
@@ -1550,16 +1553,49 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         for (int i = 0; i < m_State.m_win_rate.size(); i++) {
             m_State.m_win_rate[i] = 100.0;
         }
-        m_move_handi.clear();
-        for (int i = 0; i < m_State.board.get_boardsize(); i++) {
-            for (int j = 0; j < m_State.board.get_boardsize(); j++) {
-                if (m_State.board.get_square(i, j) == FastBoard::BLACK) {
-                    m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+        if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+            float komi = m_State.get_komi();
+            int boardsize = m_State.board.get_boardsize();
+            GTPSend(wxString::Format("komi %.1f\n\n", komi));
+            GTPSend(wxString::Format("boardsize %d\n\n", boardsize));
+            GTPSend(wxString("clear_board\n\n"));
+            m_move_handi.clear();
+            wxString s = wxString("set_free_handicap");
+            for (int i = 0; i < boardsize; i++) {
+                for (int j = 0; j < boardsize; j++) {
+                    if (m_State.board.get_square(i, j) == FastBoard::BLACK) {
+                        int handi_move = m_State.board.get_vertex(i, j);
+                        m_move_handi.emplace_back(handi_move);
+                        s += " ";
+                        s += wxString(m_State.move_to_text(handi_move));
+                    }
                 }
             }
-        }
-        for (int i = 1; i < movenum; ++i) {
-            m_State.forward_move();
+            if (m_move_handi.size() > 0) {
+                GTPSend(s + "\n\n");
+            }
+            for (int i = 1; i < movenum; ++i) {
+                if (m_State.forward_move()) {
+                    if (m_State.get_to_move() == FastBoard::BLACK) {
+                        s = wxString("play w " + m_State.move_to_text(m_State.get_last_move()));
+                    } else {
+                        s = wxString("play b " + m_State.move_to_text(m_State.get_last_move()));
+                    }
+                    GTPSend(s + "\n\n");
+                }
+            }
+        } else {
+            m_move_handi.clear();
+            for (int i = 0; i < m_State.board.get_boardsize(); i++) {
+                for (int j = 0; j < m_State.board.get_boardsize(); j++) {
+                    if (m_State.board.get_square(i, j) == FastBoard::BLACK) {
+                        m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+                    }
+                }
+            }
+            for (int i = 1; i < movenum; ++i) {
+                m_State.forward_move();
+            }
         }
     } catch (...) {
     }
@@ -1858,10 +1894,43 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_move_handi.clear();
                 std::unique_ptr<GameState> tmp_state = std::make_unique<GameState>(m_State);
                 tmp_state->rewind();
-                for (int i = 0; i < m_State.board.get_boardsize(); i++) {
-                    for (int j = 0; j < m_State.board.get_boardsize(); j++) {
-                        if (tmp_state->board.get_square(i, j) == FastBoard::BLACK) {
-                            m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+                if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                    float komi = m_State.get_komi();
+                    int boardsize = m_State.board.get_boardsize();
+                    GTPSend(wxString::Format("komi %.1f\n\n", komi));
+                    GTPSend(wxString::Format("boardsize %d\n\n", boardsize));
+                    GTPSend(wxString("clear_board\n\n"));
+                    //m_move_handi.clear();
+                    wxString s = wxString("set_free_handicap");
+                    for (int i = 0; i < boardsize; i++) {
+                        for (int j = 0; j < boardsize; j++) {
+                            if (tmp_state->board.get_square(i, j) == FastBoard::BLACK) {
+                                int handi_move = m_State.board.get_vertex(i, j);
+                                m_move_handi.emplace_back(handi_move);
+                                s += " ";
+                                s += wxString(m_State.move_to_text(handi_move));
+                            }
+                        }
+                    }
+                    if (m_move_handi.size() > 0) {
+                        GTPSend(s + "\n\n");
+                    }
+                    for (int i = 0; i < m_State.get_movenum(); ++i) {
+                        if (tmp_state->forward_move()) {
+                            if (tmp_state->get_to_move() == FastBoard::BLACK) {
+                                s = wxString("play w " + m_State.move_to_text(tmp_state->get_last_move()));
+                            } else {
+                                s = wxString("play b " + m_State.move_to_text(tmp_state->get_last_move()));
+                            }
+                            GTPSend(s + "\n\n");
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < m_State.board.get_boardsize(); i++) {
+                        for (int j = 0; j < m_State.board.get_boardsize(); j++) {
+                            if (tmp_state->board.get_square(i, j) == FastBoard::BLACK) {
+                                m_move_handi.emplace_back(m_State.board.get_vertex(i, j));
+                            }
                         }
                     }
                 }
