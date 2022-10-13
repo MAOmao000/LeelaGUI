@@ -311,10 +311,6 @@ Function PreDir
       ${EndIf}
     ${EndIf}
   ${EndIf}
-  ${If} $install_for_all == 1
-    AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-11)" "FullAccess"
-    Pop $0
-  ${EndIf}
 FunctionEnd
 
 Var size
@@ -330,6 +326,10 @@ SectionEnd
 Section "LeelaI18N" leela
   SectionIn RO
   SetOutPath $INSTDIR
+  ${If} $install_for_all == 1
+    AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-11)" "FullAccess"
+    Pop $0
+  ${EndIf}
 
   File "bin\${LEELABIN}"
   #File "bin\libgcc_s_sjlj-1.dll"
