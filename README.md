@@ -1,33 +1,50 @@
-Japanese version
+New LeelaGUI
 =====
+This is a new LeelaGUI with some additional features to the forked LeelaGUI.
 
-This is the Japanese version forked from LeelaGUI.
+The original LeelaGUI is described below.
+https://sjeng.org/leela.html
 
-The KataGo engine has been incorporated into LeelaGUI.
+The main features added are as follows.
 
-Engine used by creating a file named LeelaI18N_OpenCL.ini (for LeelaGUI with GPU) or LeelaI18N.ini (for LeelaGUI without GPU) in the folder where LeelaGUI's executable file is located and defining it as follows. can be selected.
+- Japanese language support based on I18N ("internationalization").
+  Specifically, we provide a Japanese catalog file and some literal modifications on the source.
+  Note: i18n is a number abbreviation, its "18" being due to the 18 letters in nternationalizatio between the leading i and the ending n in internationalization.
 
-1. If the above .ini file is not in the LeelaGUI executable folder:
-  - Works with the traditional Leela engine.
+- Importing the KataGo Engine:
+  The ANALYSIS interface and the GTP interface have each been incorporated.
 
-2. If you want to operate with the KataGo engine by sending and receiving GTP commands, define as follows.  
-```
-katago.exe gtp -config default_gtp.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "logAllGTPCommunication=true"
-time_settings 0 5 1 # GTP commands to send to KataGo right after KataGo starts
-```
-  - Write the KataGo execution command on the first line. There should be no line breaks in between.  
-  - From the second line onwards, if there are GTP commands to be sent to KataGo immediately after KataGo starts, write one GTP command on each line.  
-  - The GTP commands that can be defined are only the following 8 commands.  
-    - kata-set-rules xxx  
-    - kata-set-rule xxx  
-    - kgs-rules xxx  
-    - kata-set-param xxx  
-    - time_settings xxx  
-    - kgs-time_settings xxx  
-    - kata-time_settings xxx  
-    - time_left xxx  
+Changes to the original LeelaGUI
+=====
+The following changes were made to the basic policy of not making any changes.
+- If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
+- Added "japanese" and "KataGo" checkboxes in Settings Dialog.
+- The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
+- In the case of "Install for all users" specified installation in Windows, the default installation destination was set to "C:\Program Files" (previously "C:\Program Files (x86)") for 64-bit executable files.
 
-3. Define as follows when operating with KataGo engine by sending and receiving queries.  
+Differences from the original LeelaGUI when started with the KataGo engine (common)
+=====
+- Create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with KataGo definition information in the folder containing the LeelaGUI executable.
+- The holding time can no longer be set from the screen.
+
+Differences from original LeelaGUI when started with KataGo engine (ANALYSIS interface)
+=====
+- Since the time to hold the game cannot be set from the screen, set it in one of the following ways.
+  - "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with "maxTime":xx.
+  - Set by "maxTime":xx in the "analysis_example.cfg" file.
+
+Differences from original LeelaGUI when started with KataGo engine (GTP interface)
+=====
+- The analysis function does not work at all.
+- Since the time to hold the game cannot be set from the screen, it is set in one of the following ways.
+  - Set in "time_settings x y z" in the "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
+  - Set by "maxTime":xx in the "default_gtp.cfg" file.
+- "Pondering" cannot be specified from the settings screen, so if you wish to specify it, do so in one of the following ways.
+  - In the "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file, use -override-config "ponderingEnabled=true,maxTimePondering=xx".
+  - Set by "ponderingEnabled=true" and "maxTimePondering=xx" in the "default_gtp.cfg" file.
+
+LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (ANALYSIS interface) when using KataGo engine
+=====
 ```
 katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "logAllRequests=true,logAllResponses=true"  
 {
@@ -45,37 +62,15 @@ katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s118409351
   "maxTimeAnalysis":3600         # Maximum KataGo search time at the time of study (seconds)
 }
 ```
-Note: The default query sent to KataGo each time is:
+
+LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (GTP interface) when using KataGo engine
+=====
 ```
-{
-  "id":"xxx_yyy",   <- Assign a string that can uniquely distinguish the outgoing query
-  "komi":7.5,       <- Value specified at game time
-  "boardXSize":19,  <- Value specified at game time
-  "boardYSize":19,  <- Value specified at game time
-  "initialStones":[["B","Q16"],["B","D4"]],     <- When a handicap stone is specified in the game
-  "initialPlayer":"W",                          <- Only for the first move
-  "moves":[["W","Q4"],["B","D16"],["W","F17"]], <- Moves made before the examination phase
-  "reportDuringSearchEvery":1.0,                <- Interval to receive analysis results from KataGo(sec)
-  "maxVisits":100000,   <- Use fixed values for analysis(For games, the values defined above or the values defined in KataGo's configuration file)
-  "overrideSettings":
-    {"maxTime":3600}    <- Use fixed values for analysis(For games, the values defined above or the values defined in KataGo's configuration file)
-}
+katago.exe gtp -config default_gtp.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "logAllGTPCommunication=true"
+time_settings 0 5 1 # GTP commands to send to KataGo right after KataGo starts
 ```
- - Write the KataGo execution command on the first line. There should be no line breaks in between.
- - After the second line, define the query to be sent to KataGo each time the board changes, in JSON format.
- - The KataGo configuration file (analysis_example.cfg) also defines the various information on which KataGo operates.
- - Setting values such as memory size and number of concurrent operations to appropriate values for your PC will improve performance.
 
-4. Description of comments  
- - You can comment it out by prefixing it with #. Also, # in the middle of the line invalidates the string after that.
-
-5. Restrictions  
- - When KataGo is run outside of Chinese rules, there are no problems with basic operation, but there are some display flaws.
- - In LeelaGUI using GTP command, it doesn't work even if you consider it in the analysis menu.
- - There is a dialog for adjusting the time limit, but even if you set it, only the existing Leela engine will be reflected. For KataGo engine, specify it in the configuration file.
- - Setting the ponder in the settings dialog does not work for LeelaGUI with KataGo engine.
-
-(For reference: The <- key on the keyboard moves the hand back and the -> key moves the hand forward.)
+The following is the readme for the original LeelaGUI.
 
 About
 =====
