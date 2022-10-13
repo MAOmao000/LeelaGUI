@@ -3,6 +3,7 @@ New LeelaGUI
 This is a new LeelaGUI with some additional features to the forked LeelaGUI.
 
 The original LeelaGUI is described below.
+
 https://sjeng.org/leela.html
 
 The main features added are as follows.
