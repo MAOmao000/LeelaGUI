@@ -71,8 +71,9 @@ msgid "Simulations"
 msgstr "試行回数"
 
 #: EngineThread.cpp:328 EngineThread.cpp:331
-msgid "Lead"
-msgstr "目数差"
+#: TScorePanel.cpp 176
+msgid "Score"
+msgstr "目数"
 
 #: EngineThread.cpp:352 EngineThread.cpp:354
 msgid "Under analysis... "
@@ -899,6 +900,10 @@ msgstr "モンテカルロ"
 #: TScorePanel.cpp:123
 msgid "Network"
 msgstr "ネットワーク"
+
+#: TScorePanel.cpp:123
+msgid "Win rate"
+msgstr "勝率"
 
 #: engine\UCTSearch.cpp:213
 msgid "MC Win%"
