@@ -175,12 +175,21 @@ void TEngineThread::Run() {
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
                 float black_winrate;
+                float black_score;
                 if (who == FastBoard::BLACK) {
                     black_winrate = winrate;
+                    black_score = scoreMean;
                 } else {
                     black_winrate = -1.0 * (winrate - 1.0);
+                    black_score = -1.0 * scoreMean;
                 }
-                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, black_winrate, black_winrate, black_winrate);
+                float lead = 0.5;
+                if (black_score > 0.0) {
+                    lead = 0.5 + (std::min)(0.5f, std::sqrt(black_score) / 40);
+                } else if (black_score < 0.0) {
+                    lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * black_score) / 40);
+                }
+                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, black_winrate, lead, black_winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
@@ -320,10 +329,10 @@ void TEngineThread::Run() {
                     row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
                     if (who == FastBoard::BLACK) {
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
-                        row.emplace_back(_("Lead").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
+                        row.emplace_back(_("Score").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
                     } else {
                         row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                        row.emplace_back(_("Lead").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
+                        row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                     }
                     std::string pvstring;
                     nlohmann::json j3 = j2["pv"];
@@ -392,7 +401,7 @@ void TEngineThread::Run() {
                             winrate = stof(winrate_str);
                         }
                         if (scoreMean_str.length() > 0) {
-                             scoreMean = stof(scoreMean_str);
+                            scoreMean = stof(scoreMean_str);
                         }
                         
                     }
@@ -405,7 +414,13 @@ void TEngineThread::Run() {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
-                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, 1.0 - winrate, 1.0 - winrate);
+                float lead = 0.5;
+                if (scoreMean > 0.0) {
+                    lead = 0.5 - (std::min)(0.5f, std::sqrt(scoreMean) / 40);
+                } else if (scoreMean < 0.0) {
+                    lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
+                }
+                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, lead, 1.0 - winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
@@ -583,7 +598,13 @@ void TEngineThread::Run() {
             // Broadcast result from search
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_state->get_movenum();
-            std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, winrate, winrate);
+            float lead = 0.5;
+            if (scoreMean > 0.0) {
+                lead = 0.5 + (std::min)(0.5f, std::sqrt(scoreMean) / 40);
+            } else if (scoreMean < 0.0) {
+                lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
+            }
+            std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, lead, winrate);
             event->SetClientData((void*)new auto(scoretuple));
 
             wxQueueEvent(m_frame->GetEventHandler(), event);
