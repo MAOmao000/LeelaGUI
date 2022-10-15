@@ -63,11 +63,34 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     int use_engine = GTP::ORIGINE_ENGINE;
     std::vector<wxString> GTPCmd;
     if (katagoEnabled) {
+        std::string ini_file;
 #ifdef USE_GPU
-        std::ifstream fin("LeelaGUI_OpenCL.ini");
+        ini_file = "LeelaGUI_OpenCL.ini";
 #else
-        std::ifstream fin("LeelaGUI.ini");
+        ini_file = "LeelaGUI.ini";
 #endif
+#ifdef WIN32
+        char* ini_path = (char*)calloc(MAX_PATH + 1, sizeof(char));
+        char buf[MAX_PATH+1];
+        GetModuleFileNameA(NULL, buf, MAX_PATH);
+        char drive[MAX_PATH+1], dir[MAX_PATH+1], fname[MAX_PATH+1], ext[MAX_PATH+1];
+        _splitpath(buf, drive, dir, fname, ext);
+        sprintf(ini_path, "%s%s%s", drive, dir, ini_file.c_str());
+#else
+        char* ini_path = (char*)calloc(4096 + 1, sizeof(char));
+        char prg_path[4096];
+        int len = readlink("/proc/self/exe", prg_path, sizeof(prg_path));
+        prg_path[len] = 0;
+        for (int i = len - 1; i > 0; i--) {
+            if (prg_path[i] != '/') {
+                prg_path[i] = 0;
+            } else {
+                break;
+            }
+        }
+        sprintf(ini_path, "%s%s", prg_path, ini_file.c_str());
+#endif
+        std::ifstream fin(ini_path);
         if (fin) {
             std::string line;
             for (int i = 0; std::getline(fin, line); i++) {
@@ -111,6 +134,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 }
             }
         }
+        free(ini_path);
     }
     if (use_engine != GTP::ORIGINE_ENGINE) {
         bool launch_OK = true;
@@ -427,7 +451,7 @@ MainFrame::~MainFrame() {
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(new wxLogStderr(NULL));
 #endif
-    m_panelBoard->setState(NULL);
+    //m_panelBoard->setState(NULL);
 
     Unbind(wxEVT_EVALUATION_UPDATE, &MainFrame::doEvalUpdate, this);
     Unbind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
