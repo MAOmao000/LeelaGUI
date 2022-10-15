@@ -98,6 +98,11 @@ void TBoardPanel::setPlayerColor(int color) {
 }
 
 void TBoardPanel::doPaint(wxPaintEvent& event) {
+    if (m_State == NULL) {
+        wxLogDebug(_("Paint on empty state"));
+        return;
+    }
+
     wxAutoBufferedPaintDC dc(this);
     PrepareDC(dc);
 
@@ -123,10 +128,10 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
         }
     }
 
-    if (m_State == NULL) {
-        wxLogDebug(_("Paint on empty state"));
-        return;
-    }
+    //if (m_State == NULL) {
+    //    wxLogDebug(_("Paint on empty state"));
+    //    return;
+    //}
 
     wxPen penThick(*wxBLACK, 2, wxPENSTYLE_SOLID);
     wxPen penThin(*wxBLACK, 1, wxPENSTYLE_SOLID);
@@ -433,15 +438,15 @@ void TBoardPanel::doErase(wxEraseEvent& event) {
 }
 
 void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
-    int startX = event.GetX();
-    int startY = event.GetY();
-    
-    wxLogDebug(_("Left down at %d %d"), startX, startY);
-    
     if (m_State == NULL) {
         wxLogDebug(_("Click on empty board"));
         return;
     }
+    
+    int startX = event.GetX();
+    int startY = event.GetY();
+    
+    wxLogDebug(_("Left down at %d %d"), startX, startY);
     
     if (m_State->get_last_move() == FastBoard::RESIGN) {
         wxLogDebug(_("Game has been resigned"));
@@ -545,6 +550,24 @@ bool TBoardPanel::getShowBestMoves() {
 }
 
 void TBoardPanel::doMoyo() {
+    /*
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+        if (m_State->m_owner.size() > 0) {
+            m_Hatch.resize(FastBoard::MAXSQ);
+            std::fill(m_Hatch.begin(), m_Hatch.end(), FastBoard::EMPTY);
+            int i = 0;
+            for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
+                if (*itr > 0.6) {
+                    m_Hatch[i] = FastBoard::BLACK;
+                } else if (*itr < 0.4) {
+                    m_Hatch[i] = FastBoard::WHITE;
+                }
+                i++;
+            }
+            return;
+        }
+    }
+    */
     std::vector<int> moyo = m_State->board.moyo();
 
     m_Hatch.resize(FastBoard::MAXSQ);
@@ -621,6 +644,10 @@ void TBoardPanel::doKeyDown(wxKeyEvent& event) {
 }
 
 void TBoardPanel::doDisplayMainline(wxCommandEvent& event) {
+    if (m_State == NULL) {
+        return;
+    }
+    
     wxString pv = event.GetString();
     int toMove = event.GetInt();
 
@@ -684,6 +711,10 @@ void TBoardPanel::clearViz() {
 }
 
 void TBoardPanel::doBestMovesUpdate(wxCommandEvent& event) {
+    if (m_State == NULL) {
+        return;
+    }
+    
     void* rawdataptr = event.GetClientData();
     if (!rawdataptr) return;
 
