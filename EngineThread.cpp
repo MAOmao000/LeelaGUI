@@ -772,9 +772,8 @@ void TEngineThread::kata_raw_nn() {
 }
 
 void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int &sleep_ms) {
-    if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-        std::lock_guard<std::mutex> guard(*m_GTPmutex);
-    }
+    std::lock_guard<std::mutex> guard(*m_GTPmutex);
+
     res_msg = "";
     char buffer[8192];
     buffer[0] = 0;
