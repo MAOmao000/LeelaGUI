@@ -28,7 +28,7 @@ The basic policy was not to change the functionality of the original Leela engin
 - Create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with KataGo definition information in the folder containing the LeelaGUI executable.
 - The time for game can no longer be set from the window.
 - Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
-  - Difference of areas in the current board + (or -) komi + (or -) (number of handicap stones + 2)
+  - Difference of areas in the current board + (or -) komi + (or -) number of handicap stones
 
 ## Differences from original LeelaGUI when started with KataGo engine (Analysis interface)
 
