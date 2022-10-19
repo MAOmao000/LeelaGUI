@@ -1,5 +1,5 @@
-New LeelaGUI
-=====
+# New LeelaGUI
+
 This is a new LeelaGUI with some additional features to the forked LeelaGUI.
 
 For information on the original LeelaGUI, see the second part of this resume and the following:
@@ -15,26 +15,28 @@ The main features added are as follows.
 - Incorporating the KataGo Engine:
   The Analysis (query) interface and the GTP interface have each been incorporated.
 
-# Changes from the original LeelaGUI
+## Changes from the original LeelaGUI
 
 The basic policy was not to change the functionality of the original Leela engine, but the following changes were made.
 - If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
 - Added "japanese" and "KataGo" checkboxes in Settings Dialog.
 - The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
 - When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
+- Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
+  - Difference of areas in the current board + (or -) komi + (or -) (number of handicap stones + 2)
 
-# Differences from the original LeelaGUI when started with the KataGo engine (common)
+## Differences from the original LeelaGUI when started with the KataGo engine (common)
 
 - Create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with KataGo definition information in the folder containing the LeelaGUI executable.
 - The time for game can no longer be set from the window.
 
-# Differences from original LeelaGUI when started with KataGo engine (Analysis interface)
+## Differences from original LeelaGUI when started with KataGo engine (Analysis interface)
 
 - Since the time for game cannot be set from the window, set it in one of the following ways.
   - Set by "maxTime":xx in "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
   - Set by "maxTime":xx in the "analysis_example.cfg" file.
 
-# Differences from original LeelaGUI when started with KataGo engine (GTP interface)
+## Differences from original LeelaGUI when started with KataGo engine (GTP interface)
 
 - The analysis function does not work at all.
 - Since the time for game cannot be set from the window, set it in one of the following ways.
@@ -44,7 +46,7 @@ The basic policy was not to change the functionality of the original Leela engin
   - Set by -override-config "ponderingEnabled=true,maxTimePondering=xx" in the "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
   - Set by "ponderingEnabled=true" and "maxTimePondering=xx" in the "default_gtp.cfg" file.
 
-# LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (Analysis interface) when using KataGo engine
+## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (Analysis interface) when using KataGo engine
 
 ```
 katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "rootSymmetryPruning=false"
@@ -64,7 +66,7 @@ katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s118409351
 }
 ```
 
-# LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (GTP interface) when using KataGo engine
+## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (GTP interface) when using KataGo engine
 
 ```
 katago.exe gtp -config default_gtp.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz
