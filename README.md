@@ -22,13 +22,13 @@ The basic policy was not to change the functionality of the original Leela engin
 - Added "japanese" and "KataGo" checkboxes in Settings Dialog.
 - The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
 - When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
-- Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
-  - Difference of areas in the current board + (or -) komi + (or -) (number of handicap stones + 2)
 
 ## Differences from the original LeelaGUI when started with the KataGo engine (common)
 
 - Create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with KataGo definition information in the folder containing the LeelaGUI executable.
 - The time for game can no longer be set from the window.
+- Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
+  - Difference of areas in the current board + (or -) komi + (or -) (number of handicap stones + 2)
 
 ## Differences from original LeelaGUI when started with KataGo engine (Analysis interface)
 
