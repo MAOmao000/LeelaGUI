@@ -53,7 +53,7 @@ static constexpr long MIN_RANK = -30L;
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title) {
 
-    m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
+    m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), false);
     int lang = 0;
     if (m_japaneseEnabled) {
         lang = 1;
@@ -132,6 +132,15 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                         use_engine = GTP::ORIGINE_ENGINE;
                     }
                 }
+                if (use_engine == GTP::ORIGINE_ENGINE) {
+                     wxString errorString;
+                     errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
+                                          "Start with the Leela engine?"), GTPCmd[0].mb_str());
+                    int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                    if (answer != wxYES) {
+                        Close();
+                    }
+                }
             }
         }
         free(ini_path);
@@ -145,21 +154,52 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             int sleep_cnt = 0;
             while ( true ) {
                 sleep_cnt++;
-                if (sleep_cnt > 600) {
-                    launch_OK = false;
-                    break;
+                if (sleep_cnt % 60 == 0) {
+                    std::string last_msg = "";
+                    std::string::size_type pos = std::string::npos;
+                    int offset = res_msg.length() - 2;
+                    if (offset > 0) {
+                        pos = res_msg.rfind("\n", offset);
+                        if (pos == std::string::npos) {
+                            pos = -1;
+                        }
+                        last_msg = res_msg.substr(pos + 1);
+                    }
+                    wxString errorString;
+                    errorString.Printf(_("KataGo startup does not complete. Last message received: %s\nLeela Start with engine?"),
+                                       last_msg);
+                    int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                    if (answer == wxYES) {
+                        launch_OK = false;
+                        break;
+                    }
                 }
                 sleep_for(std::chrono::milliseconds(1000));
                 if ( std_err->CanRead() ) {
                     buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                     res_msg += buffer;
                     while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
-                           res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos &&
-                           res_msg.rfind("Initializing board with boardXSize") == std::string::npos) {
+                           res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos) {
                         sleep_cnt++;
-                        if (sleep_cnt > 600) {
-                            launch_OK = false;
-                            break;
+                        if (sleep_cnt % 60 == 0) {
+                            std::string last_msg = "";
+                            std::string::size_type pos = std::string::npos;
+                            int offset = res_msg.length() - 2;
+                            if (offset > 0) {
+                                pos = res_msg.rfind("\n", offset);
+                                if (pos == std::string::npos) {
+                                    pos = -1;
+                                }
+                                last_msg = res_msg.substr(pos + 1);
+                            }
+                            wxString errorString;
+                            errorString.Printf(_("KataGo startup does not complete. Last message received: %s\nLeela Start with engine?"),
+                                               last_msg);
+                            int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                            if (answer == wxYES) {
+                                launch_OK = false;
+                                break;
+                            }
                         }
                         sleep_for(std::chrono::milliseconds(1000));
                         buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
@@ -175,6 +215,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 use_engine = GTP::ORIGINE_ENGINE;
             }
         } else {
+            int answer = ::wxMessageBox("Unable to receive response from KataGo. Leela Start with engine?",
+                                        _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+            if (answer != wxYES) {
+                Close();
+            }
             wxLogDebug(_("Failed to connect to child stderr"));
             m_process->CloseOutput();
             wxProcess::Kill(m_process->GetPid());
@@ -196,7 +241,13 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 (it->length() > sizeof("time_left ") - 1 && it->substr(0, sizeof("time_left ") - 1) == "time_left ")) {
                 std::string res_msg = GTPSend(*it + wxString("\n\n"));
                 if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
-                    wxLogMessage(_("GTP response error: ") + wxString('(') +  wxString(*it) + wxString(')') +  wxString(res_msg));
+                    wxString errorString;
+                    errorString.Printf(_("GTP response error: (%s)%s\nLeela Start with engine?"), wxString(*it).mb_str(), res_msg.c_str());
+                    int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                    if (answer != wxYES) {
+                        Close();
+                    }
+                    //wxLogMessage(_("GTP response error: ") + wxString('(') +  wxString(*it) + wxString(')') +  wxString(res_msg));
                     m_process->CloseOutput();
                     use_engine = GTP::ORIGINE_ENGINE;
                     m_in = nullptr;
@@ -216,7 +267,13 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             try {
                 nlohmann::json::parse(tmp_query);
             } catch(const std::exception& e) {
-                wxLogMessage(_("Engine thread error:") + wxString(e.what()));
+                wxString errorString;
+                errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"), wxString(e.what()).mb_str());
+                int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                if (answer != wxYES) {
+                    Close();
+                }
+                //wxLogMessage(_("Query definition error: ") + wxString(e.what()));
                 m_process->CloseOutput();
                 use_engine = GTP::ORIGINE_ENGINE;
                 m_in = nullptr;

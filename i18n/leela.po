@@ -667,10 +667,40 @@ msgstr "子プロセスの標準入力への接続に失敗しました"
 msgid "GTP response error: "
 msgstr "GTP 応答エラー: "
 
+#: MainFrame.cpp:136
+#, c-format
+msgid ""
+"The first line of the ini file is incorrect: %s\n"
+"Start with the Leela engine?"
+msgstr "ini ファイルの 1 行目の記述に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:169
+#, c-format
+msgid "KataGo startup does not complete. Last message received: %s\nLeela Start with engine?"
+msgstr "KataGo の起動が完了しません。受信した最終メッセージ：%s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:218
+msgid "Unable to receive response from KataGo. Leela Start with engine?"
+msgstr "KataGo からの応答を受信できません。Leela エンジンで開始しますか？"
+
+#: MainFrame.cpp:245
+#, c-format
+msgid "GTP response error: (%s)%s\nLeela Start with engine?"
+msgstr "GTP 応答エラー: ：(%s)%s\nLeela エンジンで開始しますか？"
+
 #: MainFrame.cpp:192
 #, c-format
 msgid "Error initializing OpenCL: %s (error %d)"
 msgstr "エラー OpenCL初期化: %s (エラー %d)"
+
+#: MainFrame.cpp:271
+#, c-format
+msgid "The query definition is incorrect: %s\nLeela Start with engine?"
+msgstr "クエリ定義に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:276
+msgid "Query definition error: "
+msgstr "クエリ定義エラー: "
 
 #: MainFrame.cpp:198
 #, c-format
