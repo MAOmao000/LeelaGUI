@@ -431,29 +431,30 @@ void TEngineThread::Run() {
         req_query = send_json.dump();
         nlohmann::json res_1_json;
         bool firstOK = false;
-        while (isDuringSearch && m_runflag) {
+        while (true) {
             res_query = "";
             GTPSend(req_query + "\n", res_query);
             if (!res_query.length()) {
                 break;
             }
             firstOK = true;
-            if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
+            if (res_query.find("\"isDuringSearch\":false") != string::npos) {
                 isDuringSearch = false;
-            }
-            pos = res_query.rfind("\r\n");
-            if (pos != string::npos) {
-                last_query = res_query.substr(pos + 2);
-                res_query = last_query;
-            } else {
-                pos = res_query.rfind("\n");
+                pos = res_query.rfind("\r\n");
                 if (pos != string::npos) {
-                    last_query = res_query.substr(pos + 1);
+                    last_query = res_query.substr(pos + 2);
                     res_query = last_query;
+                } else {
+                    pos = res_query.rfind("\n");
+                    if (pos != string::npos) {
+                        last_query = res_query.substr(pos + 1);
+                        res_query = last_query;
+                    }
                 }
+                res_1_json = nlohmann::json::parse(res_query);
+                break;
             }
             req_query = "";
-            res_1_json = nlohmann::json::parse(res_query);
         }
         if (isDuringSearch) {
             nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
@@ -720,15 +721,15 @@ void TEngineThread::kata_raw_nn() {
             continue;
         }
         if (pick_policy) {
-            policy[i] += strtof(s.c_str(), nullptr); // / 8;
+            policy[i] += strtof(s.c_str(), nullptr);
             i++;
             if (i >= vertex_size)
                 pick_policy = false;
         } else if (pick_policyPass) {
-            policyPass += strtof(s.c_str(), nullptr); // / 8;
+            policyPass += strtof(s.c_str(), nullptr);
             pick_policyPass = false;
         } else if (pick_whiteOwnership) {
-            whiteOwnership[i] += strtof(s.c_str(), nullptr); // / 8;
+            whiteOwnership[i] += strtof(s.c_str(), nullptr);
             i++;
             if (i >= vertex_size)
                 pick_whiteOwnership = false;
@@ -777,7 +778,6 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
     res_msg = "";
     char buffer[8192];
     buffer[0] = 0;
-    bool first = true;
 
     if (sendCmd.length() > 1) {
         while ( m_in->CanRead() ) {
@@ -788,7 +788,6 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
     while ( true ) {
         sleep_for(chrono::milliseconds(sleep_ms));
         if ( m_in->CanRead() ) {
-            first = false;
             m_in->Read(buffer, WXSIZEOF(buffer) - 1);
             buffer[m_in->LastRead()] = '\0';
             res_msg += buffer;
@@ -835,9 +834,6 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
                     buffer[0] = 0;
                 }
             }
-        } else if (first && !m_runflag) {
-            res_msg = "";
-            return;
         }
     }
 }
