@@ -9,7 +9,7 @@
 #include "Utils.h"
 #include "MCOTable.h"
 
-#define RESIGN_THRESHOLD 0.05
+#define RESIGN_THRESHOLD 0.05  // Resignation after 3 consecutive win rates of 5% or less
 #define RESIGN_MINSCORE_DIFFERENCE -1e10
 
 using namespace std;
@@ -44,6 +44,7 @@ void TEngineThread::Run() {
         int who = m_state->get_to_move();
 
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            // Leela original engine start
             auto search = make_unique<UCTSearch>(*m_state);
 
             if (m_analyseflag && !m_pondering) {
@@ -85,9 +86,12 @@ void TEngineThread::Run() {
                 wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
             }
             return;
+            // Leela original engine end
         } else if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+            // KataGo GTP engine start
             if (m_analyseflag) {
-                return;
+                Utils::GUIprintf(cfg_lang, _(""));
+                return;  // Analysis functions are not supported
             }
             // do some preprocessing for move ordering
             // Note: Playouts are required to display the "Moyo"
@@ -104,13 +108,16 @@ void TEngineThread::Run() {
             string inmsg;
             GTPSend(sendCmd, inmsg);
             if (!inmsg.length()) {
+                Utils::GUIprintf(cfg_lang, _(""));
                 return;
             }
             string move_str = "";
             string winrate_str = "";
             string scoreMean_str = "";
             string::size_type pos = inmsg.rfind("play ");
-            if (pos == string::npos) {
+            if (pos == string::npos) {  // GTP error response
+                ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                Utils::GUIprintf(cfg_lang, _(""));
                 return;
             }
             for (int i = pos + sizeof("play ") - 1; i < inmsg.length(); i++) {
@@ -130,7 +137,9 @@ void TEngineThread::Run() {
                 } else {
                     pos = 0;
                 }
-            } else {
+            } else {  // GTP error response
+                ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                Utils::GUIprintf(cfg_lang, _(""));
                 return;
             }
             pos = inmsg.find("winrate ", pos);
@@ -200,7 +209,9 @@ void TEngineThread::Run() {
             wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
 
             return;
+            // KataGo GTP engine end
         }
+        // KataGo analysis engine start
         using namespace std::chrono;
         uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         std::string query_id = std::to_string(ms);
@@ -286,11 +297,18 @@ void TEngineThread::Run() {
         using TDataVector = std::tuple<int, float, std::vector<TRowVector>>;
         using TMoveData = std::vector<std::pair<std::string, float>>;
         if (m_analyseflag) {
+            // KataGo analysis engine (analysis) start
             while (isDuringSearch && m_runflag) {
                 res_query = "";
                 GTPSend(req_query + "\n", res_query);
                 if (!res_query.length()) {
-                    break;
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                if (res_query.find("\"error\":") != string::npos) {
+                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
                 }
                 if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
                     isDuringSearch = false;
@@ -369,7 +387,7 @@ void TEngineThread::Run() {
                     }
                     if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
                         isDuringSearch = false;
-                        
+
                         string winrate_str = "";
                         string scoreMean_str = "";
                         pos = res_query.rfind("winrate ", pos);
@@ -403,7 +421,6 @@ void TEngineThread::Run() {
                         if (scoreMean_str.length() > 0) {
                             scoreMean = stof(scoreMean_str);
                         }
-                        
                     }
                     if (terminate_res && !isDuringSearch) {
                         break;
@@ -425,67 +442,105 @@ void TEngineThread::Run() {
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
             }
+            Utils::GUIprintf(cfg_lang, _("Analysis stopped").utf8_str());
             return;
+            // KataGo analysis engine (analysis) end
         }
-        send_json["id"] = "play1_" + query_id;
-        req_query = send_json.dump();
+        // KataGo analysis engine (games) start
         nlohmann::json res_1_json;
-        bool firstOK = false;
-        while (true) {
+        send_json["id"] = "play1_" + query_id;
+        if (send_json["overrideSettings"]["maxTime"] > 5) {
+            req_query = send_json.dump();
+            while (true) {
+                res_query = "";
+                GTPSend(req_query + "\n", res_query);
+                if (!res_query.length()) {
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                if (res_query.find("\"error\":") != string::npos) {
+                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                if (res_query.find("\"isDuringSearch\":false") != string::npos) {
+                    isDuringSearch = false;
+                    pos = res_query.rfind("\r\n");
+                    if (pos != string::npos) {
+                        last_query = res_query.substr(pos + 2);
+                        res_query = last_query;
+                    } else {
+                        pos = res_query.rfind("\n");
+                        if (pos != string::npos) {
+                            last_query = res_query.substr(pos + 1);
+                            res_query = last_query;
+                        }
+                    }
+                    res_1_json = nlohmann::json::parse(res_query);
+                    break;
+                }
+                if (!m_runflag) {
+                    break;
+                }
+                req_query = "";
+            }
+            if (isDuringSearch) {
+                nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
+                terminate_json["id"] = "terminate_" + query_id;
+                terminate_json["terminateId"] = "play1_" + query_id;
+                string req_query_terminate = terminate_json.dump();
+                bool terminate_res = false;
+                for ( int i = 0; i < 100; i++ ) {
+                    res_query = "";
+                    GTPSend(req_query_terminate + "\n", res_query);
+                    req_query_terminate = "";
+                    if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
+                        terminate_res = true;
+                    }
+                    if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
+                        isDuringSearch = false;
+                        pos = res_query.rfind("\r\n");
+                        if (pos != string::npos) {
+                            last_query = res_query.substr(pos + 2);
+                            res_query = last_query;
+                        } else {
+                            pos = res_query.rfind("\n");
+                            if (pos != string::npos) {
+                                last_query = res_query.substr(pos + 1);
+                                res_query = last_query;
+                            }
+                        }
+                        res_1_json = nlohmann::json::parse(res_query);
+                    }
+                    if (terminate_res && !isDuringSearch) {
+                        break;
+                    }
+                }
+            }
+            send_json.erase("reportDuringSearchEvery");
+        } else {
+            send_json.erase("reportDuringSearchEvery");
+            req_query = send_json.dump();
             res_query = "";
             GTPSend(req_query + "\n", res_query);
             if (!res_query.length()) {
-                break;
+                Utils::GUIprintf(cfg_lang, _(""));
+                return;
             }
-            firstOK = true;
-            if (res_query.find("\"isDuringSearch\":false") != string::npos) {
-                isDuringSearch = false;
-                pos = res_query.rfind("\r\n");
-                if (pos != string::npos) {
-                    last_query = res_query.substr(pos + 2);
-                    res_query = last_query;
-                } else {
-                    pos = res_query.rfind("\n");
-                    if (pos != string::npos) {
-                        last_query = res_query.substr(pos + 1);
-                        res_query = last_query;
-                    }
-                }
-                res_1_json = nlohmann::json::parse(res_query);
-                break;
+            if (res_query.find("\"error\":") != string::npos) {
+                ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                Utils::GUIprintf(cfg_lang, _(""));
+                return;
             }
-            req_query = "";
+
+            res_1_json = nlohmann::json::parse(res_query);
         }
-        if (isDuringSearch) {
-            nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
-            terminate_json["id"] = "terminate_" + query_id;
-            terminate_json["terminateId"] = "play1_" + query_id;
-            string req_query_terminate = terminate_json.dump();
-            bool terminate_res = false;
-            for ( int i = 0; i < 100; i++ ) {
-                res_query = "";
-                GTPSend(req_query_terminate + "\n", res_query);
-                req_query_terminate = "";
-                if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
-                    terminate_res = true;
-                }
-                if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
-                    isDuringSearch = false;
-                }
-                if (terminate_res && !isDuringSearch) {
-                    break;
-                }
-            }
-        }
-        if (!firstOK) {
-            return;
-        }
+        // Send query to get ownership and policy
         send_json["id"] = "play2_" + query_id;
         move_str = res_1_json["moveInfos"][0]["move"];
         send_json["includeOwnership"] = true;
         send_json["includePolicy"] = true;
         send_json["maxVisits"] = 1;
-        send_json.erase("reportDuringSearchEvery");
         if (who == FastBoard::BLACK) {
             send_json["moves"][m_state->get_movenum()][0] = "B";
         } else {
@@ -503,6 +558,7 @@ void TEngineThread::Run() {
         scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
 
         if (move_str.length() > 0) {
+            // KataGo's Resignation Decision
             float initialBlackAdvantageInPoints;
             if (m_handi.size() <= 1) {
                 initialBlackAdvantageInPoints = 7.0 - m_state->get_komi();
@@ -561,6 +617,7 @@ void TEngineThread::Run() {
                 m_state->play_move(who, m_state->board.text_to_move(move_str));
             }
         }
+        // Edit Ownership Information
         std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0);
         for (int vertex = 0; vertex < board_size * board_size; vertex++) {
             int x = vertex % board_size;
@@ -574,6 +631,7 @@ void TEngineThread::Run() {
         for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
             m_state->m_owner.emplace_back(*itr);
         }
+        // Edit Policy Information
         std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0);
         float maxProbability = 0.0f;
         for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
@@ -618,6 +676,7 @@ void TEngineThread::Run() {
         }
 
         wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+        // KataGo analysis engine (games) end
     };
 
     m_tg.add_task(Func);
