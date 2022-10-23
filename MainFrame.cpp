@@ -202,15 +202,16 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                             }
                         }
                         sleep_for(std::chrono::milliseconds(1000));
-                        buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
-                        res_msg += buffer;
+                        if ( std_err->CanRead() ) {
+                            buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                            res_msg += buffer;
+                        }
                     }
                     break;
                 }
             }
             if (!launch_OK) {
                 wxLogDebug(_("Failed to launch the command."));
-                m_process->CloseOutput();
                 wxProcess::Kill(m_process->GetPid());
                 use_engine = GTP::ORIGINE_ENGINE;
             }
@@ -221,7 +222,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 Close();
             }
             wxLogDebug(_("Failed to connect to child stderr"));
-            m_process->CloseOutput();
             wxProcess::Kill(m_process->GetPid());
             use_engine = GTP::ORIGINE_ENGINE;
         }
@@ -247,8 +247,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     if (answer != wxYES) {
                         Close();
                     }
-                    //wxLogMessage(_("GTP response error: ") + wxString('(') +  wxString(*it) + wxString(')') +  wxString(res_msg));
-                    m_process->CloseOutput();
                     use_engine = GTP::ORIGINE_ENGINE;
                     m_in = nullptr;
                     m_out = nullptr;
@@ -265,7 +263,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         }
         if (tmp_query.length() > 0) {
             try {
-                nlohmann::json::parse(tmp_query);
+                nlohmann::json dummy = nlohmann::json::parse(tmp_query);
             } catch(const std::exception& e) {
                 wxString errorString;
                 errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"), wxString(e.what()).mb_str());
@@ -273,8 +271,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 if (answer != wxYES) {
                     Close();
                 }
-                //wxLogMessage(_("Query definition error: ") + wxString(e.what()));
-                m_process->CloseOutput();
                 use_engine = GTP::ORIGINE_ENGINE;
                 m_in = nullptr;
                 m_out = nullptr;
@@ -497,7 +493,6 @@ MainFrame::~MainFrame() {
         if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
             GTPSend(wxString("quit\n\n"));
         }
-        m_process->CloseOutput();
     }
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
