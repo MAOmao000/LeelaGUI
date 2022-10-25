@@ -16,7 +16,6 @@ class TEngineThread {
         TEngineThread(const GameState& gamestate,
                       MainFrame * frame,
                       wxInputStream *std_in,
-                      wxInputStream *std_err,
                       wxOutputStream *std_out,
                       std::mutex *GTPmutex,
                       std::vector<std::string>& overrideSettings);
@@ -41,7 +40,6 @@ class TEngineThread {
         std::unique_ptr<GameState> m_state;
         MainFrame * m_frame;
         wxInputStream *m_in;
-        wxInputStream *m_err;
         wxOutputStream *m_out;
         int m_maxvisits;
         bool m_nets;
