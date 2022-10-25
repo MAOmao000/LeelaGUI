@@ -126,6 +126,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                         wxLogDebug(_("Failed to connect to child stdout"));
                         wxProcess::Kill(m_process->GetPid());
                         use_engine = GTP::ORIGINE_ENGINE;
+                    } else if ( !(m_err = m_process->GetErrorStream()) ) {
+                        wxLogDebug(_("Failed to connect to child stderr"));
+                        wxProcess::Kill(m_process->GetPid());
+                        use_engine = GTP::ORIGINE_ENGINE;
                     } else if ( !(m_out = m_process->GetOutputStream()) ) {
                         wxLogDebug(_("Failed to connect to child stdin"));
                         wxProcess::Kill(m_process->GetPid());
@@ -147,8 +151,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     }
     if (use_engine != GTP::ORIGINE_ENGINE) {
         bool launch_OK = true;
-        wxInputStream* std_err = m_process->GetErrorStream();
-        if (std_err) {
+        if (m_err) {
             std::string res_msg = "";
             char buffer[2048];
             int sleep_cnt = 0;
@@ -175,8 +178,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     }
                 }
                 sleep_for(std::chrono::milliseconds(1000));
-                if ( std_err->CanRead() ) {
-                    buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                if ( m_err->CanRead() ) {
+                    buffer[m_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                     res_msg += buffer;
                     while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
                            res_msg.rfind("GTP ready, beginning main protocol loop") == std::string::npos) {
@@ -202,8 +205,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                             }
                         }
                         sleep_for(std::chrono::milliseconds(1000));
-                        if ( std_err->CanRead() ) {
-                            buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                        if ( m_err->CanRead() ) {
+                            buffer[m_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                             res_msg += buffer;
                         }
                     }
@@ -546,7 +549,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out, &m_GTPmutex, m_overrideSettings);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_err, m_out, &m_GTPmutex, m_overrideSettings);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();

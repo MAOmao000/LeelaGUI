@@ -126,6 +126,7 @@ class MainFrame : public TMainFrame {
 	wxProcess* m_process{nullptr};
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
+	wxInputStream* m_err{nullptr};
 
 	static void setLocale(bool japanese) {
 		if (japanese) {
