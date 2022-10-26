@@ -53,6 +53,11 @@ static constexpr long MIN_RANK = -30L;
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title) {
 
+#ifdef NDEBUG
+    delete wxLog::SetActiveTarget(NULL);
+#endif
+    wxLog::SetTimestamp("");
+
     m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), false);
     int lang = 0;
     if (m_japaneseEnabled) {
@@ -62,13 +67,14 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     bool katagoEnabled = wxConfig::Get()->ReadBool(wxT("katagoEnabled"), true);
     int use_engine = GTP::ORIGINE_ENGINE;
     std::vector<wxString> GTPCmd;
+    bool close_window = false;
     if (katagoEnabled) {
         std::string ini_file;
 #ifdef USE_GPU
         ini_file = "LeelaGUI_OpenCL.ini";
 #else
         ini_file = "LeelaGUI.ini";
-#endif
+#endif 
 #ifdef WIN32
         char* ini_path = (char*)calloc(MAX_PATH + 1, sizeof(char));
         char buf[MAX_PATH+1];
@@ -91,6 +97,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         sprintf(ini_path, "%s%s", prg_path, ini_file.c_str());
 #endif
         std::ifstream fin(ini_path);
+        free(ini_path);
         if (fin) {
             std::string line;
             for (int i = 0; std::getline(fin, line); i++) {
@@ -138,17 +145,17 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                           "Start with the Leela engine?"), GTPCmd[0].mb_str());
                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                     if (answer != wxYES) {
-                        Close();
+                        close_window = true;
                     }
                 }
             }
         }
-        free(ini_path);
     }
-    if (use_engine != GTP::ORIGINE_ENGINE) {
+    if (!close_window && use_engine != GTP::ORIGINE_ENGINE) {
         bool launch_OK = true;
+        bool failed = false;
         wxInputStream* std_err = m_process->GetErrorStream();
-        if (std_err) {
+        if (std_err && std_err->IsOk()) {
             std::string res_msg = "";
             char buffer[2048];
             int sleep_cnt = 0;
@@ -164,10 +171,22 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                             pos = -1;
                         }
                         last_msg = res_msg.substr(pos + 1);
+                        if (last_msg.rfind("failed with error") != std::string::npos) {
+                            failed = true;
+                            launch_OK = false;
+                            wxString errorString;
+                            errorString.Printf(_("KataGo startup does not complete. Last message received: %s\n"
+                                                 "Leela Start with engine?"), last_msg);
+                            int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                            if (answer != wxYES) {
+                                close_window = true;
+                            }
+                            break;
+                        }
                     }
                     wxString errorString;
-                    errorString.Printf(_("KataGo startup does not complete. Last message received: %s\nLeela Start with engine?"),
-                                       last_msg);
+                    errorString.Printf(_("KataGo startup does not complete. Last message received: %s\n"
+                                         "Leela Start with engine?"), last_msg);
                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                     if (answer == wxYES) {
                         launch_OK = false;
@@ -175,7 +194,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     }
                 }
                 sleep_for(std::chrono::milliseconds(1000));
-                if ( std_err->CanRead() ) {
+                if ( std_err->IsOk() && std_err->CanRead() ) {
                     buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                     res_msg += buffer;
                     while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
@@ -191,10 +210,22 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                     pos = -1;
                                 }
                                 last_msg = res_msg.substr(pos + 1);
+                                if (last_msg.rfind("failed with error") != std::string::npos) {
+                                    failed = true;
+                                    launch_OK = false;
+                                    wxString errorString;
+                                    errorString.Printf(_("KataGo startup does not complete. Last message received: %s\n"
+                                                         "Leela Start with engine?"), last_msg);
+                                    int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                                    if (answer != wxYES) {
+                                        close_window = true;
+                                    }
+                                    break;
+                                }
                             }
                             wxString errorString;
-                            errorString.Printf(_("KataGo startup does not complete. Last message received: %s\nLeela Start with engine?"),
-                                               last_msg);
+                            errorString.Printf(_("KataGo startup does not complete. Last message received: %s\n"
+                                                 "Leela Start with engine?"), last_msg);
                             int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                             if (answer == wxYES) {
                                 launch_OK = false;
@@ -202,7 +233,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                             }
                         }
                         sleep_for(std::chrono::milliseconds(1000));
-                        if ( std_err->CanRead() ) {
+                        if ( std_err->IsOk() && std_err->CanRead() ) {
                             buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                             res_msg += buffer;
                         }
@@ -210,8 +241,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     break;
                 }
             }
-            delete std_err;
-            std_err = nullptr;
+            if (!failed) {
+                delete std_err;
+                std_err = nullptr;
+            }
             if (!launch_OK) {
                 wxLogDebug(_("Failed to launch the command."));
                 wxProcess::Kill(m_process->GetPid());
@@ -221,7 +254,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             int answer = ::wxMessageBox("Unable to receive response from KataGo. Leela Start with engine?",
                                         _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
             if (answer != wxYES) {
-                Close();
+                close_window = true;
             }
             wxLogDebug(_("Failed to connect to child stderr"));
             wxProcess::Kill(m_process->GetPid());
@@ -244,10 +277,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 std::string res_msg = GTPSend(*it + wxString("\n\n"));
                 if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
                     wxString errorString;
-                    errorString.Printf(_("GTP response error: (%s)%s\nLeela Start with engine?"), wxString(*it).mb_str(), res_msg.c_str());
+                    errorString.Printf(_("GTP response error: (%s)%s\nLeela Start with engine?"),
+                                       wxString(*it).mb_str(), res_msg.c_str());
                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                     if (answer != wxYES) {
-                        Close();
+                        close_window = true;
                     }
                     use_engine = GTP::ORIGINE_ENGINE;
                     m_in = nullptr;
@@ -268,10 +302,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 nlohmann::json dummy = nlohmann::json::parse(tmp_query);
             } catch(const std::exception& e) {
                 wxString errorString;
-                errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"), wxString(e.what()).mb_str());
+                errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"),
+                                   wxString(e.what()).mb_str());
                 int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                 if (answer != wxYES) {
-                    Close();
+                    close_window = true;
                 }
                 use_engine = GTP::ORIGINE_ENGINE;
                 m_in = nullptr;
@@ -281,16 +316,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         }
     }
 
-    if (use_engine == GTP::ORIGINE_ENGINE) {
+    if (!close_window && use_engine == GTP::ORIGINE_ENGINE) {
         wxConfig::Get()->Write(wxT("katagoEnabled"), false);
     }
 
     GTP::setup_default_parameters(lang, use_engine);
-
-#ifdef NDEBUG
-    delete wxLog::SetActiveTarget(NULL);
-#endif
-    wxLog::SetTimestamp("");
 
     Bind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
     Bind(wxEVT_BOARD_UPDATE, &MainFrame::doBoardUpdate, this);
@@ -486,6 +516,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     }
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
+    
+    if (close_window) {
+        Close();
+    }
 }
 
 MainFrame::~MainFrame() {
@@ -937,7 +971,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     m_disputing = false;
     m_pondering = false;
 
-    int rank;
+    int rank = 0;
     if (m_ratedSize == 9) {
         rank = wxConfig::Get()->ReadLong(wxT("userRank9"), (long)-30);
     } else if (m_ratedSize == 19) {
@@ -1628,7 +1662,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State.rewind();
         m_State.m_policy.clear();
         m_State.m_owner.clear();
-        for (int i = 0; i < m_State.m_win_rate.size(); i++) {
+        for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
             m_State.m_win_rate[i] = 100.0;
         }
         if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
@@ -1966,7 +2000,7 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_State = sgftree->follow_mainline_state();
                 m_State.m_policy.clear();
                 m_State.m_owner.clear();
-                for (int i = 0; i < m_State.m_win_rate.size(); i++) {
+                for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
                     m_State.m_win_rate[i] = 100.0;
                 }
                 m_move_handi.clear();

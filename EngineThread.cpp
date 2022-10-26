@@ -25,8 +25,6 @@ TEngineThread::TEngineThread(const GameState& state,
      m_frame(frame),
      m_in(std_in),
      m_out(std_out),
-     m_GTPmutex(GTPmutex),
-     m_overrideSettings(overrideSettings),
      m_maxvisits(0),
      m_nets(true),
      m_resigning(true),
@@ -35,7 +33,9 @@ TEngineThread::TEngineThread(const GameState& state,
      m_quiet(false),
      m_nopass(false),
      m_update_score(true),
-     m_runflag(true)
+     m_overrideSettings(overrideSettings),
+     m_runflag(true),
+     m_GTPmutex(GTPmutex)
 {
 }
 
@@ -120,7 +120,7 @@ void TEngineThread::Run() {
                 Utils::GUIprintf(cfg_lang, _(""));
                 return;
             }
-            for (int i = pos + sizeof("play ") - 1; i < inmsg.length(); i++) {
+            for (auto i = pos + sizeof("play ") - 1; i < inmsg.length(); i++) {
                 if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
                     move_str += inmsg[i];
                 } else {
@@ -147,7 +147,7 @@ void TEngineThread::Run() {
                 pos = 0;
                 winrate_str = "0.0";
             } else {
-                for (int i = pos + sizeof("winrate ") - 1; i < inmsg.length(); i++) {
+                for (auto i = pos + sizeof("winrate ") - 1; i < inmsg.length(); i++) {
                     if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
                         winrate_str += inmsg[i];
                     } else {
@@ -159,7 +159,7 @@ void TEngineThread::Run() {
             if (pos == string::npos) {
                 scoreMean_str = "0.0";
             } else {
-                for (int i = pos + sizeof("scoreMean ") - 1; i < inmsg.length(); i++) {
+                for (auto i = pos + sizeof("scoreMean ") - 1; i < inmsg.length(); i++) {
                     if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
                         scoreMean_str += inmsg[i];
                     } else {
@@ -395,7 +395,7 @@ void TEngineThread::Run() {
                             pos = 0;
                             winrate_str = "";
                         } else {
-                            for (int i = pos + sizeof("winrate ") - 1; i < res_query.length(); i++) {
+                            for (auto i = pos + sizeof("winrate ") - 1; i < res_query.length(); i++) {
                                 if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
                                     winrate_str += res_query[i];
                                 } else {
@@ -407,7 +407,7 @@ void TEngineThread::Run() {
                         if (pos == string::npos) {
                             scoreMean_str = "";
                         } else {
-                            for (int i = pos + sizeof("scoreMean ") - 1; i < res_query.length(); i++) {
+                            for (auto i = pos + sizeof("scoreMean ") - 1; i < res_query.length(); i++) {
                                 if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
                                     scoreMean_str += res_query[i];
                                 } else {
@@ -594,7 +594,7 @@ void TEngineThread::Run() {
                        (who == FastBoard::BLACK && scoreMean > (-1.0 * RESIGN_MINSCORE_DIFFERENCE))) {
                 resign = false;
             }
-            for (int i = 0; i < m_state->m_win_rate.size() - 1; i++) {
+            for (size_t i = 0; i < m_state->m_win_rate.size() - 1; i++) {
                 m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i]
                     = m_state->m_win_rate[m_state->m_win_rate.size() - 2 - i];
                 if (m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i] >= RESIGN_THRESHOLD) {

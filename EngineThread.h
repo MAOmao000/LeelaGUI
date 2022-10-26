@@ -41,7 +41,7 @@ class TEngineThread {
         MainFrame * m_frame;
         wxInputStream *m_in;
         wxOutputStream *m_out;
-        int m_maxvisits;
+        int m_maxvisits=0;
         bool m_nets;
         bool m_resigning;
         bool m_analyseflag;
@@ -49,11 +49,11 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
-        std::vector<std::string> m_overrideSettings;
+        std::vector<std::string> m_overrideSettings{};
         std::vector<int> m_handi;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
-        std::mutex *m_GTPmutex;
+        std::mutex *m_GTPmutex=nullptr;
 };
 
 #endif

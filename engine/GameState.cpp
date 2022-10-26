@@ -25,7 +25,7 @@ void GameState::init_game(int size, float komi) {
     m_policy.clear();
     m_owner.clear();
 
-    for (int i = 0; i < m_win_rate.size(); i++) {
+    for (size_t i = 0; i < m_win_rate.size(); i++) {
         m_win_rate[i] = 100.0;
     }
     return;
@@ -42,7 +42,7 @@ void GameState::reset_game() {
     m_policy.clear();
     m_owner.clear();
 
-    for (int i = 0; i < m_win_rate.size(); i++) {
+    for (size_t i = 0; i < m_win_rate.size(); i++) {
         m_win_rate[i] = 1.0;
     }
 }
