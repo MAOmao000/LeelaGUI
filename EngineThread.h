@@ -14,7 +14,8 @@ using Utils::ThreadGroup;
 class TEngineThread {
     public:
         TEngineThread(const GameState& gamestate,
-                      MainFrame * frame,
+                      MainFrame *frame,
+                      wxProcess *process,
                       wxInputStream *std_in,
                       wxOutputStream *std_out,
                       std::mutex *GTPmutex,
@@ -38,7 +39,8 @@ class TEngineThread {
         void kata_raw_nn(void);
         void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=100);
         std::unique_ptr<GameState> m_state;
-        MainFrame * m_frame;
+        MainFrame *m_frame;
+        wxProcess *m_process;
         wxInputStream *m_in;
         wxOutputStream *m_out;
         int m_maxvisits=0;

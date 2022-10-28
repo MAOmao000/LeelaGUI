@@ -17,12 +17,14 @@ using std::this_thread::sleep_for;
 
 TEngineThread::TEngineThread(const GameState& state,
                              MainFrame *frame,
+                             wxProcess *process,
                              wxInputStream *std_in,
                              wxOutputStream *std_out,
                              std::mutex *GTPmutex,
                              std::vector<std::string>& overrideSettings)
     :m_state(std::make_unique<GameState>(state)),
      m_frame(frame),
+     m_process(process),
      m_in(std_in),
      m_out(std_out),
      m_maxvisits(0),
@@ -838,15 +840,19 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
     char buffer[8192];
     buffer[0] = 0;
 
+    if (!m_process->GetOutputStream()) {
+        return;
+    }
+
     if (sendCmd.length() > 1) {
-        while ( m_in->CanRead() ) {
+        while (m_process->IsInputAvailable()) {
             m_in->Read(buffer, WXSIZEOF(buffer) - 1);
         }
         m_out->Write(sendCmd.c_str(), sendCmd.length());
     }
     while ( true ) {
         sleep_for(chrono::milliseconds(sleep_ms));
-        if ( m_in->CanRead() ) {
+        if (m_process->IsInputAvailable()) {
             m_in->Read(buffer, WXSIZEOF(buffer) - 1);
             buffer[m_in->LastRead()] = '\0';
             res_msg += buffer;
@@ -886,7 +892,7 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
                     }
                 }
                 sleep_for(chrono::milliseconds(sleep_ms / 10));
-                if (m_in->CanRead()) {
+                if (m_process->IsInputAvailable()) {
                     m_in->Read(buffer, WXSIZEOF(buffer) - 1);
                     buffer[m_in->LastRead()] = '\0';
                     res_msg += buffer;

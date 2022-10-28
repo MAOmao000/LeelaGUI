@@ -602,7 +602,7 @@ void MainFrame::doExit(wxCommandEvent & event) {
 
 void MainFrame::startEngine() {
     if (!m_engineThread) {
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_in, m_out, &m_GTPmutex, m_overrideSettings);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_process, m_in, m_out, &m_GTPmutex, m_overrideSettings);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -2113,6 +2113,9 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
     std::lock_guard<std::mutex> guard(m_GTPmutex);
     std::string res_msg = "";
     char buffer[2048];
+    if (!m_process->GetOutputStream()) {
+        return "";
+    }
     m_out->Write(s.c_str(), s.length());
     int sleep_cnt = 0;
     while ( true ) {
@@ -2121,7 +2124,7 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
             return "";
         }
         sleep_for(std::chrono::milliseconds(sleep_ms));
-        if ( m_in->CanRead() ) {
+        if (m_process->IsInputAvailable()) {
             buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
             res_msg += buffer;
             if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
@@ -2132,7 +2135,7 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
                         return "";
                     }
                     sleep_for(std::chrono::milliseconds(sleep_ms));
-                    if (m_in->CanRead()) {
+                    if (m_process->IsInputAvailable()) {
                         buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                         res_msg += buffer;
                     }
@@ -2151,7 +2154,7 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
                         return "";
                     }
                     sleep_for(std::chrono::milliseconds(sleep_ms));
-                    if (m_in->CanRead()) {
+                    if (m_process->IsInputAvailable()) {
                         buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                         res_msg += buffer;
                     }
