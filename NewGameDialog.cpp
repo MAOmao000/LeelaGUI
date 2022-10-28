@@ -35,6 +35,16 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         m_spinCtrlTime->Enable(false);
         m_staticText13->Enable(false);
+        m_radioBoxLevel->Enable(false);
+        m_checkNeuralNet->Enable(false);
+    }
+
+    if (!cfg_board25) {
+        wxString sboardsize = m_radioBoxBoardSize->GetStringSelection();
+        if (sboardsize == "25 x 25") {
+            m_radioBoxBoardSize->SetSelection( 4 );
+        }
+        m_radioBoxBoardSize->Enable(5, false);
     }
 
     checkNetsEnabled();
@@ -150,7 +160,7 @@ void NewGameDialog::doRadioBox(wxCommandEvent& event) {
 void NewGameDialog::checkNetsEnabled() {
     wxString sboardsize = m_radioBoxBoardSize->GetStringSelection();
 
-    if (sboardsize != "19 x 19") {
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE || sboardsize != "19 x 19") {
         m_checkNeuralNet->Enable(false);
     } else {
         m_checkNeuralNet->Enable(true);
