@@ -66,8 +66,9 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     bool katagoEnabled = wxConfig::Get()->ReadBool(wxT("katagoEnabled"), true);
     int use_engine = GTP::ORIGINE_ENGINE;
+    bool board25 = true;
     std::vector<wxString> GTPCmd;
-    bool close_window = false;
+    m_close_window = false;
     if (katagoEnabled) {
         std::string ini_file;
 #ifdef USE_GPU
@@ -145,13 +146,13 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                           "Start with the Leela engine?"), GTPCmd[0].mb_str());
                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                     if (answer != wxYES) {
-                        close_window = true;
+                        m_close_window = true;
                     }
                 }
             }
         }
     }
-    if (!close_window && use_engine != GTP::ORIGINE_ENGINE) {
+    if (use_engine != GTP::ORIGINE_ENGINE) {
         bool launch_OK = true;
         bool failed = false;
         wxInputStream* std_err = m_process->GetErrorStream();
@@ -179,7 +180,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                                  "Leela Start with engine?"), last_msg);
                             int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                             if (answer != wxYES) {
-                                close_window = true;
+                                m_close_window = true;
                             }
                             break;
                         }
@@ -194,7 +195,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                     }
                 }
                 sleep_for(std::chrono::milliseconds(1000));
-                if ( std_err->IsOk() && std_err->CanRead() ) {
+                //if ( std_err->IsOk() && std_err->CanRead() ) {
+                if (m_process->IsErrorAvailable()) {
                     buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                     res_msg += buffer;
                     while (res_msg.rfind("Started, ready to begin handling requests") == std::string::npos &&
@@ -218,7 +220,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                                          "Leela Start with engine?"), last_msg);
                                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                                     if (answer != wxYES) {
-                                        close_window = true;
+                                        m_close_window = true;
                                     }
                                     break;
                                 }
@@ -233,7 +235,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                             }
                         }
                         sleep_for(std::chrono::milliseconds(1000));
-                        if ( std_err->IsOk() && std_err->CanRead() ) {
+                        //if ( std_err->IsOk() && std_err->CanRead() ) {
+                        if (m_process->IsErrorAvailable()) {
                             buffer[std_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
                             res_msg += buffer;
                         }
@@ -254,7 +257,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             int answer = ::wxMessageBox("Unable to receive response from KataGo. Leela Start with engine?",
                                         _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
             if (answer != wxYES) {
-                close_window = true;
+                m_close_window = true;
             }
             wxLogDebug(_("Failed to connect to child stderr"));
             wxProcess::Kill(m_process->GetPid());
@@ -281,7 +284,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                        wxString(*it).mb_str(), res_msg.c_str());
                     int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                     if (answer != wxYES) {
-                        close_window = true;
+                        m_close_window = true;
                     }
                     use_engine = GTP::ORIGINE_ENGINE;
                     m_in = nullptr;
@@ -306,7 +309,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                                    wxString(e.what()).mb_str());
                 int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                 if (answer != wxYES) {
-                    close_window = true;
+                    m_close_window = true;
                 }
                 use_engine = GTP::ORIGINE_ENGINE;
                 m_in = nullptr;
@@ -316,11 +319,25 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         }
     }
 
-    if (!close_window && use_engine == GTP::ORIGINE_ENGINE) {
+    if (use_engine == GTP::USE_KATAGO_GTP) {
+        std::string res_msg = GTPSend(wxString("boardsize 25\n\n"));
+        if (res_msg.length() > 0 && res_msg.substr(0, 1) != "=") {
+            board25 = false;
+        }
+    }
+    else if (use_engine == GTP::USE_KATAGO_ANALYSIS) {
+        std::string res_msg = GTPSend(wxString(
+            "{\"boardXSize\":25,\"boardYSize\":25,\"id\":\"dummy\",\"maxVisits\":1,\"moves\":[],\"rules\":\"chinese\"}\n"));
+        if (res_msg.find("\"error\":") != std::string::npos) {
+            board25 = false;
+        }
+    }
+
+    if (!m_close_window && use_engine == GTP::ORIGINE_ENGINE) {
         wxConfig::Get()->Write(wxT("katagoEnabled"), false);
     }
 
-    GTP::setup_default_parameters(lang, use_engine);
+    GTP::setup_default_parameters(lang, use_engine, board25);
 
     Bind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
     Bind(wxEVT_BOARD_UPDATE, &MainFrame::doBoardUpdate, this);
@@ -340,7 +357,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     });
     // Forward to analysis window, if it exists
     Bind(wxEVT_ANALYSIS_UPDATE, [=](wxCommandEvent& event) {
-        if (m_analysisWindow) {
+        if (m_analysisWindow && cfg_use_engine != GTP::USE_KATAGO_GTP) {
             m_analysisWindow->GetEventHandler()->AddPendingEvent(event);
         } else {
             void* rawdataptr = event.GetClientData();
@@ -441,7 +458,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         m_menuTools->FindItem(ID_ADJUSTCLOCKS)->Enable(false);
-        /*
         if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
             m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(false);
             m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(false);
@@ -455,7 +471,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             m_menu2->FindItem(ID_FORCE)->Enable(false);
             GetToolBar()->EnableTool(ID_FORCE, false);
         }
-        */
     }
 
 #ifdef __WXGTK__
@@ -476,8 +491,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_scoreHistogramWindow->Hide();
 
     // Restore open windows
-    bool restoreAnalysisWindow =
-        wxConfig::Get()->ReadBool(wxT("analysisWindowOpen"), false);
+    bool restoreAnalysisWindow = false;
+    if (cfg_use_engine != GTP::USE_KATAGO_GTP) {
+        restoreAnalysisWindow = wxConfig::Get()->ReadBool(wxT("analysisWindowOpen"), false);
+    }
     bool restoreScoreHistogramWindow =
         wxConfig::Get()->ReadBool(wxT("scoreHistogramWindowOpen"), false);
     if (restoreAnalysisWindow) {
@@ -517,7 +534,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
     
-    if (close_window) {
+    if (m_close_window) {
         Close();
     }
 }
@@ -532,8 +549,10 @@ MainFrame::~MainFrame() {
     }
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
-    wxConfig::Get()->Write(wxT("analysisWindowOpen"),
-        m_analysisWindow != nullptr && m_analysisWindow->IsShown());
+    if (cfg_use_engine != GTP::USE_KATAGO_GTP) {
+        wxConfig::Get()->Write(wxT("analysisWindowOpen"),
+            m_analysisWindow != nullptr && m_analysisWindow->IsShown());
+    }
     wxConfig::Get()->Write(wxT("scoreHistogramWindowOpen"),
         m_scoreHistogramWindow != nullptr && m_scoreHistogramWindow->IsShown());
 #ifdef NDEBUG
@@ -577,6 +596,7 @@ void MainFrame::doBoardUpdate(wxCommandEvent& event) {
 }
 
 void MainFrame::doExit(wxCommandEvent & event) {
+    stopEngine();
     Close();
 }
 
@@ -965,6 +985,10 @@ void MainFrame::doSetRatedSize(wxCommandEvent& event) {
 }
 
 void MainFrame::doNewRatedGame(wxCommandEvent& event) {
+    if (m_close_window) {
+        return;
+    }
+
     stopEngine(false);
 
     m_analyzing = false;
@@ -1871,6 +1895,9 @@ void MainFrame::doKeyDown(wxKeyEvent& event) {
 }
 
 void MainFrame::doShowHideAnalysisWindow(wxCommandEvent& event) {
+    if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+        return;
+    }
     if (!m_analysisWindow) {
         m_analysisWindow = new AnalysisWindow(this);
         if (event.GetInt() == NO_WINDOW_AUTOSIZE) {
@@ -2097,20 +2124,43 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
         if ( m_in->CanRead() ) {
             buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
             res_msg += buffer;
-            while (res_msg.rfind("\n\n") == std::string::npos &&
-                   res_msg.rfind("\r\n\r\n") == std::string::npos) {
-                sleep_cnt++;
-                if (sleep_cnt > 120) {
-                    return "";
+            if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                while (res_msg.rfind("\n\n") == std::string::npos &&
+                       res_msg.rfind("\r\n\r\n") == std::string::npos) {
+                    sleep_cnt++;
+                    if (sleep_cnt > 120) {
+                        return "";
+                    }
+                    sleep_for(std::chrono::milliseconds(sleep_ms));
+                    if (m_in->CanRead()) {
+                        buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                        res_msg += buffer;
+                    }
                 }
-                sleep_for(std::chrono::milliseconds(sleep_ms));
-                buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
-                res_msg += buffer;
+            } else {
+                while (true) {
+                    if (res_msg.length() > 0 && res_msg.back() == '\n') {
+                        res_msg.erase(res_msg.length() - 1);
+                        if (res_msg.length() > 0 && res_msg.back() == '\r') {
+                            res_msg.erase(res_msg.length() - 1);
+                        }
+                        break;
+                    }
+                    sleep_cnt++;
+                    if (sleep_cnt > 120) {
+                        return "";
+                    }
+                    sleep_for(std::chrono::milliseconds(sleep_ms));
+                    if (m_in->CanRead()) {
+                        buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                        res_msg += buffer;
+                    }
+                }
             }
             break;
         }
     }
-    if (res_msg[0] != '=') {
+    if (cfg_use_engine == GTP::USE_KATAGO_GTP && res_msg[0] != '=') {
         wxLogDebug(_("GTP error response: ") + wxString(res_msg));
     }
     return res_msg;

@@ -122,11 +122,12 @@ class MainFrame : public TMainFrame {
 	friend class TEngineThread;
 	friend class TBoardPanel;
 
-	public:
 	wxProcess* m_process{nullptr};
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
+	bool m_close_window;
 
+	public:
 	static void setLocale(bool japanese) {
 		if (japanese) {
 			if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
