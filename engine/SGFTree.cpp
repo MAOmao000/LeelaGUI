@@ -12,6 +12,7 @@
 #include "KoState.h"
 #include "SGFParser.h"
 #include "Utils.h"
+#include "GTP.h"
 
 using namespace Utils;
 
@@ -392,7 +393,7 @@ std::vector<int> SGFTree::get_mainline() {
     return moves;
 }
 
-std::string SGFTree::state_to_string(GameState * pstate, int compcolor) {
+std::string SGFTree::state_to_string(GameState * pstate, int compcolor, bool japanese_rule) {
     std::unique_ptr<GameState> state(new GameState);
 
     // make a working copy
@@ -408,7 +409,11 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor) {
     char timestr[sizeof "2017-10-16"];
     strftime(timestr, sizeof timestr, "%F", localtime(&now));
 
-    header.append("(;GM[1]FF[4]RU[Chinese]");
+    if (japanese_rule) {
+        header.append("(;GM[1]FF[4]RU[Japanese]");
+    } else {
+        header.append("(;GM[1]FF[4]RU[Chinese]");
+    }
     header.append("DT[" + std::string(timestr) + "]");
     header.append("SZ[" + std::to_string(size) + "]");
     header.append("KM[" + str(boost::format("%.1f") % komi) + "]");
@@ -464,7 +469,16 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor) {
     }
 
     if (state->get_last_move() != FastBoard::RESIGN) {
-        float score = state->final_score();
+        float score;
+        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            score = state->final_score();
+        } else {
+            if (state->get_to_move() == FastBoard::WHITE) {
+                score = -1.0f * (ceil(state->m_black_score) - 0.5);
+            } else {
+                score = ceil(state->m_black_score) - 0.5;
+            }
+        }
 
         if (score > 0.0f) {
             header.append("RE[B+" + str(boost::format("%.1f") % score) + "]");
@@ -486,4 +500,18 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor) {
     result.append(")\n");
 
     return result;
+}
+
+bool SGFTree::get_rule() {
+    PropertyMap::iterator it;        
+    it = m_properties.find("RU");
+    if (it != m_properties.end()) {
+        std::string result = it->second;
+        if (result == "Japanese") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false;
 }

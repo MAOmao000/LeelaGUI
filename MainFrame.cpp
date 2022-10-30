@@ -68,6 +68,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     int use_engine = GTP::ORIGINE_ENGINE;
     bool board25 = true;
     std::vector<wxString> GTPCmd;
+    m_japanese_rule = false;
     m_close_window = false;
     if (katagoEnabled) {
         std::string ini_file;
@@ -294,6 +295,10 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 }
             }
         }
+        std::string res_msg = GTPSend(wxString("kata-get-rules\n\n"));
+        if (res_msg.find("\"scoring\":\"AREA\"") == std::string::npos) {
+            m_japanese_rule = true;
+        }
     } else if (use_engine == GTP::USE_KATAGO_ANALYSIS && GTPCmd.size() > 1) {
         std::string tmp_query = "";
         for (auto it = GTPCmd.begin() + 1; it != GTPCmd.end(); ++it) {
@@ -303,6 +308,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         if (tmp_query.length() > 0) {
             try {
                 nlohmann::json dummy = nlohmann::json::parse(tmp_query);
+                if (dummy.contains("rules")) {
+                    if (dummy["rules"] == "japanese") {
+                        m_japanese_rule = true;
+                    }
+                }
             } catch(const std::exception& e) {
                 wxString errorString;
                 errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"),
@@ -317,6 +327,17 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
                 wxProcess::Kill(m_process->GetPid());
             }
         }
+    } else {
+        wxString errorString;
+        errorString.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"), "");
+        int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+        if (answer != wxYES) {
+            m_close_window = true;
+        }
+        use_engine = GTP::ORIGINE_ENGINE;
+        m_in = nullptr;
+        m_out = nullptr;
+        wxProcess::Kill(m_process->GetPid());
     }
 
     if (use_engine == GTP::USE_KATAGO_GTP) {
@@ -439,7 +460,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     }
 #endif
 
-    m_State.init_game(m_ratedSize, 7.5f);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE || !m_japanese_rule) {
+        m_State.init_game(m_ratedSize, 7.5f);
+    } else {
+        m_State.init_game(m_ratedSize, 6.5f);
+    }
     m_State.set_timecontrol(2 * m_ratedSize * 60 * 100, 0, 0, 0);
     m_StateStack.clear();
     m_panelBoard->setState(&m_State);
@@ -1324,7 +1349,12 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     wxLogDebug(_("Handicap %d Simulations %d"), handicap, simulations);
 
     {
-        float komi = handicap ? 0.5f : 7.5f;
+        float komi;
+        if (cfg_use_engine == GTP::ORIGINE_ENGINE || !m_japanese_rule) {
+            komi = handicap ? 0.5f : 7.5f;
+        } else {
+            komi = handicap ? 0.5f : 6.5f;
+        }
         m_State.init_game(m_ratedSize, komi);
         ::wxBeginBusyCursor();
         CalculateDialog calcdialog(this);
@@ -1450,14 +1480,30 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
 
         int size = m_State.board.get_boardsize() * m_State.board.get_boardsize();
         if (m_State.get_to_move() == FastBoard::WHITE) {
-            score = -size;
+            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+                score = -size;
+            } else {
+                score = -1.0f * (ceil(m_State.m_black_score) - 0.5);
+            }
         } else {
-            score = size;
+            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+                score = size;
+            } else {
+                score = ceil(m_State.m_black_score) - 0.5;
+            }
         }
         prekomi = score + komi + handicap;
     } else {
         komi = m_State.get_komi();
-        score = m_State.final_score(nullptr, m_disputing ? false : true);
+        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            score = m_State.final_score(nullptr, m_disputing ? false : true);
+        } else {
+            if (m_State.get_to_move() == FastBoard::WHITE) {
+                score = -1.0f * (ceil(m_State.m_black_score) - 0.5);
+            } else {
+                score = ceil(m_State.m_black_score) - 0.5;
+            }
+        }
         handicap = m_State.get_handicap();
         prekomi = score + komi + handicap;
     }
@@ -1511,7 +1557,7 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         } else {
             confidence = _("WHITE wins.");
         }
-    } else if (m_State.board.get_boardsize() == 19) {
+    } else if (cfg_use_engine == GTP::ORIGINE_ENGINE && m_State.board.get_boardsize() == 19) {
         float net_score = Network::get_Network()->get_value(&m_State,
                                                             Network::Ensemble::AVERAGE_ALL);
         net_score = (m_State.get_to_move() == FastBoard::BLACK) ?
@@ -1686,6 +1732,8 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State.rewind();
         m_State.m_policy.clear();
         m_State.m_owner.clear();
+        m_State.m_black_score = 0.0;
+        m_japanese_rule = tree->get_rule();
         for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
             m_State.m_win_rate[i] = 100.0;
         }
@@ -1791,7 +1839,7 @@ void MainFrame::doOpenSGF(wxCommandEvent& event) {
 void MainFrame::doSaveSGF(wxCommandEvent& event) {
     stopEngine();
 
-    std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor);
+    std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor, m_japanese_rule);
 
     wxString caption = _("Choose a file");
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
@@ -2005,7 +2053,7 @@ void MainFrame::doEvalUpdate(wxCommandEvent& event) {
 }
 void MainFrame::doCopyClipboard(wxCommandEvent& event) {
     if (wxTheClipboard->Open()) {
-        std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor);
+        std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor, m_japanese_rule);
         auto data = std::make_unique<wxTextDataObject>(wxString(sgfgame));
         wxTheClipboard->SetData(data.release());
         wxTheClipboard->Flush();
@@ -2027,6 +2075,8 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_State = sgftree->follow_mainline_state();
                 m_State.m_policy.clear();
                 m_State.m_owner.clear();
+                m_State.m_black_score = 0.0;
+                m_japanese_rule = sgftree->get_rule();
                 for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
                     m_State.m_win_rate[i] = 100.0;
                 }

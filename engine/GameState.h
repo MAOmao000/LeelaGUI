@@ -48,6 +48,7 @@ public:
     std::vector<float> m_policy;
     std::vector<float> m_owner;
     std::array<float, 3> m_win_rate;
+    float m_black_score;
 private:
     bool valid_handicap(int stones);
 
