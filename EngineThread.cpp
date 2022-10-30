@@ -95,11 +95,6 @@ void TEngineThread::Run() {
                 Utils::GUIprintf(cfg_lang, _(""));
                 return;  // Analysis functions are not supported
             }
-            // do some preprocessing for move ordering
-            // Note: Playouts are required to display the "Moyo"
-            MCOwnerTable::get_MCO()->clear();
-            GameState& rootstate(*m_state);
-            float mc_score = Playout::mc_owner(rootstate);
 
             wxString sendCmd;
             if (who == FastBoard::BLACK) {
@@ -181,19 +176,33 @@ void TEngineThread::Run() {
 
             float winrate = stof(winrate_str);
             float scoreMean = stof(scoreMean_str);
+            float black_winrate;
+            float black_score;
+            if (who == FastBoard::BLACK) {
+                black_winrate = winrate;
+                black_score = scoreMean;
+            } else {
+                black_winrate = -1.0 * (winrate - 1.0);
+                black_score = -1.0 * scoreMean;
+            }
+            bool black_win = black_winrate >= 0.5;
+            int board_size = m_state->board.get_boardsize();
+            m_state->m_black_score = black_score;
+            std::bitset<FastBoard::MAXSQ> blackowns;
+            for (int i = 0; i < board_size; i++) {
+                for (int j = 0; j < board_size; j++) {
+                    int vtx = m_state->board.get_vertex(i, j);
+                    if (m_state->m_owner[vtx] >= 0.5) {
+                        blackowns[vtx] = true;
+                    }
+                }
+            }
+            MCOwnerTable::get_MCO()->update_owns(blackowns, black_win, black_score);
+
             if (m_update_score) {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
-                float black_winrate;
-                float black_score;
-                if (who == FastBoard::BLACK) {
-                    black_winrate = winrate;
-                    black_score = scoreMean;
-                } else {
-                    black_winrate = -1.0 * (winrate - 1.0);
-                    black_score = -1.0 * scoreMean;
-                }
                 float lead = 0.5;
                 if (black_score > 0.0) {
                     lead = 0.5 + (std::min)(0.5f, std::sqrt(black_score) / 40);
@@ -217,11 +226,6 @@ void TEngineThread::Run() {
         using namespace std::chrono;
         uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         std::string query_id = std::to_string(ms);
-        // do some preprocessing for move ordering
-        // Note: Playouts are required to display the "Moyo"
-        MCOwnerTable::get_MCO()->clear();
-        GameState& rootstate(*m_state);
-        float mc_score = Playout::mc_owner(rootstate);
 
         int board_size = m_state->board.get_boardsize();
         string tmp_query = "";
@@ -429,6 +433,7 @@ void TEngineThread::Run() {
                     }
                 }
             }
+            m_state->m_black_score = -1.0f * scoreMean;
             if (m_update_score && !std::isnan(winrate)) {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
@@ -654,6 +659,17 @@ void TEngineThread::Run() {
         for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
             m_state->m_policy.emplace_back(*itr);
         }
+        m_state->m_black_score = scoreMean;
+        std::bitset<FastBoard::MAXSQ> blackowns;
+        for (int i = 0; i < board_size; i++) {
+            for (int j = 0; j < board_size; j++) {
+                int vtx = m_state->board.get_vertex(i, j);
+                if (m_state->m_owner[vtx] >= 0.5) {
+                    blackowns[vtx] = true;
+                }
+            }
+        }
+        MCOwnerTable::get_MCO()->update_owns(blackowns, 1.0f - winrate, -1.0f * scoreMean);
 
         if (m_update_score) {
             // Broadcast result from search
