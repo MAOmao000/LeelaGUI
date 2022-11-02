@@ -43,151 +43,662 @@ TEngineThread::TEngineThread(const GameState& state,
 
 void TEngineThread::Run() {
     auto Func = [this] {
-        int who = m_state->get_to_move();
+        try {
+            int who = m_state->get_to_move();
 
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-            // Leela original engine start
-            auto search = make_unique<UCTSearch>(*m_state);
+            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+                // Leela original engine start
+                auto search = make_unique<UCTSearch>(*m_state);
 
-            if (m_analyseflag && !m_pondering) {
-                search->set_playout_limit(0);
-            } else {
-                search->set_playout_limit(m_maxvisits);
-            }
-            search->set_runflag(&m_runflag);
-            search->set_analyzing(m_analyseflag);
-            search->set_quiet(m_quiet);
-            search->set_use_nets(m_nets);
-
-            int mode = UCTSearch::NORMAL;
-            if (m_nopass) {
-                mode = UCTSearch::NOPASS;
-            }
-
-            int move;
-            if (m_resigning) {
-                move = search->think(who, mode);
-            } else {
-                move = search->think(who, mode | UCTSearch::NORESIGN);
-            }
-
-            if (!m_analyseflag) {
-                m_state->play_move(who, move);
-            }
-            if (m_update_score) {
-                // Broadcast result from search
-                auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
-                auto scores = search->get_scores();
-                auto movenum = m_state->get_movenum();
-                auto scoretuple = make_tuple(movenum, get<0>(scores), get<1>(scores), get<2>(scores));
-                event->SetClientData((void*)new auto(scoretuple));
-
-                wxQueueEvent(m_frame->GetEventHandler(), event);
-            }
-            if (!m_analyseflag) {
-                wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-            }
-            return;
-            // Leela original engine end
-        } else if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-            // KataGo GTP engine start
-            if (m_analyseflag) {
-                Utils::GUIprintf(cfg_lang, _(""));
-                return;  // Analysis functions are not supported
-            }
-
-            wxString sendCmd;
-            if (who == FastBoard::BLACK) {
-                sendCmd = wxString("genmove_analyze b\n\n");
-            } else {
-                sendCmd = wxString("genmove_analyze w\n\n");
-            }
-            string inmsg;
-            GTPSend(sendCmd, inmsg);
-            if (!inmsg.length()) {
-                Utils::GUIprintf(cfg_lang, _(""));
-                return;
-            }
-            string move_str = "";
-            string winrate_str = "";
-            string scoreMean_str = "";
-            string::size_type pos = inmsg.rfind("play ");
-            if (pos == string::npos) {  // GTP error response
-                ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                Utils::GUIprintf(cfg_lang, _(""));
-                return;
-            }
-            for (auto i = pos + sizeof("play ") - 1; i < inmsg.length(); i++) {
-                if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
-                    move_str += inmsg[i];
-                } else {
-                    break;
+                if (m_analyseflag && !m_pondering) {
+                    search->set_playout_limit(0);
                 }
+                else {
+                    search->set_playout_limit(m_maxvisits);
+                }
+                search->set_runflag(&m_runflag);
+                search->set_analyzing(m_analyseflag);
+                search->set_quiet(m_quiet);
+                search->set_use_nets(m_nets);
+
+                int mode = UCTSearch::NORMAL;
+                if (m_nopass) {
+                    mode = UCTSearch::NOPASS;
+                }
+
+                int move;
+                if (m_resigning) {
+                    move = search->think(who, mode);
+                }
+                else {
+                    move = search->think(who, mode | UCTSearch::NORESIGN);
+                }
+
+                if (!m_analyseflag) {
+                    m_state->play_move(who, move);
+                }
+                if (m_update_score) {
+                    // Broadcast result from search
+                    auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                    auto scores = search->get_scores();
+                    auto movenum = m_state->get_movenum();
+                    auto scoretuple = make_tuple(movenum, get<0>(scores), get<1>(scores), get<2>(scores));
+                    event->SetClientData((void*)new auto(scoretuple));
+
+                    wxQueueEvent(m_frame->GetEventHandler(), event);
+                }
+                if (!m_analyseflag) {
+                    wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+                }
+                return;
+                // Leela original engine end
             }
-            if (move_str.length() > 0) {
-                string find_str = "move " + move_str;
-                if (move_str != "pass" && move_str != "resign") {
-                    pos = inmsg.find(find_str);
-                    if (pos == string::npos) {
+            else if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
+                // KataGo GTP engine start
+                if (m_analyseflag) {
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;  // Analysis functions are not supported
+                }
+
+                wxString sendCmd;
+                if (who == FastBoard::BLACK) {
+                    sendCmd = wxString("genmove_analyze b\n\n");
+                }
+                else {
+                    sendCmd = wxString("genmove_analyze w\n\n");
+                }
+                string inmsg;
+                GTPSend(sendCmd, inmsg);
+                if (!inmsg.length()) {
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                string move_str = "";
+                string winrate_str = "";
+                string scoreMean_str = "";
+                string::size_type pos = inmsg.rfind("play ");
+                if (pos == string::npos) {  // GTP error response
+                    ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_ERROR);
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                for (auto i = pos + sizeof("play ") - 1; i < inmsg.length(); i++) {
+                    if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
+                        move_str += inmsg[i];
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (move_str.length() > 0) {
+                    string find_str = "move " + move_str;
+                    if (move_str != "pass" && move_str != "resign") {
+                        pos = inmsg.find(find_str);
+                        if (pos == string::npos) {
+                            pos = 0;
+                        }
+                    }
+                    else {
                         pos = 0;
                     }
-                } else {
-                    pos = 0;
                 }
-            } else {  // GTP error response
-                ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                Utils::GUIprintf(cfg_lang, _(""));
+                else {  // GTP error response
+                    ::wxMessageBox(inmsg, _("Leela"), wxOK | wxICON_ERROR);
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                pos = inmsg.find("winrate ", pos);
+                if (pos == string::npos) {
+                    pos = 0;
+                    winrate_str = "0.0";
+                }
+                else {
+                    for (auto i = pos + sizeof("winrate ") - 1; i < inmsg.length(); i++) {
+                        if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
+                            winrate_str += inmsg[i];
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+                pos = inmsg.find("scoreMean ", pos);
+                if (pos == string::npos) {
+                    scoreMean_str = "0.0";
+                }
+                else {
+                    for (auto i = pos + sizeof("scoreMean ") - 1; i < inmsg.length(); i++) {
+                        if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
+                            scoreMean_str += inmsg[i];
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+                if (move_str == "pass") {
+                    m_state->play_move(who, FastBoard::PASS);
+                }
+                else if (move_str == "resign") {
+                    m_state->play_move(who, FastBoard::RESIGN);
+                }
+                else {
+                    m_state->play_move(who, m_state->board.text_to_move(move_str));
+                }
+
+                kata_raw_nn();
+
+                float winrate = stof(winrate_str);
+                float scoreMean = stof(scoreMean_str);
+                float black_winrate;
+                float black_score;
+                if (who == FastBoard::BLACK) {
+                    black_winrate = winrate;
+                    black_score = scoreMean;
+                }
+                else {
+                    black_winrate = -1.0 * (winrate - 1.0);
+                    black_score = -1.0 * scoreMean;
+                }
+                bool black_win = black_winrate >= 0.5;
+                int board_size = m_state->board.get_boardsize();
+                m_state->m_black_score = black_score;
+                std::bitset<FastBoard::MAXSQ> blackowns;
+                for (int i = 0; i < board_size; i++) {
+                    for (int j = 0; j < board_size; j++) {
+                        int vtx = m_state->board.get_vertex(i, j);
+                        if (m_state->m_owner[vtx] >= 0.5) {
+                            blackowns[vtx] = true;
+                        }
+                    }
+                }
+                MCOwnerTable::get_MCO()->update_owns(blackowns, black_win, black_score);
+
+                if (m_update_score) {
+                    // Broadcast result from search
+                    auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                    auto movenum = m_state->get_movenum();
+                    float lead = 0.5;
+                    if (black_score > 0.0) {
+                        lead = 0.5 + (std::min)(0.5f, std::sqrt(black_score) / 40);
+                    }
+                    else if (black_score < 0.0) {
+                        lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * black_score) / 40);
+                    }
+                    std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, black_winrate, lead, black_winrate);
+                    event->SetClientData((void*)new auto(scoretuple));
+
+                    wxQueueEvent(m_frame->GetEventHandler(), event);
+                }
+
+                Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+
+                wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+
+                return;
+                // KataGo GTP engine end
+            }
+            // KataGo analysis engine start
+            using namespace std::chrono;
+            uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+            std::string query_id = std::to_string(ms);
+
+            int board_size = m_state->board.get_boardsize();
+            string tmp_query = "";
+            for (auto it = m_overrideSettings.begin(); it != m_overrideSettings.end(); ++it) {
+                tmp_query += *it;
+            }
+            nlohmann::json send_json = nlohmann::json::parse(tmp_query);
+            send_json["id"] = "analysis_" + query_id;
+            send_json["komi"] = m_state->get_komi();
+            send_json["boardXSize"] = board_size;
+            send_json["boardYSize"] = board_size;
+            int i = 0;
+            if (m_handi.size() > 0) {
+                for (auto itr = m_handi.begin(); itr != m_handi.end(); ++itr) {
+                    std::string handi_move = m_state->move_to_text(*itr);
+                    send_json["initialStones"][i][0] = "B";
+                    send_json["initialStones"][i][1] = handi_move;
+                    i++;
+                }
+            }
+            std::unique_ptr<GameState> state(new GameState);
+            *state = *m_state;
+            state->rewind();
+            send_json["moves"] = nlohmann::json::array();
+            if (m_state->get_movenum() > 0) {
+                for (int i = 0; i < m_state->get_movenum(); i++) {
+                    state->forward_move();
+                    int move = state->get_last_move();
+                    if (move == FastBoard::RESIGN) {
+                        break;
+                    }
+                    std::string movestr = state->board.move_to_text(move);
+                    if (state->get_to_move() == FastBoard::BLACK) {
+                        send_json["moves"][i][0] = "W";
+                    }
+                    else {
+                        send_json["moves"][i][0] = "B";
+                    }
+                    send_json["moves"][i][1] = movestr;
+                }
+            }
+            else {
+                if (m_handi.size() > 0) {
+                    send_json["initialPlayer"] = "W";
+                }
+                else {
+                    send_json["initialPlayer"] = "B";
+                }
+            }
+            if (!send_json.contains("reportDuringSearchEvery")) {
+                send_json["reportDuringSearchEvery"] = 1.0;
+            }
+            if (send_json.contains("maxVisitsAnalysis")) {
+                if (m_analyseflag) {
+                    send_json["maxVisits"] = send_json["maxVisitsAnalysis"];
+                }
+                send_json.erase("maxVisitsAnalysis");
+            }
+            else if (m_analyseflag) {
+                send_json["maxVisits"] = 1000000;
+            }
+            if (send_json.contains("maxTimeAnalysis")) {
+                if (m_analyseflag) {
+                    send_json["overrideSettings"]["maxTime"] = send_json["maxTimeAnalysis"];
+                }
+                send_json.erase("maxTimeAnalysis");
+            }
+            else if (m_analyseflag) {
+                send_json["overrideSettings"]["maxTime"] = 3600;
+            }
+            string req_query = send_json.dump();
+            string move_str;
+            float winrate = std::nanf("");
+            float scoreMean;
+            string res_query;
+            string last_query = "";
+            bool isDuringSearch = true;
+            std::string::size_type pos;
+            using TRowVector = std::vector<std::pair<std::string, std::string>>;
+            using TDataVector = std::tuple<int, float, std::vector<TRowVector>>;
+            using TMoveData = std::vector<std::pair<std::string, float>>;
+            if (m_analyseflag) {
+                // KataGo analysis engine (analysis) start
+                while (isDuringSearch && m_runflag) {
+                    res_query = "";
+                    GTPSend(req_query + "\n", res_query);
+                    if (!res_query.length()) {
+                        Utils::GUIprintf(cfg_lang, _(""));
+                        return;
+                    }
+                    if (res_query.find("\"error\":") != string::npos) {
+                        ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_ERROR);
+                        Utils::GUIprintf(cfg_lang, _(""));
+                        return;
+                    }
+                    if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
+                        isDuringSearch = false;
+                    }
+                    pos = res_query.rfind("\r\n");
+                    if (pos != string::npos) {
+                        last_query = res_query.substr(pos + 2);
+                        res_query = last_query;
+                    }
+                    else {
+                        pos = res_query.find("\n");
+                        if (pos != string::npos) {
+                            last_query = res_query.substr(pos + 1);
+                            res_query = last_query;
+                        }
+                    }
+                    req_query = "";
+                    nlohmann::json res_1_json = nlohmann::json::parse(res_query);
+                    move_str = res_1_json["moveInfos"][0]["move"];
+                    winrate = 1.0 - res_1_json["rootInfo"]["winrate"].get<float>();
+                    scoreMean = -1.0 * res_1_json["rootInfo"]["scoreLead"].get<float>();
+                    nlohmann::json j1 = res_1_json["moveInfos"];
+                    std::unique_ptr<TDataVector> analysis_packet(new TDataVector);
+                    std::unique_ptr<TMoveData> move_data(new TMoveData);
+                    std::get<0>(*analysis_packet) = who;
+                    std::get<1>(*analysis_packet) = scoreMean;
+                    auto& analysis_data = std::get<2>(*analysis_packet);
+                    for (nlohmann::json::iterator it1 = j1.begin(); it1 != j1.end(); ++it1) {
+                        nlohmann::json j2 = it1.value();
+                        if (j2.contains("isSymmetryOf")) {
+                            continue;
+                        }
+                        TRowVector row;
+                        row.emplace_back(_("Move").utf8_str(), j2["move"]);
+                        row.emplace_back(_("Effort%").utf8_str(),
+                            std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+                        row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
+                        if (who == FastBoard::BLACK) {
+                            row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
+                            row.emplace_back(_("Score").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
+                        }
+                        else {
+                            row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
+                            row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
+                        }
+                        std::string pvstring;
+                        nlohmann::json j3 = j2["pv"];
+                        for (nlohmann::json::iterator it2 = j3.begin(); it2 != j3.end(); ++it2) {
+                            if (it2 > j3.begin()) {
+                                pvstring += " ";
+                            }
+                            pvstring += *it2;
+                        }
+                        row.emplace_back(_("PV").utf8_str(), pvstring);
+                        analysis_data.emplace_back(row);
+                        move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+                    }
+                    if (who == FastBoard::BLACK) {
+                        Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+                    }
+                    else {
+                        Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
+                    }
+                    Utils::GUIAnalysis((void*)analysis_packet.release());
+                    Utils::GUIBestMoves((void*)move_data.release());
+                }
+                if (isDuringSearch) {
+                    nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
+                    terminate_json["id"] = "terminate_" + query_id;
+                    terminate_json["terminateId"] = "analysis_" + query_id;
+                    string req_query_terminate = terminate_json.dump();
+                    bool terminate_res = false;
+                    for (int i = 0; i < 100; i++) {
+                        res_query = "";
+                        GTPSend(req_query_terminate + "\n", res_query);
+                        req_query_terminate = "";
+                        if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
+                            terminate_res = true;
+                        }
+                        if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
+                            isDuringSearch = false;
+
+                            string winrate_str = "";
+                            string scoreMean_str = "";
+                            pos = res_query.rfind("winrate ", pos);
+                            if (pos == string::npos) {
+                                pos = 0;
+                                winrate_str = "";
+                            }
+                            else {
+                                for (auto i = pos + sizeof("winrate ") - 1; i < res_query.length(); i++) {
+                                    if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
+                                        winrate_str += res_query[i];
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                            }
+                            pos = res_query.rfind("scoreMean ", pos);
+                            if (pos == string::npos) {
+                                scoreMean_str = "";
+                            }
+                            else {
+                                for (auto i = pos + sizeof("scoreMean ") - 1; i < res_query.length(); i++) {
+                                    if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
+                                        scoreMean_str += res_query[i];
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+                            }
+                            if (winrate_str.length() > 0) {
+                                winrate = stof(winrate_str);
+                            }
+                            if (scoreMean_str.length() > 0) {
+                                scoreMean = stof(scoreMean_str);
+                            }
+                        }
+                        if (terminate_res && !isDuringSearch) {
+                            break;
+                        }
+                    }
+                }
+                m_state->m_black_score = -1.0f * scoreMean;
+                if (m_update_score && !std::isnan(winrate)) {
+                    // Broadcast result from search
+                    auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                    auto movenum = m_state->get_movenum();
+                    float lead = 0.5;
+                    if (scoreMean > 0.0) {
+                        lead = 0.5 - (std::min)(0.5f, std::sqrt(scoreMean) / 40);
+                    }
+                    else if (scoreMean < 0.0) {
+                        lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
+                    }
+                    std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, lead, 1.0 - winrate);
+                    event->SetClientData((void*)new auto(scoretuple));
+
+                    wxQueueEvent(m_frame->GetEventHandler(), event);
+                }
+                Utils::GUIprintf(cfg_lang, _("Analysis stopped").utf8_str());
+                return;
+                // KataGo analysis engine (analysis) end
+            }
+            // KataGo analysis engine (games) start
+            nlohmann::json res_1_json;
+            send_json["id"] = "play1_" + query_id;
+            if (send_json["overrideSettings"]["maxTime"] > 5) {
+                req_query = send_json.dump();
+                while (true) {
+                    res_query = "";
+                    GTPSend(req_query + "\n", res_query);
+                    if (!res_query.length()) {
+                        Utils::GUIprintf(cfg_lang, _(""));
+                        return;
+                    }
+                    if (res_query.find("\"error\":") != string::npos) {
+                        ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_ERROR);
+                        Utils::GUIprintf(cfg_lang, _(""));
+                        return;
+                    }
+                    if (res_query.find("\"isDuringSearch\":false") != string::npos) {
+                        isDuringSearch = false;
+                        pos = res_query.rfind("\r\n");
+                        if (pos != string::npos) {
+                            last_query = res_query.substr(pos + 2);
+                            res_query = last_query;
+                        }
+                        else {
+                            pos = res_query.rfind("\n");
+                            if (pos != string::npos) {
+                                last_query = res_query.substr(pos + 1);
+                                res_query = last_query;
+                            }
+                        }
+                        res_1_json = nlohmann::json::parse(res_query);
+                        break;
+                    }
+                    if (!m_runflag) {
+                        break;
+                    }
+                    req_query = "";
+                }
+                if (isDuringSearch) {
+                    nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
+                    terminate_json["id"] = "terminate_" + query_id;
+                    terminate_json["terminateId"] = "play1_" + query_id;
+                    string req_query_terminate = terminate_json.dump();
+                    bool terminate_res = false;
+                    for (int i = 0; i < 100; i++) {
+                        res_query = "";
+                        GTPSend(req_query_terminate + "\n", res_query);
+                        req_query_terminate = "";
+                        if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
+                            terminate_res = true;
+                        }
+                        if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
+                            isDuringSearch = false;
+                            pos = res_query.rfind("\r\n");
+                            if (pos != string::npos) {
+                                last_query = res_query.substr(pos + 2);
+                                res_query = last_query;
+                            }
+                            else {
+                                pos = res_query.rfind("\n");
+                                if (pos != string::npos) {
+                                    last_query = res_query.substr(pos + 1);
+                                    res_query = last_query;
+                                }
+                            }
+                            res_1_json = nlohmann::json::parse(res_query);
+                        }
+                        if (terminate_res && !isDuringSearch) {
+                            break;
+                        }
+                    }
+                }
+                send_json.erase("reportDuringSearchEvery");
+            }
+            else {
+                send_json.erase("reportDuringSearchEvery");
+                req_query = send_json.dump();
+                res_query = "";
+                GTPSend(req_query + "\n", res_query);
+                if (!res_query.length()) {
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+                if (res_query.find("\"error\":") != string::npos) {
+                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                    Utils::GUIprintf(cfg_lang, _(""));
+                    return;
+                }
+
+                res_1_json = nlohmann::json::parse(res_query);
+            }
+            // Send query to get ownership and policy
+            send_json["id"] = "play2_" + query_id;
+            move_str = res_1_json["moveInfos"][0]["move"];
+            send_json["includeOwnership"] = true;
+            send_json["includePolicy"] = true;
+            send_json["maxVisits"] = 1;
+            if (who == FastBoard::BLACK) {
+                send_json["moves"][m_state->get_movenum()][0] = "B";
+            }
+            else {
+                send_json["moves"][m_state->get_movenum()][0] = "W";
+            }
+            send_json["moves"][m_state->get_movenum()][1] = move_str;
+            string req_query_2 = send_json.dump();
+            res_query = "";
+            GTPSend(req_query_2 + "\n", res_query);
+            if (!res_query.length()) {
                 return;
             }
-            pos = inmsg.find("winrate ", pos);
-            if (pos == string::npos) {
-                pos = 0;
-                winrate_str = "0.0";
-            } else {
-                for (auto i = pos + sizeof("winrate ") - 1; i < inmsg.length(); i++) {
-                    if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
-                        winrate_str += inmsg[i];
-                    } else {
-                        break;
+            nlohmann::json res_2_json = nlohmann::json::parse(res_query);
+            winrate = res_1_json["rootInfo"]["winrate"].get<float>();
+            scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
+
+            if (move_str.length() > 0) {
+                // KataGo's Resignation Decision
+                float initialBlackAdvantageInPoints;
+                if (m_handi.size() <= 1) {
+                    initialBlackAdvantageInPoints = 7.0 - m_state->get_komi();
+                }
+                else {
+                    initialBlackAdvantageInPoints = 14.0 * (m_handi.size() - 1) + (7.0 - m_state->get_komi() - m_handi.size());
+                }
+                int minTurnForResignation = 0;
+                float noResignationWhenWhiteScoreAbove = board_size * board_size;
+                if (initialBlackAdvantageInPoints > 0.9 && who == FastBoard::WHITE) {
+                    minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
+                    float numTurnsToCatchUp = 0.60 * noResignationWhenWhiteScoreAbove - minTurnForResignation;
+                    float numTurnsSpent = (float)(m_state->get_movenum() + 1) - minTurnForResignation;
+                    if (numTurnsToCatchUp <= 1.0) {
+                        numTurnsToCatchUp = 1.0;
+                    }
+                    if (numTurnsSpent <= 0.0) {
+                        numTurnsSpent = 0.0;
+                    }
+                    if (numTurnsSpent > numTurnsToCatchUp) {
+                        numTurnsSpent = numTurnsToCatchUp;
+                    }
+                    float resignScore = -initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
+                    resignScore -= 5.0;
+                    resignScore -= initialBlackAdvantageInPoints * 0.15;
+                    noResignationWhenWhiteScoreAbove = resignScore;
+                }
+                bool resign = true;
+                if (m_state->get_movenum() + 1 < minTurnForResignation) {
+                    resign = false;
+                }
+                else if (who == FastBoard::WHITE && (-1.0 * scoreMean) > noResignationWhenWhiteScoreAbove) {
+                    resign = false;
+                }
+                else if ((who == FastBoard::WHITE && (-1.0 * scoreMean) > -1.0 * RESIGN_MINSCORE_DIFFERENCE) ||
+                    (who == FastBoard::BLACK && scoreMean > (-1.0 * RESIGN_MINSCORE_DIFFERENCE))) {
+                    resign = false;
+                }
+                for (size_t i = 0; i < m_state->m_win_rate.size() - 1; i++) {
+                    m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i]
+                        = m_state->m_win_rate[m_state->m_win_rate.size() - 2 - i];
+                    if (m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i] >= RESIGN_THRESHOLD) {
+                        resign = false;
                     }
                 }
-            }
-            pos = inmsg.find("scoreMean ", pos);
-            if (pos == string::npos) {
-                scoreMean_str = "0.0";
-            } else {
-                for (auto i = pos + sizeof("scoreMean ") - 1; i < inmsg.length(); i++) {
-                    if (inmsg[i] != ' ' && inmsg[i] != '\r' && inmsg[i] != '\n') {
-                        scoreMean_str += inmsg[i];
-                    } else {
-                        break;
-                    }
+                if (who == FastBoard::BLACK) {
+                    m_state->m_win_rate[0] = winrate;
+                }
+                else {
+                    m_state->m_win_rate[0] = 1.0 - winrate;
+                }
+                if (resign && m_state->m_win_rate[0] < RESIGN_THRESHOLD) {
+                    move_str = "resign";
+                }
+                if (move_str == "pass") {
+                    m_state->play_move(who, FastBoard::PASS);
+                }
+                else if (move_str == "resign") {
+                    m_state->play_move(who, FastBoard::RESIGN);
+                }
+                else {
+                    m_state->play_move(who, m_state->board.text_to_move(move_str));
                 }
             }
-            if (move_str == "pass") {
-                m_state->play_move(who, FastBoard::PASS);
-            } else if (move_str == "resign") {
-                m_state->play_move(who, FastBoard::RESIGN);
-            } else {
-                m_state->play_move(who, m_state->board.text_to_move(move_str));
+            // Edit Ownership Information
+            std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0);
+            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+                int x = vertex % board_size;
+                int y = vertex / board_size;
+                y = -1 * (y - board_size) - 1;
+                int pos = m_state->board.get_vertex(x, y);
+                float owner = res_2_json["ownership"][vertex];
+                conv_owner[pos] = (owner / 2) + 0.5;
             }
-
-            kata_raw_nn();
-
-            float winrate = stof(winrate_str);
-            float scoreMean = stof(scoreMean_str);
-            float black_winrate;
-            float black_score;
-            if (who == FastBoard::BLACK) {
-                black_winrate = winrate;
-                black_score = scoreMean;
-            } else {
-                black_winrate = -1.0 * (winrate - 1.0);
-                black_score = -1.0 * scoreMean;
+            m_state->m_owner.clear();
+            for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+                m_state->m_owner.emplace_back(*itr);
             }
-            bool black_win = black_winrate >= 0.5;
-            int board_size = m_state->board.get_boardsize();
-            m_state->m_black_score = black_score;
+            // Edit Policy Information
+            std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0);
+            float maxProbability = 0.0f;
+            for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
+                int x = vertex % board_size;
+                int y = vertex / board_size;
+                y = -1 * (y - board_size) - 1;
+                int pos = m_state->board.get_vertex(x, y);
+                float policy = res_2_json["policy"][vertex];
+                conv_policy[pos] = policy;
+                if (policy > maxProbability) {
+                    maxProbability = policy;
+                }
+            }
+            float policy = res_2_json["policy"][board_size * board_size];
+            conv_policy[0] = maxProbability;
+            conv_policy[1] = policy;
+            m_state->m_policy.clear();
+            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+                m_state->m_policy.emplace_back(*itr);
+            }
+            m_state->m_black_score = scoreMean;
             std::bitset<FastBoard::MAXSQ> blackowns;
             for (int i = 0; i < board_size; i++) {
                 for (int j = 0; j < board_size; j++) {
@@ -197,504 +708,41 @@ void TEngineThread::Run() {
                     }
                 }
             }
-            MCOwnerTable::get_MCO()->update_owns(blackowns, black_win, black_score);
+            MCOwnerTable::get_MCO()->update_owns(blackowns, 1.0f - winrate, -1.0f * scoreMean);
 
             if (m_update_score) {
                 // Broadcast result from search
                 auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_state->get_movenum();
                 float lead = 0.5;
-                if (black_score > 0.0) {
-                    lead = 0.5 + (std::min)(0.5f, std::sqrt(black_score) / 40);
-                } else if (black_score < 0.0) {
-                    lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * black_score) / 40);
+                if (scoreMean > 0.0) {
+                    lead = 0.5 + (std::min)(0.5f, std::sqrt(scoreMean) / 40);
                 }
-                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, black_winrate, lead, black_winrate);
+                else if (scoreMean < 0.0) {
+                    lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
+                }
+                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, lead, winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
             }
 
-            Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+            if (who == FastBoard::BLACK) {
+                Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
+            }
+            else {
+                Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), winrate * 100, scoreMean);
+            }
 
             wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-
-            return;
-            // KataGo GTP engine end
-        }
-        // KataGo analysis engine start
-        using namespace std::chrono;
-        uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-        std::string query_id = std::to_string(ms);
-
-        int board_size = m_state->board.get_boardsize();
-        string tmp_query = "";
-        for (auto it = m_overrideSettings.begin(); it != m_overrideSettings.end(); ++it) {
-            tmp_query += *it;
-        }
-        nlohmann::json send_json = nlohmann::json::parse(tmp_query);
-        send_json["id"] = "analysis_" + query_id;
-        send_json["komi"] = m_state->get_komi();
-        send_json["boardXSize"] = board_size;
-        send_json["boardYSize"] = board_size;
-        int i = 0;
-        if (m_handi.size() > 0) {
-            for (auto itr = m_handi.begin(); itr != m_handi.end(); ++itr) {
-                std::string handi_move = m_state->move_to_text(*itr);
-                send_json["initialStones"][i][0] = "B";
-                send_json["initialStones"][i][1] = handi_move;
-                i++;
-            }
-        }
-        std::unique_ptr<GameState> state(new GameState);
-        *state = *m_state;
-        state->rewind();
-        send_json["moves"] = nlohmann::json::array();
-        if (m_state->get_movenum() > 0) {
-            for (int i = 0; i < m_state->get_movenum(); i++) {
-                state->forward_move();
-                int move = state->get_last_move();
-                if (move == FastBoard::RESIGN) {
-                    break;
-                }
-                std::string movestr = state->board.move_to_text(move);
-                if (state->get_to_move() == FastBoard::BLACK) {
-                    send_json["moves"][i][0] = "W";
-                } else {
-                    send_json["moves"][i][0] = "B";
-                }
-                send_json["moves"][i][1] = movestr;
-            }
-        } else {
-            if (m_handi.size() > 0) {
-                send_json["initialPlayer"] = "W";
-            } else {
-                send_json["initialPlayer"] = "B";
-            }
-        }
-        if (!send_json.contains("reportDuringSearchEvery")) {
-            send_json["reportDuringSearchEvery"] = 1.0;
-        }
-        if (send_json.contains("maxVisitsAnalysis")) {
-            if (m_analyseflag) {
-                send_json["maxVisits"] = send_json["maxVisitsAnalysis"];
-            }
-            send_json.erase("maxVisitsAnalysis");
-        } else if (m_analyseflag) {
-            send_json["maxVisits"] = 1000000;
-        }
-        if (send_json.contains("maxTimeAnalysis")) {
-            if (m_analyseflag) {
-                send_json["overrideSettings"]["maxTime"] = send_json["maxTimeAnalysis"];
-            }
-            send_json.erase("maxTimeAnalysis");
-        } else if (m_analyseflag) {
-            send_json["overrideSettings"]["maxTime"] = 3600;
-        }
-        string req_query = send_json.dump();
-        string move_str;
-        float winrate = std::nanf("");
-        float scoreMean;
-        string res_query;
-        string last_query = "";
-        bool isDuringSearch = true;
-        std::string::size_type pos;
-        using TRowVector = std::vector<std::pair<std::string, std::string>>;
-        using TDataVector = std::tuple<int, float, std::vector<TRowVector>>;
-        using TMoveData = std::vector<std::pair<std::string, float>>;
-        if (m_analyseflag) {
-            // KataGo analysis engine (analysis) start
-            while (isDuringSearch && m_runflag) {
-                res_query = "";
-                GTPSend(req_query + "\n", res_query);
-                if (!res_query.length()) {
-                    Utils::GUIprintf(cfg_lang, _(""));
-                    return;
-                }
-                if (res_query.find("\"error\":") != string::npos) {
-                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                    Utils::GUIprintf(cfg_lang, _(""));
-                    return;
-                }
-                if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
-                    isDuringSearch = false;
-                }
-                pos = res_query.rfind("\r\n");
-                if (pos != string::npos) {
-                    last_query = res_query.substr(pos + 2);
-                    res_query = last_query;
-                } else {
-                    pos = res_query.find("\n");
-                    if (pos != string::npos) {
-                        last_query = res_query.substr(pos + 1);
-                        res_query = last_query;
-                    }
-                }
-                req_query = "";
-                nlohmann::json res_1_json = nlohmann::json::parse(res_query);
-                move_str = res_1_json["moveInfos"][0]["move"];
-                winrate = 1.0 - res_1_json["rootInfo"]["winrate"].get<float>();
-                scoreMean = -1.0 * res_1_json["rootInfo"]["scoreLead"].get<float>();
-                nlohmann::json j1 = res_1_json["moveInfos"];
-                std::unique_ptr<TDataVector> analysis_packet(new TDataVector);
-                std::unique_ptr<TMoveData> move_data(new TMoveData);
-                std::get<0>(*analysis_packet) = who;
-                std::get<1>(*analysis_packet) = scoreMean;
-                auto & analysis_data = std::get<2>(*analysis_packet);
-                for (nlohmann::json::iterator it1 = j1.begin(); it1 != j1.end(); ++it1) {
-                    nlohmann::json j2 = it1.value();
-                    if (j2.contains("isSymmetryOf")) {
-                        continue;
-                    }
-                    TRowVector row;
-                    row.emplace_back(_("Move").utf8_str(), j2["move"]);
-                    row.emplace_back(_("Effort%").utf8_str(),
-                        std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
-                    row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
-                    if (who == FastBoard::BLACK) {
-                        row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
-                        row.emplace_back(_("Score").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
-                    } else {
-                        row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                        row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
-                    }
-                    std::string pvstring;
-                    nlohmann::json j3 = j2["pv"];
-                    for (nlohmann::json::iterator it2 = j3.begin(); it2 != j3.end(); ++it2) {
-                        if (it2 > j3.begin()) {
-                            pvstring += " ";
-                        }
-                        pvstring += *it2;
-                    }
-                    row.emplace_back(_("PV").utf8_str(), pvstring);
-                    analysis_data.emplace_back(row);
-                    move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
-                }
-                if (who == FastBoard::BLACK) {
-                    Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), 100 - winrate * 100, -1 * scoreMean);
-                } else {
-                    Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")).utf8_str(), winrate * 100, scoreMean);
-                }
-                Utils::GUIAnalysis((void*)analysis_packet.release());
-                Utils::GUIBestMoves((void*)move_data.release());
-            }
-            if (isDuringSearch) {
-                nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
-                terminate_json["id"] = "terminate_" + query_id;
-                terminate_json["terminateId"] = "analysis_" + query_id;
-                string req_query_terminate = terminate_json.dump();
-                bool terminate_res = false;
-                for ( int i = 0; i < 100; i++ ) {
-                    res_query = "";
-                    GTPSend(req_query_terminate + "\n", res_query);
-                    req_query_terminate = "";
-                    if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
-                        terminate_res = true;
-                    }
-                    if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
-                        isDuringSearch = false;
-
-                        string winrate_str = "";
-                        string scoreMean_str = "";
-                        pos = res_query.rfind("winrate ", pos);
-                        if (pos == string::npos) {
-                            pos = 0;
-                            winrate_str = "";
-                        } else {
-                            for (auto i = pos + sizeof("winrate ") - 1; i < res_query.length(); i++) {
-                                if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
-                                    winrate_str += res_query[i];
-                                } else {
-                                    break;
-                                }
-                            }
-                        }
-                        pos = res_query.rfind("scoreMean ", pos);
-                        if (pos == string::npos) {
-                            scoreMean_str = "";
-                        } else {
-                            for (auto i = pos + sizeof("scoreMean ") - 1; i < res_query.length(); i++) {
-                                if (res_query[i] != ' ' && res_query[i] != '\r' && res_query[i] != '\n') {
-                                    scoreMean_str += res_query[i];
-                                } else {
-                                    break;
-                                }
-                            }
-                        }
-                        if (winrate_str.length() > 0) {
-                            winrate = stof(winrate_str);
-                        }
-                        if (scoreMean_str.length() > 0) {
-                            scoreMean = stof(scoreMean_str);
-                        }
-                    }
-                    if (terminate_res && !isDuringSearch) {
-                        break;
-                    }
-                }
-            }
-            m_state->m_black_score = -1.0f * scoreMean;
-            if (m_update_score && !std::isnan(winrate)) {
-                // Broadcast result from search
-                auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
-                auto movenum = m_state->get_movenum();
-                float lead = 0.5;
-                if (scoreMean > 0.0) {
-                    lead = 0.5 - (std::min)(0.5f, std::sqrt(scoreMean) / 40);
-                } else if (scoreMean < 0.0) {
-                    lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
-                }
-                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, lead, 1.0 - winrate);
-                event->SetClientData((void*)new auto(scoretuple));
-
-                wxQueueEvent(m_frame->GetEventHandler(), event);
-            }
-            Utils::GUIprintf(cfg_lang, _("Analysis stopped").utf8_str());
-            return;
-            // KataGo analysis engine (analysis) end
-        }
-        // KataGo analysis engine (games) start
-        nlohmann::json res_1_json;
-        send_json["id"] = "play1_" + query_id;
-        if (send_json["overrideSettings"]["maxTime"] > 5) {
-            req_query = send_json.dump();
-            while (true) {
-                res_query = "";
-                GTPSend(req_query + "\n", res_query);
-                if (!res_query.length()) {
-                    Utils::GUIprintf(cfg_lang, _(""));
-                    return;
-                }
-                if (res_query.find("\"error\":") != string::npos) {
-                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                    Utils::GUIprintf(cfg_lang, _(""));
-                    return;
-                }
-                if (res_query.find("\"isDuringSearch\":false") != string::npos) {
-                    isDuringSearch = false;
-                    pos = res_query.rfind("\r\n");
-                    if (pos != string::npos) {
-                        last_query = res_query.substr(pos + 2);
-                        res_query = last_query;
-                    } else {
-                        pos = res_query.rfind("\n");
-                        if (pos != string::npos) {
-                            last_query = res_query.substr(pos + 1);
-                            res_query = last_query;
-                        }
-                    }
-                    res_1_json = nlohmann::json::parse(res_query);
-                    break;
-                }
-                if (!m_runflag) {
-                    break;
-                }
-                req_query = "";
-            }
-            if (isDuringSearch) {
-                nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
-                terminate_json["id"] = "terminate_" + query_id;
-                terminate_json["terminateId"] = "play1_" + query_id;
-                string req_query_terminate = terminate_json.dump();
-                bool terminate_res = false;
-                for ( int i = 0; i < 100; i++ ) {
-                    res_query = "";
-                    GTPSend(req_query_terminate + "\n", res_query);
-                    req_query_terminate = "";
-                    if (!terminate_res && res_query.find("\"action\":\"terminate\"") != string::npos) {
-                        terminate_res = true;
-                    }
-                    if (isDuringSearch && res_query.find("\"isDuringSearch\":false") != string::npos) {
-                        isDuringSearch = false;
-                        pos = res_query.rfind("\r\n");
-                        if (pos != string::npos) {
-                            last_query = res_query.substr(pos + 2);
-                            res_query = last_query;
-                        } else {
-                            pos = res_query.rfind("\n");
-                            if (pos != string::npos) {
-                                last_query = res_query.substr(pos + 1);
-                                res_query = last_query;
-                            }
-                        }
-                        res_1_json = nlohmann::json::parse(res_query);
-                    }
-                    if (terminate_res && !isDuringSearch) {
-                        break;
-                    }
-                }
-            }
-            send_json.erase("reportDuringSearchEvery");
-        } else {
-            send_json.erase("reportDuringSearchEvery");
-            req_query = send_json.dump();
-            res_query = "";
-            GTPSend(req_query + "\n", res_query);
-            if (!res_query.length()) {
-                Utils::GUIprintf(cfg_lang, _(""));
-                return;
-            }
-            if (res_query.find("\"error\":") != string::npos) {
-                ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                Utils::GUIprintf(cfg_lang, _(""));
-                return;
-            }
-
-            res_1_json = nlohmann::json::parse(res_query);
-        }
-        // Send query to get ownership and policy
-        send_json["id"] = "play2_" + query_id;
-        move_str = res_1_json["moveInfos"][0]["move"];
-        send_json["includeOwnership"] = true;
-        send_json["includePolicy"] = true;
-        send_json["maxVisits"] = 1;
-        if (who == FastBoard::BLACK) {
-            send_json["moves"][m_state->get_movenum()][0] = "B";
-        } else {
-            send_json["moves"][m_state->get_movenum()][0] = "W";
-        }
-        send_json["moves"][m_state->get_movenum()][1] = move_str;
-        string req_query_2 = send_json.dump();
-        res_query = "";
-        GTPSend(req_query_2 + "\n", res_query);
-        if (!res_query.length()) {
+            // KataGo analysis engine (games) end
+        } catch (std::exception& e) {
+            wxString errorString;
+            errorString.Printf(_("Exception %s %s\n"), typeid(e).name(), e.what());
+            ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_ERROR);
+            Utils::GUIprintf(cfg_lang, _(""));
             return;
         }
-        nlohmann::json res_2_json = nlohmann::json::parse(res_query);
-        winrate = res_1_json["rootInfo"]["winrate"].get<float>();
-        scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
-
-        if (move_str.length() > 0) {
-            // KataGo's Resignation Decision
-            float initialBlackAdvantageInPoints;
-            if (m_handi.size() <= 1) {
-                initialBlackAdvantageInPoints = 7.0 - m_state->get_komi();
-            } else {
-                initialBlackAdvantageInPoints = 14.0 * (m_handi.size() - 1) + (7.0 - m_state->get_komi() - m_handi.size());
-            }
-            int minTurnForResignation = 0;
-            float noResignationWhenWhiteScoreAbove = board_size * board_size;
-            if(initialBlackAdvantageInPoints > 0.9 && who == FastBoard::WHITE) {
-                minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
-                float numTurnsToCatchUp = 0.60 * noResignationWhenWhiteScoreAbove - minTurnForResignation;
-                float numTurnsSpent = (float)(m_state->get_movenum() + 1) - minTurnForResignation;
-                if (numTurnsToCatchUp <= 1.0) {
-                    numTurnsToCatchUp = 1.0;
-                }
-                if (numTurnsSpent <= 0.0) {
-                    numTurnsSpent = 0.0;
-                }
-                if (numTurnsSpent > numTurnsToCatchUp) {
-                    numTurnsSpent = numTurnsToCatchUp;
-                }
-                float resignScore = -initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
-                resignScore -= 5.0;
-                resignScore -= initialBlackAdvantageInPoints * 0.15;
-                noResignationWhenWhiteScoreAbove = resignScore;
-            }
-            bool resign = true;
-            if (m_state->get_movenum() + 1 < minTurnForResignation) {
-                resign = false;
-            } else if (who == FastBoard::WHITE && (-1.0 * scoreMean) > noResignationWhenWhiteScoreAbove) {
-                resign = false;
-            } else if ((who == FastBoard::WHITE && (-1.0 * scoreMean) > -1.0 * RESIGN_MINSCORE_DIFFERENCE) ||
-                       (who == FastBoard::BLACK && scoreMean > (-1.0 * RESIGN_MINSCORE_DIFFERENCE))) {
-                resign = false;
-            }
-            for (size_t i = 0; i < m_state->m_win_rate.size() - 1; i++) {
-                m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i]
-                    = m_state->m_win_rate[m_state->m_win_rate.size() - 2 - i];
-                if (m_state->m_win_rate[m_state->m_win_rate.size() - 1 - i] >= RESIGN_THRESHOLD) {
-                    resign = false;
-                }
-            }
-            if (who == FastBoard::BLACK) {
-                m_state->m_win_rate[0] = winrate;
-            } else {
-                m_state->m_win_rate[0] = 1.0 - winrate;
-            }
-            if (resign && m_state->m_win_rate[0] < RESIGN_THRESHOLD) {
-                move_str = "resign";
-            }
-            if (move_str == "pass") {
-                m_state->play_move(who, FastBoard::PASS);
-            } else if (move_str == "resign") {
-                m_state->play_move(who, FastBoard::RESIGN);
-            } else {
-                m_state->play_move(who, m_state->board.text_to_move(move_str));
-            }
-        }
-        // Edit Ownership Information
-        std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0);
-        for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-            int x = vertex % board_size;
-            int y = vertex / board_size;
-            y = -1 * (y - board_size) - 1;
-            int pos = m_state->board.get_vertex(x, y);
-            float owner = res_2_json["ownership"][vertex];
-            conv_owner[pos] = (owner / 2) + 0.5;
-        }
-        m_state->m_owner.clear();
-        for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-            m_state->m_owner.emplace_back(*itr);
-        }
-        // Edit Policy Information
-        std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0);
-        float maxProbability = 0.0f;
-        for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
-            int x = vertex % board_size;
-            int y = vertex / board_size;
-            y = -1 * (y - board_size) - 1;
-            int pos = m_state->board.get_vertex(x, y);
-            float policy = res_2_json["policy"][vertex];
-            conv_policy[pos] = policy;
-            if (policy > maxProbability) {
-                maxProbability = policy;
-            }
-        }
-        float policy = res_2_json["policy"][board_size * board_size];
-        conv_policy[0] = maxProbability;
-        conv_policy[1] = policy;
-        m_state->m_policy.clear();
-        for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-            m_state->m_policy.emplace_back(*itr);
-        }
-        m_state->m_black_score = scoreMean;
-        std::bitset<FastBoard::MAXSQ> blackowns;
-        for (int i = 0; i < board_size; i++) {
-            for (int j = 0; j < board_size; j++) {
-                int vtx = m_state->board.get_vertex(i, j);
-                if (m_state->m_owner[vtx] >= 0.5) {
-                    blackowns[vtx] = true;
-                }
-            }
-        }
-        MCOwnerTable::get_MCO()->update_owns(blackowns, 1.0f - winrate, -1.0f * scoreMean);
-
-        if (m_update_score) {
-            // Broadcast result from search
-            auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
-            auto movenum = m_state->get_movenum();
-            float lead = 0.5;
-            if (scoreMean > 0.0) {
-                lead = 0.5 + (std::min)(0.5f, std::sqrt(scoreMean) / 40);
-            } else if (scoreMean < 0.0) {
-                lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
-            }
-            std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, lead, winrate);
-            event->SetClientData((void*)new auto(scoretuple));
-
-            wxQueueEvent(m_frame->GetEventHandler(), event);
-        }
-
-        if (who == FastBoard::BLACK) {
-            Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), 100 - winrate * 100, -1 * scoreMean);
-        } else {
-            Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f").utf8_str(), winrate * 100, scoreMean);
-        }
-
-        wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-        // KataGo analysis engine (games) end
     };
 
     m_tg.add_task(Func);
