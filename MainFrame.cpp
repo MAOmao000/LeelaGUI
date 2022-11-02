@@ -1480,17 +1480,9 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
 
         int size = m_State.board.get_boardsize() * m_State.board.get_boardsize();
         if (m_State.get_to_move() == FastBoard::WHITE) {
-            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-                score = -size;
-            } else {
-                score = -1.0f * (ceil(m_State.m_black_score) - 0.5);
-            }
+            score = -size;
         } else {
-            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-                score = size;
-            } else {
-                score = ceil(m_State.m_black_score) - 0.5;
-            }
+            score = size;
         }
         prekomi = score + komi + handicap;
     } else {
@@ -1498,11 +1490,7 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
             score = m_State.final_score(nullptr, m_disputing ? false : true);
         } else {
-            if (m_State.get_to_move() == FastBoard::WHITE) {
-                score = -1.0f * (ceil(m_State.m_black_score) - 0.5);
-            } else {
-                score = ceil(m_State.m_black_score) - 0.5;
-            }
+            score = ceil(m_State.m_black_score) - 0.5;
         }
         handicap = m_State.get_handicap();
         prekomi = score + komi + handicap;
