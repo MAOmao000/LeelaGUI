@@ -11,22 +11,22 @@ TNewGameDialog( parent )
 }
 
 void NewGameDialog::doInit( wxInitDialogEvent& event ) {    
-    int size = wxConfig::Get()->Read(wxT("DefaultBoardSize"), (long)4);
+    int size = wxConfig::Get()->ReadLong(wxT("DefaultBoardSize"), (long)4);
     m_radioBoxBoardSize->SetSelection(size);
     
-    int handicap = wxConfig::Get()->Read(wxT("DefaultHandicap"), (long)0);
+    int handicap = wxConfig::Get()->ReadLong(wxT("DefaultHandicap"), (long)0);
     m_spinCtrlHandicap->SetValue(handicap);
     
-    int komi = wxConfig::Get()->Read(wxT("DefaultKomi"), (long)7);
+    int komi = wxConfig::Get()->ReadLong(wxT("DefaultKomi"), (long)7);
     m_spinCtrlKomi->SetValue(komi);
     
-    int simulations = wxConfig::Get()->Read(wxT("DefaultSimulations"), (long)6);
+    int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
     m_radioBoxLevel->SetSelection(simulations);
     
-    int minutes = wxConfig::Get()->Read(wxT("DefaultMinutes"), (long)20);
+    int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
     m_spinCtrlTime->SetValue(minutes);
     
-    int color = wxConfig::Get()->Read(wxT("DefaultColor"), (long)0);
+    int color = wxConfig::Get()->ReadLong(wxT("DefaultColor"), (long)0);
     m_radioBoxColor->SetSelection(color);
 
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
@@ -35,7 +35,9 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         m_spinCtrlTime->Enable(false);
         m_staticText13->Enable(false);
+        m_radioBoxLevel->SetSelection( 5 );
         m_radioBoxLevel->Enable(false);
+        m_checkNeuralNet->SetValue(false);
         m_checkNeuralNet->Enable(false);
     }
 
