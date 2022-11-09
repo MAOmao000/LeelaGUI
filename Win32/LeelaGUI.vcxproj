@@ -36,33 +36,33 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <UseOfMfc>false</UseOfMfc>
-    <LLVMToolsVersion>15.0.0</LLVMToolsVersion>
+    <LLVMToolsVersion>15.0.1</LLVMToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <UseOfMfc>false</UseOfMfc>
-    <LLVMToolsVersion>15.0.0</LLVMToolsVersion>
+    <LLVMToolsVersion>15.0.1</LLVMToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -158,6 +158,8 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <TargetMachine>MachineX64</TargetMachine>
+      <StackReserveSize>8388608</StackReserveSize>
+      <StackCommitSize>8192</StackCommitSize>
     </Link>
     <Manifest />
     <Manifest>
@@ -204,6 +206,8 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <TargetMachine>MachineX64</TargetMachine>
+      <StackReserveSize>8388608</StackReserveSize>
+      <StackCommitSize>8192</StackCommitSize>
     </Link>
     <Manifest />
     <Manifest>
@@ -245,6 +249,8 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <TargetMachine>MachineX64</TargetMachine>
+      <StackReserveSize>8388608</StackReserveSize>
+      <StackCommitSize>8192</StackCommitSize>
     </Link>
     <Manifest />
     <Manifest>
@@ -283,6 +289,8 @@
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <StackReserveSize>8388608</StackReserveSize>
+      <StackCommitSize>8192</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
@@ -318,6 +326,8 @@
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <StackReserveSize>8388608</StackReserveSize>
+      <StackCommitSize>8192</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -456,6 +466,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\SubProcess.cpp" />
     <ClCompile Include="..\TBoardPanel.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
