@@ -1,5 +1,4 @@
 #include "SettingsDialog.h"
-#include "GTP.h"
 
 SettingsDialog::SettingsDialog( wxWindow* parent )
 :
@@ -15,10 +14,6 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool resignEnabled = wxConfig::Get()->ReadBool(wxT("resignEnabled"), true);
     m_checkBoxResignations->SetValue(resignEnabled);
 
-    if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-        m_checkBoxPondering->Enable(false);
-        wxConfig::Get()->Write(wxT("ponderEnabled"), false);
-    }
     bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
     m_checkBoxPondering->SetValue(ponderEnabled);
 
