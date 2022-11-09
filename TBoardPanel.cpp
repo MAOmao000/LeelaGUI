@@ -478,15 +478,6 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         if (m_State->legal_move(vtx)) {
             wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
             event.SetEventObject(this);
-            if (cfg_use_engine == GTP::USE_KATAGO_GTP) {
-                wxString msg;
-                if (m_State->get_to_move() == FastBoard::BLACK) {
-                    msg = wxString("play b " + m_State->move_to_text(vtx));
-                } else {
-                    msg = wxString("play w " + m_State->move_to_text(vtx));
-                }
-                event.SetString(msg);
-            }
             ::wxPostEvent(GetEventHandler(), event);
 
             m_State->play_move(vtx);
@@ -550,24 +541,6 @@ bool TBoardPanel::getShowBestMoves() {
 }
 
 void TBoardPanel::doMoyo() {
-    /*
-    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
-        if (m_State->m_owner.size() > 0) {
-            m_Hatch.resize(FastBoard::MAXSQ);
-            std::fill(m_Hatch.begin(), m_Hatch.end(), FastBoard::EMPTY);
-            int i = 0;
-            for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
-                if (*itr > 0.6) {
-                    m_Hatch[i] = FastBoard::BLACK;
-                } else if (*itr < 0.4) {
-                    m_Hatch[i] = FastBoard::WHITE;
-                }
-                i++;
-            }
-            return;
-        }
-    }
-    */
     std::vector<int> moyo = m_State->board.moyo();
 
     m_Hatch.resize(FastBoard::MAXSQ);
