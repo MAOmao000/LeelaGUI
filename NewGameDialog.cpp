@@ -33,10 +33,10 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     m_checkNeuralNet->SetValue(nets);
 
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
-        m_spinCtrlTime->Enable(false);
-        m_staticText13->Enable(false);
-        m_radioBoxLevel->SetSelection( 5 );
-        m_radioBoxLevel->Enable(false);
+        //m_spinCtrlTime->Enable(false);
+        //m_staticText13->Enable(false);
+        //m_radioBoxLevel->SetSelection( 5 );
+        //m_radioBoxLevel->Enable(false);
         m_checkNeuralNet->SetValue(false);
         m_checkNeuralNet->Enable(false);
     }
