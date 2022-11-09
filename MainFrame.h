@@ -12,6 +12,31 @@
 #include "GTP.h"
 #include "json.hpp"
 
+#define Exec_TimerIdle 2000
+#define RESIGN_THRESHOLD 0.05  // Resignation after 3 consecutive win rates of 5% or less
+#define RESIGN_MINSCORE_DIFFERENCE -1e10
+
+enum {
+    INIT,
+    KATAGO_STRATING,
+    ANALYSIS_RESPONSE_WAIT,
+    KATAGO_IDLE,
+    KATAGO_STOPED,
+    ANALYSIS_QUERY_WAIT,
+    ANALYSIS_TERMINATE_WAIT,
+    GAME_FIRST_QUERY_WAIT,
+    GAME_TERMINATE_QUERY_WAIT,
+    GAME_SECOND_QUERY_WAIT,
+};
+
+enum {
+    NON,
+    POLICY,
+    POLICYPASS,
+    WHITEOWNERSHIP,
+    LAST,
+};
+
 class AnalysisWindow;
 class ScoreHistogram;
 
@@ -23,8 +48,11 @@ wxDECLARE_EVENT(wxEVT_BESTMOVES_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PURGE_VIZ, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_RECIEVE_KATAGO, wxCommandEvent);
 
 static wxLocale m_locale;
+
+class SubProcess;
 
 class MainFrame : public TMainFrame {
 	public:
@@ -33,6 +61,11 @@ class MainFrame : public TMainFrame {
 		void SetStatusBarText(wxString mess, int pos);
 		void loadSGF(const wxString & filename, int movenum = 999);
 		virtual void doNewRatedGame(wxCommandEvent& event);
+		void OnAsyncTermination(SubProcess *process);
+		void OnProcessTerminated(SubProcess *process);
+		void OnIdleTimer(wxTimerEvent& event);
+		void OnIdle(wxIdleEvent& event);
+		void doInit();
 
 	private:
 	virtual void doActivate(wxActivateEvent& event);
@@ -74,6 +107,7 @@ class MainFrame : public TMainFrame {
 	virtual void doShowHideScoreHistogram( wxCommandEvent& event ) override;
 	virtual void doCopyClipboard( wxCommandEvent& event ) override;
 	virtual void doPasteClipboard( wxCommandEvent& event ) override;
+	virtual void doRecieveKataGo(wxCommandEvent& event);
 	void doEvalUpdate(wxCommandEvent& event);
 	void doRealUndo(int count = 1);
 	void doRealForward(int count = 1);
@@ -82,6 +116,7 @@ class MainFrame : public TMainFrame {
 	void broadcastCurrentMove();
 
 	void startEngine();
+	void startKataGo();
 	bool stopEngine(bool update_score = true);
 	// true = user accepts score
 	bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
@@ -93,7 +128,7 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
-	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
+	void postIdle();
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -113,22 +148,52 @@ class MainFrame : public TMainFrame {
 	bool m_pondering;
 	bool m_disputing;
 	bool m_ponderedOnce;
-	std::mutex m_GTPmutex;
+	nlohmann::json m_send_json;
+	int  m_katagoStatus;
+	bool m_runflag;
+	bool m_isDuringSearch;
+	bool m_terminate_res;
+	bool m_update_score;
+
+	bool m_post_destructor;
+	bool m_post_doExit;
+	bool m_post_doNewMove;
+	bool m_post_doSettingsDialog;
+	bool m_post_doNewGame;
+	bool m_post_doNewRatedGame;
+	bool m_post_doScore;
+	bool m_post_doPass;
+	int m_post_doRealUndo;
+	int m_post_doRealForward;
+	bool m_post_doOpenSGF;
+	bool m_post_doSaveSGF;
+	bool m_post_doForceMove;
+	bool m_post_doResign;
+	bool m_post_doAnalyze;
+
 	std::vector<int> m_move_handi;
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
 	std::vector<std::string> m_overrideSettings;
+	std::string m_move_str;
+	float m_winrate;
+	float m_scoreMean;
+	std::string m_query_id;
+
 	friend class TEngineThread;
 	friend class TBoardPanel;
 
-	wxProcess* m_process{nullptr};
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
+	wxInputStream* m_err{nullptr};
 	bool m_close_window;
 	bool m_japanese_rule;
+	SubProcess *m_process;
+	wxTimer m_timerIdleWakeUp;
+	std::vector<wxString> m_ini_line;
 
-	public:
+public:
 	static void setLocale(bool japanese) {
 		if (japanese) {
 			if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
@@ -143,4 +208,13 @@ class MainFrame : public TMainFrame {
 	}
 };
 
+class SubProcess : public wxProcess {
+public:
+	SubProcess(MainFrame *parent);
+	virtual void OnTerminate(int pid, int status) wxOVERRIDE;
+	bool HasInput();
+
+protected:
+	MainFrame *m_parent;
+};
 #endif
