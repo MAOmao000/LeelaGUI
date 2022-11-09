@@ -117,8 +117,7 @@ bool MyApp::OnInit()
         wxString sgfString(argv[1]);
         frame->loadSGF(sgfString, movenum);
     } else {
-        wxCommandEvent evt;
-        frame->doNewRatedGame(evt);
+        frame->doInit();
     }
 
     return true;
