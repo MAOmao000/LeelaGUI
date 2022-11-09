@@ -44,8 +44,7 @@ extern bool cfg_board25;
 class GTP {
 public:
     static constexpr int ORIGINE_ENGINE = 0;
-    static constexpr int USE_KATAGO_GTP = 1;
-    static constexpr int USE_KATAGO_ANALYSIS = 2;
+    static constexpr int KATAGO_ENGINE = 1;
     static bool execute(GameState & game, std::string xinput);
     static void setup_default_parameters(int lang=0, int use_engine=ORIGINE_ENGINE, bool board25=true);
     static bool perform_self_test(GameState & state);
