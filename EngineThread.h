@@ -4,22 +4,14 @@
 #include "stdafx.h"
 #include "GameState.h"
 #include "Utils.h"
-#include "json.hpp"
 #include <atomic>
-#include <vector>
 
 class MainFrame;
 using Utils::ThreadGroup;
 
 class TEngineThread {
     public:
-        TEngineThread(const GameState& gamestate,
-                      MainFrame *frame,
-                      wxProcess *process,
-                      wxInputStream *std_in,
-                      wxOutputStream *std_out,
-                      std::mutex *GTPmutex,
-                      std::vector<std::string>& overrideSettings);
+        TEngineThread(const GameState& gamestate, MainFrame *frame);
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -29,21 +21,15 @@ class TEngineThread {
         void set_nopass(bool flag);
         void set_quiet(bool flag);
         void set_nets(bool flag);
-        void set_handi(std::vector<int> handi);
         void stop_engine(void);
         void kill_score_update(void);
         GameState& get_state(void) {
             return *m_state;
         }
     private:
-        void kata_raw_nn(void);
-        void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=100);
         std::unique_ptr<GameState> m_state;
         MainFrame *m_frame;
-        wxProcess *m_process;
-        wxInputStream *m_in;
-        wxOutputStream *m_out;
-        int m_maxvisits=0;
+        int m_maxvisits;
         bool m_nets;
         bool m_resigning;
         bool m_analyseflag;
@@ -51,11 +37,8 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
-        std::vector<std::string> m_overrideSettings{};
-        std::vector<int> m_handi;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
-        std::mutex *m_GTPmutex=nullptr;
 };
 
 #endif
