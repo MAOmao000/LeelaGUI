@@ -124,6 +124,7 @@ set(SRCS
   ScoreDialog.cpp
   ScoreHistogram.cpp
   SettingsDialog.cpp
+  SubProcess.cpp
   TBoardPanel.cpp
   TScorePanel.cpp
 )
