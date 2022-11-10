@@ -568,7 +568,11 @@ void MainFrame::startKataGo() {
                 time_for_move /= 100;
             }
             m_send_json["id"] = "play1_" + m_query_id;
-            m_send_json["maxVisits"] = m_visitLimit;
+            if (m_visitLimit <= 0) {
+                m_send_json["maxVisits"] = INT_MAX;
+            } else {
+                m_send_json["maxVisits"] = m_visitLimit;
+            }
             m_send_json["overrideSettings"]["maxTime"] = time_for_move;
             //wxLogError("%d", time_for_move);
             if (m_send_json["overrideSettings"]["maxTime"] <= 5) {
@@ -2321,9 +2325,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             SetStatusBarText(kataRes, 1);
             m_katagoStatus = KATAGO_IDLE;
             postIdle();
-            wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
-            myevent.SetEventObject(this);
-            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
             return;
         }
         nlohmann::json res_1_json;
@@ -2369,9 +2370,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             SetStatusBarText(kataRes, 1);
             m_katagoStatus = KATAGO_IDLE;
             postIdle();
-            wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
-            myevent.SetEventObject(this);
-            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
             return;
         }
         if (!m_terminate_res && kataRes.find(R"("action":"terminate")") != std::string::npos) {
@@ -2410,9 +2408,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             SetStatusBarText(kataRes, 1);
             m_katagoStatus = KATAGO_IDLE;
             postIdle();
-            wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
-            myevent.SetEventObject(this);
-            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
             return;
         }
         nlohmann::json res_2_json = nlohmann::json::parse(kataRes);
