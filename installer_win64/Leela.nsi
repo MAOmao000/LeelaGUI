@@ -344,7 +344,6 @@ Section "LeelaI18N" leela
   File "bin\katago.exe"
   File "bin\LeelaGUI.ini"
   File "bin\analysis_example.cfg"
-  File "bin\default_gtp.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "license.rtf"
 
