@@ -129,6 +129,7 @@ class MainFrame : public TMainFrame {
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
 	void postIdle();
+	void setStartMenus(bool enable = true);
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -151,6 +152,7 @@ class MainFrame : public TMainFrame {
 	nlohmann::json m_send_json;
 	int  m_katagoStatus;
 	bool m_runflag;
+	bool m_wasRunning;
 	bool m_isDuringSearch;
 	bool m_terminate_res;
 	bool m_update_score;
