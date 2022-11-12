@@ -556,11 +556,14 @@ void TBoardPanel::doMoyo() {
 }
 
 void TBoardPanel::doOwner() {
+    int boardsize = m_State->board.get_boardsize();
+
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         if (m_State->m_owner.size() > 0) {
-            m_Owner.clear();
-            for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
-                m_Owner.emplace_back(*itr);
+            auto itr = m_State->m_owner.begin();
+            for (int i = 0; i < boardsize * boardsize; i++) {
+                m_Owner[i] = *itr;
+                itr++;
             }
             return;
         }
@@ -572,8 +575,6 @@ void TBoardPanel::doOwner() {
 
     m_Owner.resize(FastBoard::MAXSQ);
     std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
-
-    int boardsize = m_State->board.get_boardsize();
 
     for (int x = 0; x < boardsize; x++) {
         for (int y = 0; y < boardsize; y++) {
