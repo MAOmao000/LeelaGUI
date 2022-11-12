@@ -1,37 +1,27 @@
 #include "stdafx.h"
 
 #include <thread>
-#include <chrono>
-#include <regex>
 #include "EngineThread.h"
 #include "UCTSearch.h"
 #include "MainFrame.h"
 #include "Utils.h"
-#include "MCOTable.h"
 
-using namespace std;
-
-TEngineThread::TEngineThread(const GameState& state, MainFrame *frame)
-    :m_state(std::make_unique<GameState>(state)),
-     m_frame(frame),
-     m_maxvisits(0),
-     m_nets(true),
-     m_resigning(true),
-     m_analyseflag(false),
-     m_pondering(false),
-     m_quiet(false),
-     m_nopass(false),
-     m_update_score(true),
-     m_runflag(true)
-{
+TEngineThread::TEngineThread(const GameState& state, MainFrame * frame) {
+    m_state = std::make_unique<GameState>(state);
+    m_frame = frame;
+    m_maxvisits = 0;
+    m_runflag = true;
+    m_nopass = false;
+    m_quiet = false;
+    m_nets = true;
+    m_update_score = true;
 }
 
 void TEngineThread::Run() {
     auto Func = [this] {
+        auto search = std::make_unique<UCTSearch>(*m_state);
+
         int who = m_state->get_to_move();
-
-        auto search = make_unique<UCTSearch>(*m_state);
-
         if (m_analyseflag && !m_pondering) {
             search->set_playout_limit(0);
         } else {
@@ -57,18 +47,24 @@ void TEngineThread::Run() {
         if (!m_analyseflag) {
             m_state->play_move(who, move);
         }
+
         if (m_update_score) {
             // Broadcast result from search
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto scores = search->get_scores();
             auto movenum = m_state->get_movenum();
-            auto scoretuple = make_tuple(movenum, get<0>(scores), get<1>(scores), get<2>(scores));
+            auto scoretuple = std::make_tuple(movenum,
+                                              std::get<0>(scores),
+                                              std::get<1>(scores),
+                                              std::get<2>(scores));
             event->SetClientData((void*)new auto(scoretuple));
 
             wxQueueEvent(m_frame->GetEventHandler(), event);
         }
+
         if (!m_analyseflag) {
-            wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+            wxQueueEvent(m_frame->GetEventHandler(),
+                new wxCommandEvent(wxEVT_NEW_MOVE));
         }
     };
 
