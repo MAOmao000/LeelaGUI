@@ -66,7 +66,7 @@ bool cfg_board25;
 
 void GTP::setup_default_parameters(int lang, int use_engine, bool board25) {
     cfg_allow_pondering = true;
-    cfg_allow_book = true;
+    cfg_allow_book = false;
     cfg_num_threads = std::max(1, std::min(SMP::get_num_cpus(), MAX_CPUS));
     cfg_enable_nets = true;
     cfg_komi_adjust = false;
