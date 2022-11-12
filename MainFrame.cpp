@@ -326,7 +326,7 @@ void MainFrame::doInit() {
     free(ini_path);
     if (fin) {
         std::string line;
-        for (int i = 0; std::getline(fin, line); i++) {
+        while (std::getline(fin, line)) {
             std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
             if (trim_line.length() <= 0 || trim_line[0] == '#') {
                 continue;
@@ -534,7 +534,7 @@ void MainFrame::startKataGo() {
         }
         if (!m_send_json.contains("reportDuringSearchEvery")) {
             if (m_analyzing | m_pondering) {
-                m_send_json["maxVisits"] = m_send_json["maxVisitsAnalysis"];
+                m_send_json["maxVisits"] = m_send_json["maxVisitsAnalysis"].get<int>();
             }
             m_send_json.erase("maxVisitsAnalysis");
         } else if (m_analyzing | m_pondering) {
@@ -542,7 +542,7 @@ void MainFrame::startKataGo() {
         }
         if (m_send_json.contains("maxTimeAnalysis")) {
             if (m_analyzing | m_pondering) {
-                m_send_json["overrideSettings"]["maxTime"] = m_send_json["maxTimeAnalysis"];
+                m_send_json["overrideSettings"]["maxTime"] = m_send_json["maxTimeAnalysis"].get<int>();
             }
             m_send_json.erase("maxTimeAnalysis");
         } else if (m_analyzing | m_pondering) {
@@ -575,7 +575,7 @@ void MainFrame::startKataGo() {
             }
             m_send_json["overrideSettings"]["maxTime"] = time_for_move;
             //wxLogError("%d", time_for_move);
-            if (m_send_json["overrideSettings"]["maxTime"] <= 5) {
+            if (m_send_json["overrideSettings"]["maxTime"].get<int>() <= 5) {
                 m_send_json.erase("reportDuringSearchEvery");
             }
             std::string req_query = m_send_json.dump();
@@ -2079,6 +2079,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     std::unique_ptr<wxString> bundle(reinterpret_cast<wxString*>(rawdataptr));
     auto kataRes = *bundle;
 
+  try {
     if (m_katagoStatus == KATAGO_STRATING) {
         if (kataRes.length() > 35 && kataRes.substr(9, 1) == "2" && kataRes.substr(13, 1) == "-" && kataRes.substr(16, 1) == "-") {
             SetStatusBarText(_("KataGo starting... ") + kataRes.substr(35), 1);
@@ -2166,9 +2167,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         }
         std::string req_query = "";
         nlohmann::json res_1_json = nlohmann::json::parse(kataRes);
-        std::string move_str = res_1_json["moveInfos"][0]["move"];
-        m_winrate = 1.0 - res_1_json["rootInfo"]["winrate"].get<float>();
-        m_scoreMean = -1.0 * res_1_json["rootInfo"]["scoreLead"].get<float>();
+        std::string move_str = res_1_json["moveInfos"][0]["move"].get<std::string>();
+        m_winrate = 1.0f - res_1_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_1_json["rootInfo"]["scoreLead"].get<float>();
         nlohmann::json j1 = res_1_json["moveInfos"];
         using TRowVector = std::vector<std::pair<std::string, std::string>>;
         using TDataVector = std::tuple<int, float, std::vector<TRowVector>>;
@@ -2185,16 +2186,16 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 continue;
             }
             TRowVector row;
-            row.emplace_back(_("Move").utf8_str(), j2["move"]);
+            row.emplace_back(_("Move").utf8_str(), j2["move"].get<std::string>());
             row.emplace_back(_("Effort%").utf8_str(),
-                std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+                std::to_string(100.0f * j2["visits"].get<int>() / (float)res_1_json["rootInfo"]["visits"].get<int>()));
             row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
             if (who == FastBoard::BLACK) {
-                row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
+                row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0f * j2["winrate"].get<float>()));
                 row.emplace_back(_("Score").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
             } else {
-                row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
+                row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0f - 100.0f * j2["winrate"].get<float>()));
+                row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0f * j2["scoreLead"].get<float>()));
             }
             std::string pvstring;
             nlohmann::json j3 = j2["pv"];
@@ -2202,17 +2203,17 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 if (it2 > j3.begin()) {
                     pvstring += " ";
                 }
-                pvstring += *it2;
+                pvstring += (*it2).get<std::string>();
             }
             row.emplace_back(_("PV").utf8_str(), pvstring);
             analysis_data.emplace_back(row);
-            move_data->emplace_back(j2["move"], (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+            move_data->emplace_back(j2["move"].get<std::string>(), (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
         }
         wxString mess;
         if (who == FastBoard::BLACK) {
-            mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")), 100 - m_winrate * 100, -1 * m_scoreMean);
+            mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")), 100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean);
         } else {
-            mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")), m_winrate * 100, m_scoreMean);
+            mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")), m_winrate * 100.0f, m_scoreMean);
         }
         SetStatusBarText(mess, 1);
         Utils::GUIAnalysis((void*)analysis_packet.release());
@@ -2232,13 +2233,13 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         if (m_update_score && !std::isnan(m_winrate)) {
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_State.get_movenum();
-            float lead = 0.5;
-            if (m_scoreMean > 0.0) {
-                lead = 0.5 - (std::min)(0.5f, std::sqrt(m_scoreMean) / 40);
+            float lead = 0.5f;
+            if (m_scoreMean > 0.0f) {
+                lead = 0.5f - (std::min)(0.5f, std::sqrt(m_scoreMean) / 40.0f);
             } else if (m_scoreMean < 0.0) {
-                lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40);
+                lead = 0.5f + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
             }
-            std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0 - m_winrate, lead, 1.0 - m_winrate);
+            std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0f - m_winrate, lead, 1.0f - m_winrate);
             event->SetClientData((void*)new auto(scoretuple));
             wxQueueEvent(GetEventHandler(), event);
         }
@@ -2302,13 +2303,13 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         if (m_update_score && !std::isnan(m_winrate)) {
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_State.get_movenum();
-            float lead = 0.5;
-            if (m_scoreMean > 0.0) {
-                lead = 0.5 - (std::min)(0.5f, std::sqrt(m_scoreMean) / 40);
+            float lead = 0.5f;
+            if (m_scoreMean > 0.0f) {
+                lead = 0.5f - (std::min)(0.5f, std::sqrt(m_scoreMean) / 40.0f);
             } else if (m_scoreMean < 0.0) {
-                lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40);
+                lead = 0.5f + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
             }
-            std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0 - m_winrate, lead, 1.0 - m_winrate);
+            std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0f - m_winrate, lead, 1.0f - m_winrate);
             event->SetClientData((void*)new auto(scoretuple));
             wxQueueEvent(GetEventHandler(), event);
         }
@@ -2331,7 +2332,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         if (kataRes.find(R"("isDuringSearch":false)") != std::string::npos) {
             m_isDuringSearch = false;
             res_1_json = nlohmann::json::parse(kataRes);
-            m_move_str = res_1_json["moveInfos"][0]["move"];
+            m_move_str = res_1_json["moveInfos"][0]["move"].get<std::string>();
             m_winrate = res_1_json["rootInfo"]["winrate"].get<float>();
             m_scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
         } else if (!m_runflag) {
@@ -2378,7 +2379,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         if (m_isDuringSearch && kataRes.find(R"("isDuringSearch":false)") != std::string::npos) {
             m_isDuringSearch = false;
             nlohmann::json res_1_json = nlohmann::json::parse(kataRes);
-            m_move_str = res_1_json["moveInfos"][0]["move"];
+            m_move_str = res_1_json["moveInfos"][0]["move"].get<std::string>();
             m_winrate = res_1_json["rootInfo"]["winrate"].get<float>();
             m_scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
         }
@@ -2417,37 +2418,37 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             // KataGo's Resignation Decision
             float initialBlackAdvantageInPoints;
             if (m_move_handi.size() <= 1) {
-                initialBlackAdvantageInPoints = 7.0 - m_State.get_komi();
+                initialBlackAdvantageInPoints = 7.0f - m_State.get_komi();
             } else {
-                initialBlackAdvantageInPoints = 14.0 * (m_move_handi.size() - 1) + (7.0 - m_State.get_komi() - m_move_handi.size());
+                initialBlackAdvantageInPoints = 14.0f * (m_move_handi.size() - 1) + (7.0f - m_State.get_komi() - m_move_handi.size());
             }
             int minTurnForResignation = 0;
-            float noResignationWhenWhiteScoreAbove = board_size * board_size;
-            if (initialBlackAdvantageInPoints > 0.9 && who == FastBoard::WHITE) {
+            int noResignationWhenWhiteScoreAbove = board_size * board_size;
+            if (initialBlackAdvantageInPoints > 0.9f && who == FastBoard::WHITE) {
                 minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
-                float numTurnsToCatchUp = 0.60 * noResignationWhenWhiteScoreAbove - minTurnForResignation;
-                float numTurnsSpent = (float)(m_State.get_movenum() + 1) - minTurnForResignation;
-                if (numTurnsToCatchUp <= 1.0) {
-                    numTurnsToCatchUp = 1.0;
+                float numTurnsToCatchUp = 0.60f * noResignationWhenWhiteScoreAbove - (float)minTurnForResignation;
+                float numTurnsSpent = (float)(m_State.get_movenum() + 1) - (float)minTurnForResignation;
+                if (numTurnsToCatchUp <= 1.0f) {
+                    numTurnsToCatchUp = 1.0f;
                 }
-                if (numTurnsSpent <= 0.0) {
-                    numTurnsSpent = 0.0;
+                if (numTurnsSpent <= 0.0f) {
+                    numTurnsSpent = 0.0f;
                 }
                 if (numTurnsSpent > numTurnsToCatchUp) {
                     numTurnsSpent = numTurnsToCatchUp;
                 }
-                float resignScore = -initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
-                resignScore -= 5.0;
-                resignScore -= initialBlackAdvantageInPoints * 0.15;
+                float resignScore = -1.0f * initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
+                resignScore -= 5.0f;
+                resignScore -= initialBlackAdvantageInPoints * 0.15f;
                 noResignationWhenWhiteScoreAbove = resignScore;
             }
             bool resign = true;
             if (m_State.get_movenum() + 1 < minTurnForResignation) {
                 resign = false;
-            } else if (who == FastBoard::WHITE && (-1.0 * m_scoreMean) > noResignationWhenWhiteScoreAbove) {
+            } else if (who == FastBoard::WHITE && (-1.0f * m_scoreMean) > noResignationWhenWhiteScoreAbove) {
                 resign = false;
-            } else if ((who == FastBoard::WHITE && (-1.0 * m_scoreMean) > -1.0 * RESIGN_MINSCORE_DIFFERENCE) ||
-                (who == FastBoard::BLACK && m_scoreMean > (-1.0 * RESIGN_MINSCORE_DIFFERENCE))) {
+            } else if ((who == FastBoard::WHITE && (-1.0f * m_scoreMean) > -1.0f * RESIGN_MINSCORE_DIFFERENCE) ||
+                (who == FastBoard::BLACK && m_scoreMean > (-1.0f * RESIGN_MINSCORE_DIFFERENCE))) {
                 resign = false;
             }
             for (size_t i = 0; i < m_State.m_win_rate.size() - 1; i++) {
@@ -2460,7 +2461,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             if (who == FastBoard::BLACK) {
                 m_State.m_win_rate[0] = m_winrate;
             } else {
-                m_State.m_win_rate[0] = 1.0 - m_winrate;
+                m_State.m_win_rate[0] = 1.0f - m_winrate;
             }
             if (resign && m_State.m_win_rate[0] < RESIGN_THRESHOLD) {
                 m_move_str = "resign";
@@ -2474,17 +2475,17 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             }
         }
         // Edit Ownership and Policy Information
-        std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0);
-        std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0);
+        std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+        std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
         float maxProbability = 0.0f;
         for (int vertex = 0; vertex < board_size * board_size; vertex++) {
             int x = vertex % board_size;
             int y = vertex / board_size;
             y = -1 * (y - board_size) - 1;
             int pos = m_State.board.get_vertex(x, y);
-            float owner = res_2_json["ownership"][vertex];
-            conv_owner[pos] = (owner / 2) + 0.5;
-            float policy = res_2_json["policy"][vertex];
+            float owner = res_2_json["ownership"][vertex].get<float>();
+            conv_owner[pos] = (owner / 2.0f) + 0.5f;
+            float policy = res_2_json["policy"][vertex].get<float>();
             conv_policy[pos] = policy;
             if (policy > maxProbability) {
                 maxProbability = policy;
@@ -2494,7 +2495,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
             m_State.m_owner.emplace_back(*itr);
         }
-        float policy = res_2_json["policy"][board_size * board_size];
+        float policy = res_2_json["policy"][board_size * board_size].get<float>();
         conv_policy[0] = maxProbability;
         conv_policy[1] = policy;
         m_State.m_policy.clear();
@@ -2506,7 +2507,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         for (int i = 0; i < board_size; i++) {
             for (int j = 0; j < board_size; j++) {
                 int vtx = m_State.board.get_vertex(i, j);
-                if (m_State.m_owner[vtx] >= 0.5) {
+                if (m_State.m_owner[vtx] >= 0.5f) {
                     blackowns[vtx] = true;
                 }
             }
@@ -2516,11 +2517,11 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             // Broadcast result from search
             auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_State.get_movenum();
-            float lead = 0.5;
-            if (m_scoreMean > 0.0) {
-                lead = 0.5 + (std::min)(0.5f, std::sqrt(m_scoreMean) / 40);
-            } else if (m_scoreMean < 0.0) {
-                lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40);
+            float lead = 0.5f;
+            if (m_scoreMean > 0.0f) {
+                lead = 0.5f + (std::min)(0.5f, std::sqrt(m_scoreMean) / 40.0f);
+            } else if (m_scoreMean < 0.0f) {
+                lead = 0.5f - (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
             }
             std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, m_winrate, lead, m_winrate);
             event->SetClientData((void*)new auto(scoretuple));
@@ -2528,9 +2529,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         }
         wxString mess;
         if (who == FastBoard::BLACK) {
-            mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), 100 - m_winrate * 100, -1 * m_scoreMean);
+            mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), 100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean);
         } else {
-            mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), m_winrate * 100, m_scoreMean);
+            mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), m_winrate * 100.0f, m_scoreMean);
         }
         SetStatusBarText(mess, 1);
         if (m_runflag) {
@@ -2540,6 +2541,12 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         m_katagoStatus = KATAGO_IDLE;
         postIdle();
     }
+  } catch (std::exception& e) {
+    wxLogError(_("Exception %s %s\n"), typeid(e).name(), e.what());
+    m_katagoStatus = KATAGO_IDLE;
+    postIdle();
+    return;
+  }
 }
 
 void MainFrame::postIdle() {
