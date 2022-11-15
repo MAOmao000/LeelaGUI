@@ -13,65 +13,47 @@ The main features added are as follows.
   Note: i18n is a number abbreviation, its "18" being due to the 18 letters in nternationalizatio between the leading i and the ending n in internationalization.
 
 - Incorporating the KataGo Engine:
-  The Analysis (query) interface and the GTP interface have each been incorporated.
+  Equipped with KataGo analysis engine.
 
-## Changes from the original LeelaGUI
+## Specification changes when using the leela engine
 
-The basic policy was not to change the functionality of the original Leela engine, but the following changes were made.
+The following changes were made.
 - If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
 - Added "japanese" and "KataGo" checkboxes in Settings Dialog.
 - The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
 - When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
 
-## Differences from the original LeelaGUI when started with the KataGo engine (common)
+## Differences from the original LeelaGUI when started with the KataGo engine
 
-- Create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file with KataGo definition information in the folder containing the LeelaGUI executable.
-- The time for game can no longer be set from the window.
+- In the folder containing the LeelaGUI executable, you must create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file containing the KataGo definition information.
 - Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
-  - Difference of areas in the current board + (or -) komi + (or -) number of handicap stones
+	- Difference of areas in the current board + komi + number of handicap stones (or - komi - number of handicap stones) 
 
-## Differences from original LeelaGUI when started with KataGo engine (Analysis interface)
-
-- Since the time for game cannot be set from the window, set it in one of the following ways.
-  - Set by "maxTime":xx in "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
-  - Set by "maxTime":xx in the "analysis_example.cfg" file.
-
-## Differences from original LeelaGUI when started with KataGo engine (GTP interface)
-
-- The analysis function does not work at all.
-- Since the time for game cannot be set from the window, set it in one of the following ways.
-  - Set by "time_settings x y z" in the "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
-  - Set by "maxTime":xx in the "default_gtp.cfg" file.
-- "Pondering" cannot be specified from the settings window, so if you wish to specify it, do so in one of the following ways.
-  - Set by -override-config "ponderingEnabled=true,maxTimePondering=xx" in the "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file.
-  - Set by "ponderingEnabled=true" and "maxTimePondering=xx" in the "default_gtp.cfg" file.
-
-## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (Analysis interface) when using KataGo engine
-
+## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file when using KataGo engine
 ```
-katago.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "rootSymmetryPruning=false"
+katago.exe analysis -config analysis_example.cfg -model g170e-b20c256x2-s5303129600-d1228401921.bin.gz -override-config "startupPrintMessageToStderr=true,rootSymmetryPruning=false"
 {
-  "maxVisits":500,               # The maximum number of times KataGo searches in a game (smaller value means it finishes earlier)
   "rules":"chinese",             # Rules of Baduk used to determine winners and losers
   "whiteHandicapBonus":"N",      # Designation to add the number of handicaped stones to the calculation of komi
   "analysisPVLen":15,            # KataGo search depth (shallower is lighter)
   "reportDuringSearchEvery":2.0, # Interval (in seconds) at which KataGo sends analysis data to LeelaGUI during the study
   "overrideSettings":
     {
-      "maxTime":5,               # KataGo's search time when playing a game (smaller search time means quicker completion) (seconds)
       "wideRootNoise":0.0        # KataGo search range (the larger the range, the more moves to search)
     },
   "maxVisitsAnalysis":1000000,   # Maximum number of KataGo searches at the time of study
   "maxTimeAnalysis":3600         # Maximum KataGo search time at the time of study (seconds)
 }
 ```
-
-## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file (GTP interface) when using KataGo engine
-
-```
-katago.exe gtp -config default_gtp.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz
-time_settings 0 5 1 # GTP commands to send to KataGo right after KataGo starts
-```
+The second and subsequent lines are optional.
+- If omitted, the default values are as follows.
+	+ "rules":"japanese"
+	+ "whiteHandicapBonus":(Not specified)
+	+ "analysisPVLen":15
+	+ "reportDuringSearchEvery":2.0
+	+ "wideRootNoise":(Not specified)
+	+ "maxVisitsAnalysis":1000000
+	+ "maxTimeAnalysis":3600
 
 The following is the readme for the original LeelaGUI.
 
