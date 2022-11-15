@@ -383,8 +383,9 @@ void MainFrame::doInit() {
                 } else if ( !(m_out = m_process->GetOutputStream()) ) {
                     wxLogDebug(_("Failed to connect to child stdin"));
                     wxProcess::Kill(m_process->GetPid());
+                } else {
+                    cfg_use_engine = GTP::KATAGO_ENGINE;
                 }
-                cfg_use_engine = GTP::KATAGO_ENGINE;
             }
             if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
                  wxString errorString;
@@ -2132,12 +2133,26 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     auto kataRes = *bundle;
 
     if (m_katagoStatus == KATAGO_STRATING) {
-        if (kataRes.length() > 35 && kataRes.substr(9, 1) == "2" && kataRes.substr(13, 1) == "-" && kataRes.substr(16, 1) == "-") {
+        if (kataRes.find("Uncaught exception:") != std::string::npos ||
+            kataRes.find("PARSE ERROR:") != std::string::npos) {
+            wxString errStr;
+            errStr.Printf(_("The first line of the ini file is incorrect: %s\n"
+                            "Start with the Leela engine?"), kataRes.mb_str());
+            int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+            if (answer != wxYES) {
+                m_close_window = true;
+            }
+            cfg_use_engine = GTP::ORIGINE_ENGINE;
+            m_in = nullptr;
+            m_err = nullptr;
+            m_out = nullptr;
+            wxProcess::Kill(m_process->GetPid());
+        } else if (kataRes.length() > 35 && kataRes.substr(9, 1) == "2" && kataRes.substr(13, 1) == "-" && kataRes.substr(16, 1) == "-") {
             SetStatusBarText(_("KataGo starting... ") + kataRes.substr(35), 1); // "(stderr):YYYY-MM-DD HH:MM:SS+0900: "
         } else if (kataRes.length() > 9) {
             SetStatusBarText(_("KataGo starting... ") + kataRes.substr(9), 1);  // "(stderr):"
         }
-        if (kataRes.rfind("Started, ready to begin handling requests") != std::string::npos) {
+        if (cfg_use_engine == GTP::KATAGO_ENGINE && kataRes.rfind("Started, ready to begin handling requests") != std::string::npos) {
             std::string tmp_query = "";
             if (m_ini_line.size() > 1) {
                 for (auto it = m_ini_line.begin() + 1; it != m_ini_line.end(); ++it) {
@@ -2173,7 +2188,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 return;
             } catch(const std::exception& e) {
                 wxString errStr;
-                errStr.Printf(_("The query definition is incorrect: %s\nLeela Start with engine?"), wxString(e.what()).mb_str());
+                errStr.Printf(_("The query definition is incorrect: %s\nStart with the Leela engine?"), wxString(e.what()).mb_str());
                 int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                 if (answer != wxYES) {
                     m_close_window = true;
@@ -2184,18 +2199,18 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 m_out = nullptr;
                 wxProcess::Kill(m_process->GetPid());
             }
-            if (m_close_window) {
-                Close();
-            } else if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-                wxConfig::Get()->Write(wxT("katagoEnabled"), false);
-                wxPersistentRegisterAndRestore(this, "MainFrame");
-                m_timerIdleWakeUp.Stop();
-                m_katagoStatus = KATAGO_STOPED;
-                setStartMenus();
-                setActiveMenus();
-                wxCommandEvent evt;
-                doNewRatedGame(evt);
-            }
+        }
+        if (m_close_window) {
+            Close();
+        } else if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            wxConfig::Get()->Write(wxT("katagoEnabled"), false);
+            wxPersistentRegisterAndRestore(this, "MainFrame");
+            m_timerIdleWakeUp.Stop();
+            m_katagoStatus = KATAGO_STOPED;
+            setStartMenus();
+            setActiveMenus();
+            wxCommandEvent evt;
+            doNewRatedGame(evt);
         }
     } else if (m_katagoStatus == ANALYSIS_RESPONSE_WAIT) {
         if (kataRes.length() == 0 || (kataRes.length() >= 9 && kataRes.substr(0, 8) == "(stderr):")) {
