@@ -12,31 +12,6 @@
 #include "GTP.h"
 #include "json.hpp"
 
-#define Exec_TimerIdle 2000
-#define RESIGN_THRESHOLD 0.05  // Resignation after 3 consecutive win rates of 5% or less
-#define RESIGN_MINSCORE_DIFFERENCE -1e10
-
-enum {
-    INIT,
-    KATAGO_STRATING,
-    ANALYSIS_RESPONSE_WAIT,
-    KATAGO_IDLE,
-    KATAGO_STOPED,
-    ANALYSIS_QUERY_WAIT,
-    ANALYSIS_TERMINATE_WAIT,
-    GAME_FIRST_QUERY_WAIT,
-    GAME_TERMINATE_QUERY_WAIT,
-    GAME_SECOND_QUERY_WAIT,
-};
-
-enum {
-    NON,
-    POLICY,
-    POLICYPASS,
-    WHITEOWNERSHIP,
-    LAST,
-};
-
 class AnalysisWindow;
 class ScoreHistogram;
 
@@ -127,6 +102,7 @@ class MainFrame : public TMainFrame {
 	void setActiveMenus();
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
+	void debugLog(const std::string& msg);
 
 	void postIdle();
 	void setStartMenus(bool enable = true);
@@ -134,6 +110,7 @@ class MainFrame : public TMainFrame {
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
 	GameState m_State;
+	std::unique_ptr<GameState> m_StateEngine;
 	std::vector<GameState> m_StateStack;
 	int m_playerColor;
 	int m_visitLimit;
