@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.8.2"
+!define VERSION   "1.8.3"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -342,6 +342,7 @@ Section "LeelaI18N" leela
   File "bin\LeelaGUI.ini"
   File "bin\analysis_example.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
+  File "bin\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
   File "license.rtf"
 
   ;create desktop shortcut
@@ -507,6 +508,7 @@ Section "Uninstall"
   Delete "$INSTDIR\analysis_example.cfg"
   Delete "$INSTDIR\default_gtp.cfg"
   Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
+  Delete "$INSTDIR\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
   #Delete "$INSTDIR\libgfortran-3.dll"
   #Delete "$INSTDIR\libquadmath-0.dll"
   #Delete "$INSTDIR\OpenCL.dll"
