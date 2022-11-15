@@ -560,10 +560,9 @@ void TBoardPanel::doOwner() {
 
     if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
         if (m_State->m_owner.size() > 0) {
-            auto itr = m_State->m_owner.begin();
-            for (int i = 0; i < boardsize * boardsize; i++) {
-                m_Owner[i] = *itr;
-                itr++;
+            m_Owner.clear();
+            for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
+                m_Owner.emplace_back(*itr);
             }
             return;
         }
