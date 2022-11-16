@@ -2135,6 +2135,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     if (m_katagoStatus == KATAGO_STRATING) {
         if (kataRes.find("Uncaught exception:") != std::string::npos ||
             kataRes.find("PARSE ERROR:") != std::string::npos ||
+            kataRes.find("failed with error") != std::string::npos ||
             kataRes.find("what():") != std::string::npos) {
             wxString errStr;
             errStr.Printf(_("The first line of the ini file is incorrect: %s\n"
