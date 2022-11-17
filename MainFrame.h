@@ -102,7 +102,6 @@ class MainFrame : public TMainFrame {
 	void setActiveMenus();
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
-	void debugLog(const std::string& msg);
 
 	void postIdle();
 	void setStartMenus(bool enable = true);
