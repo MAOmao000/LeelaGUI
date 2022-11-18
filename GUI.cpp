@@ -696,12 +696,15 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_checkBoxPasses->SetValue(true);
 	gSizer1->Add( m_checkBoxPasses, 0, wxALL, 5 );
 
-	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering(Leela)"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( m_checkBoxPondering, 0, wxALL, 5 );
 
 	m_checkBoxResignations = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxResignations->SetValue(true);
 	gSizer1->Add( m_checkBoxResignations, 0, wxALL, 5 );
+
+	m_checkBoxPonderingKataGo = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLEKATAGO, _("Pondering(KataGo)"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer1->Add( m_checkBoxPonderingKataGo, 0, wxALL, 5 );
 
 	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, _("Neural Networks"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxNeuralNet->SetValue(true);

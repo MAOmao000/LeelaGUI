@@ -426,6 +426,7 @@ class TSettingsDialog : public wxDialog
 			ID_PASSTOGGLE = 1000,
 			ID_PONDERTOGGLE,
 			ID_RESIGNTOGGLE,
+			ID_PONDERTOGGLEKATAGO,
 			ID_NETWORKTOGGLE,
 			ID_KATAGOTOGGLE,
 			ID_SOUNDSWITCH,
@@ -437,6 +438,7 @@ class TSettingsDialog : public wxDialog
 		wxCheckBox* m_checkBoxPasses;
 		wxCheckBox* m_checkBoxPondering;
 		wxCheckBox* m_checkBoxResignations;
+		wxCheckBox* m_checkBoxPonderingKataGo;
 		wxCheckBox* m_checkBoxNeuralNet;
 		wxCheckBox* m_checkBoxKataGo;
 		wxCheckBox* m_checkBoxSound;
