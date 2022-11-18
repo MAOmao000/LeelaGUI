@@ -414,6 +414,7 @@ void MainFrame::doInit() {
             doNewRatedGame(evt);
         }
     } else {
+        m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
         m_post_destructor = false;
         m_post_doExit = false;
         m_post_doNewMove = false;
@@ -825,8 +826,13 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     }
 
     if (!m_ratedGame) {
-        SetTitle(_("Leela") +
+        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+            SetTitle(_("KataGo") +
                  _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+        } else {
+            SetTitle(_("Leela") +
+                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+        }
     }
 
     // signal update of visible board
@@ -878,7 +884,11 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
         m_passEnabled = wxConfig::Get()->Read(wxT("passEnabled"), 1);
         m_soundEnabled = wxConfig::Get()->Read(wxT("soundEnabled"), 1);
         m_resignEnabled = wxConfig::Get()->Read(wxT("resignEnabled"), 1);
-        m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderEnabled"), 1);
+        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+            m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderKataGoEnabled"), 1);
+        } else {
+            m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderEnabled"), 1);
+        }
     }
 
     wxCommandEvent dummy;
@@ -1001,7 +1011,11 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
 
-    SetTitle(_("Leela - ") + mess);
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        SetTitle(_("KataGo - ") + mess);
+    } else {
+        SetTitle(_("Leela - ") + mess);
+    }
     if (m_analysisWindow) {
         m_analysisWindow->Close();
     }
@@ -1579,8 +1593,13 @@ void MainFrame::doPass(wxCommandEvent& event) {
 }
 
 void MainFrame::gameNoLongerCounts() {
-    SetTitle(_("Leela") +
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        SetTitle(_("KataGo") +
              _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+    } else {
+        SetTitle(_("Leela") +
+             _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+    }
     m_ratedGame = false;
 }
 
@@ -2145,6 +2164,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         if (kataRes.find("Uncaught exception:") != std::string::npos ||
             kataRes.find("PARSE ERROR:") != std::string::npos ||
             kataRes.find("failed with error") != std::string::npos ||
+            kataRes.find(": error while loading shared libraries:") != std::string::npos ||
             kataRes.find("what():") != std::string::npos) {
             wxString errStr;
             errStr.Printf(_("The first line of the ini file is incorrect: %s\n"
@@ -2224,6 +2244,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             Close();
         } else if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
             wxConfig::Get()->Write(wxT("katagoEnabled"), false);
+            m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
             wxPersistentRegisterAndRestore(this, "MainFrame");
             m_timerIdleWakeUp.Stop();
             m_katagoStatus = KATAGO_STOPED;
@@ -2238,7 +2259,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         } else if (kataRes.find(R"("error":)") != std::string::npos) {
             cfg_board25 = false;
         }
-        cfg_use_engine = GTP::KATAGO_ENGINE;
         m_katagoStatus = KATAGO_IDLE;
         wxPersistentRegisterAndRestore(this, "MainFrame");
         setStartMenus();

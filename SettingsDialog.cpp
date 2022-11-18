@@ -1,4 +1,5 @@
 #include "SettingsDialog.h"
+#include "GTP.h"
 
 SettingsDialog::SettingsDialog( wxWindow* parent )
 :
@@ -17,8 +18,18 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
     m_checkBoxPondering->SetValue(ponderEnabled);
 
+    bool ponderKataGoEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
+    m_checkBoxPonderingKataGo->SetValue(ponderKataGoEnabled);
+
     bool netsEnabled = wxConfig::Get()->ReadBool(wxT("netsEnabled"), true);
     m_checkBoxNeuralNet->SetValue(netsEnabled);
+
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        m_checkBoxPondering->Enable(false);
+        m_checkBoxNeuralNet->Enable(false);
+    } else {
+        m_checkBoxPonderingKataGo->Enable(false);
+    }
 
     bool soundEnabled = wxConfig::Get()->ReadBool(wxT("soundEnabled"), true);
     m_checkBoxSound->SetValue(soundEnabled);
@@ -55,6 +66,9 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
 
     bool ponderEnabled = m_checkBoxPondering->GetValue();
     wxConfig::Get()->Write(wxT("ponderEnabled"), ponderEnabled);
+
+    bool ponderKataGoEnabled = m_checkBoxPonderingKataGo->GetValue();
+    wxConfig::Get()->Write(wxT("ponderKataGoEnabled"), ponderKataGoEnabled);
 
     bool netsEnabled = m_checkBoxNeuralNet->GetValue();
     wxConfig::Get()->Write(wxT("netsEnabled"), netsEnabled);
