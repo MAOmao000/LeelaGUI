@@ -1356,7 +1356,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
             m_State.set_timecontrol(2 * m_ratedSize * 60 * 100, 0, 0, 0);
             m_visitLimit = simulations;
         } else {
-            m_State.set_timecontrol(m_ratedSize / 3 * 60 * 100, 0, 0, 0);
+            m_State.set_timecontrol(60 * 100, 0, 0, 0);
             m_visitLimit = simulations / 10;
         }
         m_playerColor = (handicap >= 0 ? FastBoard::BLACK : FastBoard::WHITE);
