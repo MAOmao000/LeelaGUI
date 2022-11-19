@@ -456,8 +456,12 @@ msgid "Handicap"
 msgstr "置き石"
 
 #: GUI.cpp:374
-msgid "Time for game"
-msgstr "持ち時間"
+msgid "Time for game (Leela)"
+msgstr "持ち時間(Leela)"
+
+#: GUI.cpp:374
+msgid "Time for game (KataGo)"
+msgstr "持ち時間(KataGo)"
 
 #: GUI.cpp:379
 msgid "Minutes"
@@ -588,8 +592,12 @@ msgid "Allow Passes"
 msgstr "パスを許可"
 
 #: GUI.cpp:708
-msgid "Pondering"
-msgstr "相手手番中も先読みする"
+msgid "Pondering(Leela)"
+msgstr "相手手番中も先読みする (Leela)"
+
+#: GUI.cpp:708
+msgid "Pondering(KataGo)"
+msgstr "相手手番中も先読みする (KataGo)"
 
 #: GUI.cpp:712
 msgid "Resignations"

@@ -226,6 +226,8 @@ class TNewGameDialog : public wxDialog
 		wxStaticText* m_staticText3;
 		wxSpinCtrl* m_spinCtrlTime;
 		wxStaticText* m_staticText13;
+		wxSpinCtrl* m_spinCtrlTimeKataGo;
+		wxStaticText* m_staticText11;
 		wxRadioBox* m_radioBoxColor;
 		wxRadioBox* m_radioBoxLevel;
 		wxCheckBox* m_checkNeuralNet;

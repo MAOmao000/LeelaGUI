@@ -339,7 +339,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* sbSizer2;
 	sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Komi (+0.5)") ), wxHORIZONTAL );
 
-	m_spinCtrlKomi = new wxSpinCtrl( sbSizer2->GetStaticBox(), ID_KOMISPIN, wxT("7"), wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, -100, 100, 7 );
+	m_spinCtrlKomi = new wxSpinCtrl( sbSizer2->GetStaticBox(), ID_KOMISPIN, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, -100, 100, 6 );
 	sbSizer2->Add( m_spinCtrlKomi, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
@@ -358,18 +358,31 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 
 	bSizer9->Add( sbSizer3, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	wxStaticBoxSizer* sbSizer5;
-	sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game") ), wxHORIZONTAL );
+	wxStaticBoxSizer* m_sbSizer5;
+	m_sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game (Leela)") ), wxHORIZONTAL );
 
-	m_spinCtrlTime = new wxSpinCtrl( sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 90 );
-	sbSizer5->Add( m_spinCtrlTime, 0, wxALIGN_CENTER|wxALL, 5 );
+	m_spinCtrlTime = new wxSpinCtrl( m_sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 20 );
+	m_sbSizer5->Add( m_spinCtrlTime, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_staticText13 = new wxStaticText( sbSizer5->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	m_staticText13 = new wxStaticText( m_sbSizer5->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
 	m_staticText13->Wrap( -1 );
-	sbSizer5->Add( m_staticText13, 0, wxALIGN_CENTER|wxALL, 5 );
+	m_sbSizer5->Add( m_staticText13, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
-	bSizer9->Add( sbSizer5, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	bSizer9->Add( m_sbSizer5, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	wxStaticBoxSizer* m_sbSizer9;
+	m_sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game (KataGo)") ), wxHORIZONTAL );
+
+	m_spinCtrlTimeKataGo = new wxSpinCtrl( m_sbSizer9->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 1 );
+	m_sbSizer9->Add( m_spinCtrlTimeKataGo, 0, wxALL, 5 );
+
+	m_staticText11 = new wxStaticText( m_sbSizer9->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	m_staticText11->Wrap( -1 );
+	m_sbSizer9->Add( m_staticText11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	bSizer9->Add( m_sbSizer9, 1, wxEXPAND, 5 );
 
 
 	bSizer11->Add( bSizer9, 0, wxALL|wxEXPAND, 5 );

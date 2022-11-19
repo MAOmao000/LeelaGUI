@@ -26,17 +26,21 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
     m_spinCtrlTime->SetValue(minutes);
     
+    int minutesKataGo = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
+    m_spinCtrlTimeKataGo->SetValue(minutesKataGo);
+    
     int color = wxConfig::Get()->ReadLong(wxT("DefaultColor"), (long)0);
     m_radioBoxColor->SetSelection(color);
 
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
 
-    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
-        //m_spinCtrlTime->Enable(false);
-        //m_staticText13->Enable(false);
-        //m_radioBoxLevel->SetSelection( 5 );
-        //m_radioBoxLevel->Enable(false);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        m_spinCtrlTimeKataGo->Enable(false);
+        m_staticText11->Enable(false);
+    } else {
+        m_spinCtrlTime->Enable(false);
+        m_staticText13->Enable(false);
         m_checkNeuralNet->SetValue(false);
         m_checkNeuralNet->Enable(false);
     }
@@ -75,6 +79,9 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
 
     int minutes = m_spinCtrlTime->GetValue();
     wxConfig::Get()->Write(wxT("DefaultMinutes"), (long)minutes);
+
+    int minutesKataGo = m_spinCtrlTimeKataGo->GetValue();
+    wxConfig::Get()->Write(wxT("DefaultMinutesKataGo"), (long)minutesKataGo);
 
     bool nets = m_checkNeuralNet->GetValue();
     wxConfig::Get()->Write(wxT("netsEnabled"), nets);
@@ -143,7 +150,10 @@ int NewGameDialog::getPlayerColor() {
 }
 
 int NewGameDialog::getTimeControl() {
-    return m_spinCtrlTime->GetValue();
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        return m_spinCtrlTime->GetValue();
+    }
+    return m_spinCtrlTimeKataGo->GetValue();
 }
 
 void NewGameDialog::doHandicapUpdate( wxSpinEvent& event ) {    
