@@ -10,10 +10,15 @@ TimeControl::TimeControl(int boardsize, int maintime, int byotime,
     : m_maintime(maintime),
       m_byotime(byotime),
       m_byostones(byostones),
-      m_byoperiods(byoperiods) {
+      m_byoperiods(byoperiods),
+      m_boardsize(boardsize) {
 
     reset_clocks();
     set_boardsize(boardsize);
+
+    auto time_remaining = m_maintime;
+    auto moves_remaining = get_moves_expected(m_boardsize, 1);
+    m_mintime = std::max(time_remaining - cfg_lagbuffer_cs, 0) / std::max(moves_remaining, 1);
 }
 
 void TimeControl::reset_clocks() {
@@ -114,21 +119,15 @@ void TimeControl::display_times() {
     myprintf("\n");
 }
 
-int TimeControl::max_time_for_move(int color) {
-    /*
-        always keep a 1 second margin for net hiccups
-    */
-    const int BUFFER_CENTISECS = cfg_lagbuffer_cs;
+//int TimeControl::max_time_for_move(const int boardsize, const int color,
+//                                   const size_t movenum) const {
+int TimeControl::max_time_for_move(int color, const size_t movenum) {
+    // default: no byo yomi (absolute)
+    auto time_remaining = m_remaining_time[color];
+    auto moves_remaining = get_moves_expected(m_boardsize, movenum);
+    auto extra_time_per_move = 0;
 
-    int timealloc = 0;
-
-    /*
-        no byo yomi (absolute), easiest
-    */
-    if (m_byotime == 0) {
-        timealloc = (m_remaining_time[color] - BUFFER_CENTISECS)
-                    / m_moves_expected;
-    } else if (m_byotime != 0) {
+    if (m_byotime != 0) {
         /*
           no periods or stones set means
           infinite time = 1 month
@@ -137,17 +136,15 @@ int TimeControl::max_time_for_move(int color) {
             return 31 * 24 * 60 * 60 * 100;
         }
 
-        /*
-          byo yomi and in byo yomi
-        */
+        // byo yomi and in byo yomi
         if (m_inbyo[color]) {
             if (m_byostones) {
-                timealloc = (m_remaining_time[color] - BUFFER_CENTISECS)
-                             / std::max<int>(m_stones_left[color], 1);
+                moves_remaining = m_stones_left[color];
             } else {
                 assert(m_byoperiods);
                 // Just use the byo yomi period
-                timealloc = m_byotime - BUFFER_CENTISECS;
+                time_remaining = 0;
+                extra_time_per_move = m_byotime;
             }
         } else {
             /*
@@ -155,23 +152,62 @@ int TimeControl::max_time_for_move(int color) {
             */
             if (m_byostones) {
                 int byo_extra = m_byotime / m_byostones;
-                int total_time = m_remaining_time[color] + byo_extra;
-                timealloc = (total_time - BUFFER_CENTISECS) / m_moves_expected;
+                time_remaining = m_remaining_time[color] + byo_extra;
                 // Add back the guaranteed extra seconds
-                timealloc += std::max<int>(byo_extra - BUFFER_CENTISECS, 0);
+                extra_time_per_move = byo_extra;
             } else {
                 assert(m_byoperiods);
                 int byo_extra = m_byotime * (m_periods_left[color] - 1);
-                int total_time = m_remaining_time[color] + byo_extra;
-                timealloc = (total_time - BUFFER_CENTISECS) / m_moves_expected;
+                time_remaining = m_remaining_time[color] + byo_extra;
                 // Add back the guaranteed extra seconds
-                timealloc += std::max<int>(m_byotime - BUFFER_CENTISECS, 0);
+                extra_time_per_move = m_byotime;
             }
         }
     }
 
-    timealloc = std::max<int>(timealloc, 0);
-    return timealloc;
+    // always keep a cfg_lagbugger_cs centisecond margin
+    // for network hiccups or GUI lag
+    auto base_time = std::max(time_remaining - cfg_lagbuffer_cs, 0)
+                     / std::max(moves_remaining, 1);
+    auto inc_time = std::max(extra_time_per_move - cfg_lagbuffer_cs, 0);
+
+    if (m_inbyo[color]) {
+        return base_time + inc_time;
+    }
+    return std::max(base_time + inc_time, m_mintime);
+}
+
+size_t TimeControl::opening_moves(const int boardsize) const {
+    auto num_intersections = boardsize * boardsize;
+    //auto fast_moves = num_intersections / 6;
+    auto fast_moves = num_intersections / 4;
+    return fast_moves;
+}
+
+int TimeControl::get_moves_expected(const int boardsize,
+                                    const size_t movenum) const {
+    /*
+    auto board_div = 5;
+    if (cfg_timemanage != TimeManagement::OFF) {
+        // We will take early exits with time management on, so
+        // it's OK to make our base time bigger.
+        board_div = 9;
+    }
+    */
+
+    // Note this is constant as we play, so it's fair
+    // to underestimate quite a bit.
+    //auto base_remaining = (boardsize * boardsize) / board_div;
+
+    // Don't think too long in the opening.
+    auto fast_moves = opening_moves(boardsize);
+    if (movenum < fast_moves) {
+        auto base_remaining = (boardsize * boardsize) / 5;
+        return (base_remaining + fast_moves) - movenum;
+    } else {
+        auto base_remaining = (boardsize * boardsize) / 7;
+        return base_remaining;
+    }
 }
 
 void TimeControl::adjust_time(int color, int time, int stones) {
@@ -202,7 +238,11 @@ void TimeControl::adjust_time(int color, int time, int stones) {
 void TimeControl::set_boardsize(int boardsize) {
     // Note this is constant as we play, so it's fair
     // to underestimate quite a bit.
-    m_moves_expected = (boardsize * boardsize) / 5;
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        m_moves_expected = (boardsize * boardsize) / 2;
+    } else {
+        m_moves_expected = (boardsize * boardsize) / 5;
+    }
 }
 
 int TimeControl::get_remaining_time(int color) {
