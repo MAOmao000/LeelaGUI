@@ -359,9 +359,9 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer9->Add( sbSizer3, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 	wxStaticBoxSizer* m_sbSizer5;
-	m_sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game (Leela)") ), wxHORIZONTAL );
+	m_sbSizer5 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game") ), wxHORIZONTAL );
 
-	m_spinCtrlTime = new wxSpinCtrl( m_sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 20 );
+	m_spinCtrlTime = new wxSpinCtrl( m_sbSizer5->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 0, 720, 20 );
 	m_sbSizer5->Add( m_spinCtrlTime, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	m_staticText13 = new wxStaticText( m_sbSizer5->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
@@ -371,18 +371,18 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 
 	bSizer9->Add( m_sbSizer5, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	wxStaticBoxSizer* m_sbSizer9;
-	m_sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Time for game (KataGo)") ), wxHORIZONTAL );
+	wxStaticBoxSizer* sbSizer9;
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Byo time") ), wxHORIZONTAL );
 
-	m_spinCtrlTimeKataGo = new wxSpinCtrl( m_sbSizer9->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 720, 1 );
-	m_sbSizer9->Add( m_spinCtrlTimeKataGo, 0, wxALL, 5 );
+	m_spinCtrlByo = new wxSpinCtrl( sbSizer9->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 2, 3600, 2 );
+	sbSizer9->Add( m_spinCtrlByo, 0, wxALL, 5 );
 
-	m_staticText11 = new wxStaticText( m_sbSizer9->GetStaticBox(), wxID_ANY, _("Minutes"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL );
+	m_staticText11 = new wxStaticText( sbSizer9->GetStaticBox(), wxID_ANY, _("Seconds"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText11->Wrap( -1 );
-	m_sbSizer9->Add( m_staticText11, 0, wxALIGN_CENTER|wxALL, 5 );
+	sbSizer9->Add( m_staticText11, 0, wxALL, 5 );
 
 
-	bSizer9->Add( m_sbSizer9, 1, wxEXPAND, 5 );
+	bSizer9->Add( sbSizer9, 1, wxEXPAND, 5 );
 
 
 	bSizer11->Add( bSizer9, 0, wxALL|wxEXPAND, 5 );
@@ -709,15 +709,12 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_checkBoxPasses->SetValue(true);
 	gSizer1->Add( m_checkBoxPasses, 0, wxALL, 5 );
 
-	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering(Leela)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( m_checkBoxPondering, 0, wxALL, 5 );
 
 	m_checkBoxResignations = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxResignations->SetValue(true);
 	gSizer1->Add( m_checkBoxResignations, 0, wxALL, 5 );
-
-	m_checkBoxPonderingKataGo = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLEKATAGO, _("Pondering(KataGo)"), wxDefaultPosition, wxDefaultSize, 0 );
-	gSizer1->Add( m_checkBoxPonderingKataGo, 0, wxALL, 5 );
 
 	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, _("Neural Networks"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxNeuralNet->SetValue(true);
