@@ -37,6 +37,8 @@
 #include <fstream>
 #include <regex>
 
+using std::this_thread::sleep_for;
+
 wxDEFINE_EVENT(wxEVT_NEW_MOVE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_BOARD_UPDATE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_STATUS_UPDATE, wxCommandEvent);
@@ -44,15 +46,15 @@ wxDEFINE_EVENT(wxEVT_ANALYSIS_UPDATE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_BESTMOVES_UPDATE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
+#ifndef USE_THREAD
 wxDEFINE_EVENT(wxEVT_RECIEVE_KATAGO, wxCommandEvent);
+#endif
 
 static constexpr long MAX_RANK = 13L;
 static constexpr long MIN_RANK = -30L;
-// Resignation after 3 consecutive win rates of 5% or less
-static constexpr float RESIGN_THRESHOLD = 0.05f;
-static constexpr float RESIGN_MINSCORE_DIFFERENCE = -1e10f;
-static constexpr int WAKE_UP_TIMER_MS = 100;
 
+#ifndef USE_THREAD
+static constexpr int WAKE_UP_TIMER_MS = 100;
 enum {
     INIT,
     KATAGO_STRATING,
@@ -60,22 +62,19 @@ enum {
     KATAGO_IDLE,
     KATAGO_STOPED,
     ANALYSIS_QUERY_WAIT,
-    ANALYSIS_TERMINATE_WAIT,
-    GAME_QUERY_WAIT,
+    GAME_FIRST_QUERY_WAIT,
+    GAME_SECOND_QUERY_WAIT,
 };
+#endif
 
-enum {
-    NON,
-    POLICY,
-    POLICYPASS,
-    WHITEOWNERSHIP,
-    LAST,
-};
-
-
+#ifndef USE_THREAD
+// Case of non use thread engine, monitor query response by timer (WAKE_UP_TIMER_MS).
 MainFrame::MainFrame(wxFrame *frame, const wxString& title)
           : TMainFrame(frame, wxID_ANY, title), m_timerIdleWakeUp(this) {
-
+#else
+MainFrame::MainFrame(wxFrame *frame, const wxString& title)
+          : TMainFrame(frame, wxID_ANY, title) {
+#endif
     m_process = nullptr;
 
 #ifdef NDEBUG
@@ -127,11 +126,11 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             delete reinterpret_cast<TDataBundle*>(rawdataptr);
         }
     });
-
+#ifndef USE_THREAD
+    // Case of non use thread engine, monitor query response by timer (WAKE_UP_TIMER_MS).
     Bind(wxEVT_RECIEVE_KATAGO, &MainFrame::doRecieveKataGo, this);
     Bind(wxEVT_TIMER, &MainFrame::OnIdleTimer, this);
-
-    thread_pool.initialize(cfg_num_threads);
+#endif
 
     auto rng = std::make_unique<Random>(5489UL);
     Zobrist::init_zobrist(*rng);
@@ -228,56 +227,14 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #endif
     Center();
     setStartMenus(false);
-
-    // Create the window already, so we start saving move evaluations
-    m_scoreHistogramWindow = new ScoreHistogram(this);
-    m_scoreHistogramWindow->Hide();
-
-    // Restore open windows
-    bool restoreAnalysisWindow =
-        wxConfig::Get()->ReadBool(wxT("analysisWindowOpen"), false);
-    bool restoreScoreHistogramWindow =
-        wxConfig::Get()->ReadBool(wxT("scoreHistogramWindowOpen"), false);
-    if (restoreAnalysisWindow) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_ANALYSISWINDOWTOGGLE);
-        event->SetInt(NO_WINDOW_AUTOSIZE);
-        GetEventHandler()->QueueEvent(event);
-    }
-    if (restoreScoreHistogramWindow) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_SCOREHISTOGRAMTOGGLE);
-        GetEventHandler()->QueueEvent(event);
-    }
-    // Restore menu options
-    bool restoreShowOwner =
-        wxConfig::Get()->ReadBool("showOwnerEnabled", false);
-    bool restoreShowMoyo =
-        wxConfig::Get()->ReadBool("showMoyoEnabled", false);
-    bool restoreShowBestMoves =
-        wxConfig::Get()->ReadBool("showBestMovesEnabled", false);
-    bool restoreShowProbabilities =
-        wxConfig::Get()->ReadBool("showProbabilitiesEnabled", false);
-    if (restoreShowOwner) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_SHOWTERRITORY);
-        GetEventHandler()->QueueEvent(event);
-    }
-    if (restoreShowMoyo) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_SHOWMOYO);
-        GetEventHandler()->QueueEvent(event);
-    }
-    if (restoreShowBestMoves) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_BEST_MOVES);
-        GetEventHandler()->QueueEvent(event);
-    }
-    if (restoreShowProbabilities) {
-        auto event = new wxCommandEvent(wxEVT_MENU, ID_MOVE_PROBABILITIES);
-        GetEventHandler()->QueueEvent(event);
-    }
-
-    wxPersistentRegisterAndRestore(this, "MainFrame");
 }
 
 MainFrame::~MainFrame() {
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_destructor = true;
@@ -286,6 +243,7 @@ MainFrame::~MainFrame() {
     } else {
         stopEngine();
     }
+#endif
 
     wxPersistentRegisterAndRestore(this, "MainFrame");
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
@@ -303,23 +261,30 @@ MainFrame::~MainFrame() {
     Unbind(wxEVT_STATUS_UPDATE, &MainFrame::doStatusUpdate, this);
     Unbind(wxEVT_DESTROY, &MainFrame::doCloseChild, this);
     Unbind(wxEVT_SET_MOVENUM, &MainFrame::gotoMoveNum, this);
+#ifndef USE_THREAD
     Unbind(wxEVT_RECIEVE_KATAGO, &MainFrame::doRecieveKataGo, this);
     Unbind(wxEVT_TIMER, &MainFrame::OnIdleTimer, this);
+#endif
 
     Hide();
 }
 
 void MainFrame::doInit() {
+#ifndef USE_THREAD
     m_katagoStatus = INIT;
+#endif
     bool katagoEnabled = wxConfig::Get()->ReadBool(wxT("katagoEnabled"), true);
     if (!katagoEnabled) {
+#ifndef USE_THREAD
+        // Timer monitoring is not performed when KataGo engine is not used.
         m_timerIdleWakeUp.Stop();
+#endif
         setStartMenus();
-        setActiveMenus();
         wxCommandEvent evt;
         doNewRatedGame(evt);
         return;
     }
+    wxString errorString;
     std::string ini_file;
 #ifdef USE_GPU
     ini_file = "LeelaGUI_OpenCL.ini";
@@ -369,10 +334,16 @@ void MainFrame::doInit() {
         if (m_ini_line.size() > 0) {
             auto pos = m_ini_line[0].find(" analysis ");
             if (pos != std::string::npos) {
+                // Start KataGo's analysis engine.
+#ifdef USE_THREAD
+                if ( !(m_process = wxProcess::Open(m_ini_line[0])) ) {
+#else
+                // Case of non use thread engine, receive query response in SubProcess class.
                 SubProcess *process = new SubProcess(this);
                 long pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, process);
                 m_process = process;
                 if ( !pid ) {
+#endif
                     wxLogDebug(_("Failed to launch the command."));
                 } else if ( !(m_in = m_process->GetInputStream()) ) {
                     wxLogDebug(_("Failed to connect to child stdout"));
@@ -388,20 +359,113 @@ void MainFrame::doInit() {
                 }
             }
             if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-                 wxString errorString;
                  errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
                                       "Start with the Leela engine?"), m_ini_line[0].mb_str());
                 int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                 if (answer != wxYES) {
                     m_close_window = true;
                 }
+#ifndef USE_THREAD
             } else {
+                // Case of non use thread engine, start timer monitoring from here.
                 m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+#endif
             }
         }
     }
+#ifdef USE_THREAD
+    // Case of use thread engine, check KataGo startup here.
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        std::string res_msg = "";
+        char buffer[4096];
+        SetStatusBarText(_("KataGo starting... "), 1);
+        while ( true ) {
+            if (m_process->IsErrorAvailable()) {
+                buffer[m_err->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                res_msg += buffer;
+                std::string last_msg = "";
+                std::string::size_type pos = std::string::npos;
+                int offset = res_msg.length() - 2;
+                if (offset > 0) {
+                    pos = res_msg.rfind("\n", offset);
+                    if (pos == std::string::npos) {
+                        pos = -1;
+                    }
+                    last_msg = res_msg.substr(pos + 1);
+                    if (last_msg.find("Uncaught exception:") != std::string::npos ||
+                        last_msg.find("PARSE ERROR:") != std::string::npos ||
+                        last_msg.find("failed with error") != std::string::npos ||
+                        last_msg.find(": error while loading shared libraries:") != std::string::npos ||
+                        last_msg.find("what():") != std::string::npos) {
+                        cfg_use_engine = GTP::ORIGINE_ENGINE;
+                        errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
+                                             "Start with the Leela engine?"), last_msg);
+                        int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+                        if (answer != wxYES) {
+                            m_close_window = true;
+                        }
+                        break;
+                    }
+                    if (last_msg.rfind("Started, ready to begin handling requests") == std::string::npos) {
+                        break;
+                    }
+                } else {
+                    sleep_for(std::chrono::milliseconds(100));
+                }
+            } else {
+                sleep_for(std::chrono::milliseconds(100));
+            }
+        }
+    }
+    std::string tmp_query = "";
+    if (cfg_use_engine == GTP::KATAGO_ENGINE && m_ini_line.size() <= 1) {
+        tmp_query = R"({"rules":"japanese","analysisPVLen":15,"reportDuringSearchEvery":2.0,"maxVisitsAnalysis":1000000,"maxTimeAnalysis":3600})";
+        m_overrideSettings.emplace_back(tmp_query);
+        m_japanese_rule = true;
+        m_State.init_game(m_ratedSize, 6.5f);
+    } else if (cfg_use_engine == GTP::KATAGO_ENGINE && m_ini_line.size() > 1) {
+        for (auto it = m_ini_line.begin() + 1; it != m_ini_line.end(); ++it) {
+            tmp_query += *it;
+        }
+        try {
+            nlohmann::json dummy = nlohmann::json::parse(tmp_query);
+            if (!dummy.contains("rules")) {
+                dummy["rules"] = "japanese";
+            }
+            if (dummy["rules"].get<std::string>() == "japanese") {
+                m_japanese_rule = true;
+                m_State.init_game(m_ratedSize, 6.5f);
+            }
+            if (!dummy.contains("analysisPVLen")) {
+                dummy["analysisPVLen"] = 15;
+            }
+            if (!dummy.contains("reportDuringSearchEvery")) {
+                dummy["reportDuringSearchEvery"] = 2.0;
+            }
+            if (!dummy.contains("maxVisitsAnalysis")) {
+                dummy["maxVisitsAnalysis"] = 1000000;
+            }
+            if (!dummy.contains("maxTimeAnalysis")) {
+                dummy["maxTimeAnalysis"] = 3600;
+            }
+            tmp_query = dummy.dump();
+            m_overrideSettings.clear();
+            m_overrideSettings.emplace_back(tmp_query);
+         } catch(const std::exception& e) {
+            cfg_use_engine = GTP::ORIGINE_ENGINE;
+            errorString.Printf(_("The query definition is incorrect: %s\nStart with the Leela engine?"),
+                               wxString(e.what()).mb_str());
+            int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+            if (answer != wxYES) {
+                m_close_window = true;
+            }
+        }
+    }
+#endif
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+#ifndef USE_THREAD
         m_timerIdleWakeUp.Stop();
+#endif
         m_in = nullptr;
         m_err = nullptr;
         m_out = nullptr;
@@ -409,29 +473,45 @@ void MainFrame::doInit() {
             Close();
         } else {
             setStartMenus();
-            setActiveMenus();
             wxCommandEvent evt;
             doNewRatedGame(evt);
         }
-    } else {
-        m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
-        m_post_destructor = false;
-        m_post_doExit = false;
-        m_post_doNewMove = false;
-        m_post_doSettingsDialog = false;
-        m_post_doNewGame = false;
-        m_post_doNewRatedGame = false;
-        m_post_doScore = false;
-        m_post_doPass = false;
-        m_post_doRealUndo = 0;
-        m_post_doRealForward = 0;
-        m_post_doOpenSGF = false;
-        m_post_doSaveSGF = false;
-        m_post_doForceMove = false;
-        m_post_doResign = false;
-        m_post_doAnalyze = false;
-        m_katagoStatus = KATAGO_STRATING;
+        return;
     }
+
+#ifdef USE_THREAD
+    // Case of use thread engine, check KataGo startup here.
+    wxString send_msg = R"({"boardXSize":25,"boardYSize":25,"id":"dummy","maxVisits":1,"moves":[],"rules":"chinese"})" + wxString("\n");
+    std::string res_msg = GTPSend(send_msg);
+    if (res_msg.find(R"("error":)") != std::string::npos) {
+        cfg_board25 = false;
+    }
+    send_msg = R"({"boardXSize":19,"boardYSize":19,"id":"dummy","maxVisits":1,"moves":[],"rules":"chinese"})" + wxString("\n");
+    res_msg = GTPSend(send_msg);
+    wxConfig::Get()->Write(wxT("katagoEnabled"), true);
+    m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
+    setStartMenus();
+    wxCommandEvent evt;
+    doNewRatedGame(evt);
+#else
+    // Case of non use thread engine, check KataGo startup with MainFrame::doRecieveKataGo.
+    m_post_destructor = false;
+    m_post_doExit = false;
+    m_post_doNewMove = false;
+    m_post_doSettingsDialog = false;
+    m_post_doNewGame = false;
+    m_post_doNewRatedGame = false;
+    m_post_doScore = false;
+    m_post_doPass = false;
+    m_post_doRealUndo = 0;
+    m_post_doRealForward = 0;
+    m_post_doOpenSGF = false;
+    m_post_doSaveSGF = false;
+    m_post_doForceMove = false;
+    m_post_doResign = false;
+    m_post_doAnalyze = false;
+    m_katagoStatus = KATAGO_STRATING;
+#endif
 }
 
 void MainFrame::doStatusUpdate(wxCommandEvent& event) {
@@ -460,7 +540,11 @@ void MainFrame::doBoardUpdate(wxCommandEvent& event) {
 }
 
 void MainFrame::doExit(wxCommandEvent & event) {
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_doExit = true;
@@ -469,16 +553,26 @@ void MainFrame::doExit(wxCommandEvent & event) {
     } else {
         stopEngine();
     }
+#endif
     Close();
 }
 
 void MainFrame::startEngine() {
+#ifndef USE_THREAD
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
         startKataGo();
         return;
     }
+#endif
     if (!m_engineThread) {
+#ifdef USE_THREAD
+        using namespace std::chrono;
+        uint64_t query_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        m_query_id = std::to_string(query_ms);
+        m_engineThread = std::make_unique<TEngineThread>(m_State, this, m_process, m_in, m_err, m_out, m_overrideSettings, m_query_id, &m_GTPmutex);
+#else
         m_engineThread = std::make_unique<TEngineThread>(m_State, this);
+#endif
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
@@ -489,6 +583,9 @@ void MainFrame::startEngine() {
         m_engineThread->set_pondering(m_pondering);
         m_engineThread->set_quiet(!m_analyzing);
         m_engineThread->set_nets(m_netsEnabled);
+#ifdef USE_THREAD
+        m_engineThread->set_handi(m_move_handi);
+#endif
         if (m_passEnabled) {
             m_engineThread->set_nopass(m_disputing);
         }
@@ -497,24 +594,41 @@ void MainFrame::startEngine() {
         }
         m_engineThread->Run();
         if (!m_analyzing && !m_pondering) {
-            SetStatusBarText(_("Engine thinking...") + _(" (Leela"), 1);
+            if (GTP::KATAGO_ENGINE) { 
+                SetStatusBarText(_("Engine thinking...") + _(" (KataGo)"), 1);
+            } else {
+                SetStatusBarText(_("Engine thinking...") + _(" (Leela"), 1);
+            }
         }
     } else {
         wxLogDebug(_("Engine already running"));
     }
 }
 
+#ifndef USE_THREAD
 void MainFrame::startKataGo() {
     if (m_katagoStatus == KATAGO_IDLE) {
+        TimeControl tm = m_State.get_timecontrol();
         m_StateEngine = std::make_unique<GameState>(m_State);
+        m_StateEngine->set_timecontrol(tm);
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
         }
         using namespace std::chrono;
         m_update_score = true;
-        uint64_t ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-        m_query_id = std::to_string(ms);
+#ifdef PERFORMANCE
+        m_query_start = std::chrono::system_clock::now();
+#endif
+        int color = m_StateEngine->get_to_move();
+        int time_for_move = m_StateEngine->get_timecontrol().max_time_for_move(color, m_StateEngine->get_movenum());
+        if ( (time_for_move + 50) < 100 ) {
+            time_for_move = 1 + 1;
+        } else {
+            time_for_move = (time_for_move + 50) / 100 + 1;
+        }
+        uint64_t query_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        m_query_id = std::to_string(query_ms);
         int board_size = m_StateEngine->board.get_boardsize();
         std::string tmp_query = "";
         for (auto it = m_overrideSettings.begin(); it != m_overrideSettings.end(); ++it) {
@@ -584,27 +698,16 @@ void MainFrame::startKataGo() {
                 m_runflag = true;
                 m_wasRunning = false;
                 m_isDuringSearch = true;
-                m_terminate_res= false;
                 m_katagoStatus = ANALYSIS_QUERY_WAIT;
             } else {
-                int color = m_StateEngine->get_to_move();
                 m_StateEngine->start_clock(color);
-                int time_for_move = m_StateEngine->get_timecontrol().max_time_for_move(color);
-                if ( (time_for_move + 50) < 100 ) {
-                    time_for_move = 1;
-                } else {
-                    time_for_move = (time_for_move + 50) / 100;
-                }
                 m_send_json["id"] = "play1_" + m_query_id;
-                m_send_json["analysisPVLen"] = 1;
                 if (m_visitLimit <= 0) {
                     m_send_json["maxVisits"] = INT_MAX;
                 } else {
                     m_send_json["maxVisits"] = m_visitLimit;
                 }
-                m_send_json["includeOwnership"] = true;
-                m_send_json["includePolicy"] = true;
-                m_send_json["overrideSettings"]["maxTime"] = time_for_move;
+                m_send_json["overrideSettings"]["maxTime"] = time_for_move - 1;
                 m_send_json.erase("reportDuringSearchEvery");
                 std::string req_query = m_send_json.dump();
                 wxString send_msg = req_query + "\n";
@@ -612,20 +715,23 @@ void MainFrame::startKataGo() {
                 m_runflag = true;
                 m_wasRunning = false;
                 m_isDuringSearch = true;
-                m_terminate_res = true;
-                m_katagoStatus = GAME_QUERY_WAIT;
+                m_katagoStatus = GAME_FIRST_QUERY_WAIT;
             }
         } catch(const std::exception& e) {
             wxLogError(_("Exception at startKataGo: %s %s\n"), typeid(e).name(), e.what());
         }
         if (!m_analyzing && !m_pondering) {
-            SetStatusBarText(_("Engine thinking...") + _(" (KataGo)"), 1);
+            //SetStatusBarText(_("Engine thinking...") + _(" (KataGo)"), 1);
+            wxString mess;
+            mess.Printf(_("Thinking at most %d seconds..."), time_for_move);
+            SetStatusBarText(mess, 1);
         }
         m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
     } else {
         wxLogDebug(_("Engine already running"));
     }
 }
+#endif
 
 bool MainFrame::stopEngine(bool update_score) {
     if (!m_engineThread) {
@@ -634,6 +740,22 @@ bool MainFrame::stopEngine(bool update_score) {
     if (!update_score) {
         m_engineThread->kill_score_update();
     }
+#ifdef USE_THREAD
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
+        terminate_json["id"] = "terminate_" + m_query_id;
+        if (m_analyzing | m_pondering) {
+            terminate_json["terminateId"] = "analysis_" + m_query_id;
+        } else {
+            // Terminate request for play1 even during play2 processing
+            terminate_json["terminateId"] = "play1_" + m_query_id;
+        }
+        wxString req_query_terminate = terminate_json.dump() + "\n";
+        m_GTPmutex.lock();
+        m_out->Write(req_query_terminate, req_query_terminate.length());
+        m_GTPmutex.unlock();
+    }
+#endif
     m_engineThread->stop_engine();
     m_engineThread->Wait();
     // Copy back the state unless we were analyzing.
@@ -746,7 +868,11 @@ void MainFrame::doToggleBestMoves(wxCommandEvent& event) {
 void MainFrame::doNewMove(wxCommandEvent & event) {
     wxLogDebug(_("New move arrived"));
 
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_doNewMove = true;
@@ -755,6 +881,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     } else {
         stopEngine();
     }
+#endif
 
     m_panelBoard->unlockState();
     m_panelBoard->clearViz();
@@ -789,6 +916,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         bool won = scoreGame(komi, handicap, score, prekomi);
         bool accepts = scoreDialog(komi, handicap, score, prekomi, m_State.get_last_move() != FastBoard::RESIGN);
         if (accepts || m_State.get_last_move() == FastBoard::RESIGN) {
+            // If it is a new game, nothing is processed.
             ratedGameEnd(won);
         } else {
             m_disputing = true;
@@ -805,18 +933,22 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             }
         }
     } else {
-
         if (!m_analyzing) {
+            // Computer's turn
             if (m_State.get_to_move() != m_playerColor) {
                 wxLogDebug(_("Computer to move"));
                 startEngine();
+            // Human's turn
             } else {
+                // Pondering only works in new games and with unlimited engine max level.
                 if (m_ponderEnabled && !m_ratedGame && !m_analyzing && !m_ponderedOnce && !m_visitLimit) {
                     m_pondering = true;
                     startEngine();
                 }
+                // If pondering is off, wait for the human side to move.
             }
         } else {
+            // Human side moved during analysis.
             startEngine();
             m_panelBoard->unlockState();
             m_playerColor = m_State.get_to_move();
@@ -859,8 +991,14 @@ void MainFrame::doBoardResize(wxSizeEvent& event) {
 }
 
 void MainFrame::doSettingsDialog(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    bool wasPondering = m_pondering;
+    bool wasRunning = stopEngine();
+    bool wasAnalyzing = wasRunning && !wasPondering;
+#else
     bool wasRunning;
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_wasRunning = true;
@@ -874,6 +1012,7 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
     }
     bool wasPondering = m_pondering;
     bool wasAnalyzing = wasRunning && !wasPondering;
+#endif
 
     SettingsDialog mydialog(this);
 
@@ -892,11 +1031,17 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
     }
 
     wxCommandEvent dummy;
-    if (wasAnalyzing) doAnalyze(dummy);
+    if (wasAnalyzing) {
+        doAnalyze(dummy);
+    }
 }
 
 void MainFrame::doNewGame(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    stopEngine(false);
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_update_score = false;
@@ -906,6 +1051,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
     } else {
         stopEngine(false);
     }
+#endif
 
     NewGameDialog mydialog(this);
 
@@ -927,7 +1073,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         if (m_scoreHistogramWindow) {
             m_scoreHistogramWindow->ClearHistogram();
         }
-        m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100, 0, 0, 0);
+        m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100, mydialog.getByoControl() * 100, 1, 0);
         m_StateStack.clear();
         m_visitLimit = mydialog.getSimulations();
         m_playerColor = mydialog.getPlayerColor();
@@ -982,7 +1128,11 @@ void MainFrame::doSetRatedSize(wxCommandEvent& event) {
 }
 
 void MainFrame::doNewRatedGame(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    stopEngine(false);
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_update_score = false;
@@ -992,6 +1142,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     } else {
         stopEngine(false);
     }
+#endif
 
     m_analyzing = false;
     m_disputing = false;
@@ -1356,7 +1507,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
             m_State.set_timecontrol(2 * m_ratedSize * 60 * 100, 0, 0, 0);
             m_visitLimit = simulations;
         } else {
-            m_State.set_timecontrol(60 * 100, 0, 0, 0);
+            m_State.set_timecontrol((m_ratedSize / 2) * 60 * 100, 200, 1, 0);
             m_visitLimit = simulations / 10;
         }
         m_playerColor = (handicap >= 0 ? FastBoard::BLACK : FastBoard::WHITE);
@@ -1442,9 +1593,13 @@ void MainFrame::ratedGameEnd(bool won) {
 bool MainFrame::scoreGame(float & komi, float & handicap,
                           float & score, float & prekomi) {
     bool won;
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
         stopEngine();
     }
+#endif
 
     if (m_State.get_last_move() == FastBoard::RESIGN) {
         komi = m_State.get_komi();
@@ -1545,13 +1700,16 @@ bool MainFrame::scoreDialog(float komi, float handicap,
 }
 
 void MainFrame::doScore(wxCommandEvent& event) {
+#ifndef USE_THREAD
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_doScore = true;
             return;
         }
     }
+#endif
     float komi, score, prekomi, handicap;
 
     scoreGame(komi, handicap, score, prekomi);
@@ -1575,7 +1733,11 @@ wxString MainFrame::rankToString(int rank) {
 }
 
 void MainFrame::doPass(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_doPass = true;
@@ -1584,6 +1746,8 @@ void MainFrame::doPass(wxCommandEvent& event) {
     } else {
         stopEngine();
     }
+#endif
+
     m_State.play_pass();
     //::wxLogMessage("User passes");
     wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
@@ -1604,8 +1768,13 @@ void MainFrame::gameNoLongerCounts() {
 }
 
 void MainFrame::doRealUndo(int count) {
+#ifdef USE_THREAD
+    bool wasAnalyzing = m_analyzing && !m_pondering;
+    bool wasRunning = stopEngine();
+#else
     bool wasRunning;
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_wasRunning = true;
@@ -1617,6 +1786,8 @@ void MainFrame::doRealUndo(int count) {
         wasRunning = stopEngine();
     }
     bool wasAnalyzing = m_analyzing && !m_pondering;
+#endif
+
     for (int i = 0; i < count; i++) {
         if (m_State.undo_move()) {
             wxLogDebug(_("Undoing one move"));
@@ -1626,8 +1797,13 @@ void MainFrame::doRealUndo(int count) {
 }
 
 void MainFrame::doRealForward(int count) {
+#ifdef USE_THREAD
+    bool wasAnalyzing = m_analyzing && !m_pondering;
+    bool wasRunning = stopEngine();
+#else
     bool wasRunning;
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_wasRunning = true;
@@ -1639,6 +1815,8 @@ void MainFrame::doRealForward(int count) {
         wasRunning = stopEngine();
     }
     bool wasAnalyzing = m_analyzing && !m_pondering;
+#endif
+
     for (int i = 0; i < count; i++) {
         if (m_State.forward_move()) {
             wxLogDebug(_("Forward one move"));
@@ -1661,7 +1839,9 @@ void MainFrame::doPostMoveChange(bool wasAnalyzing) {
     ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
     broadcastCurrentMove();
 
-    if (wasAnalyzing) doAnalyze(myevent /* dummy */);
+    if (wasAnalyzing) {
+        doAnalyze(myevent /* dummy */);
+    }
 }
 
 void MainFrame::doBack10(wxCommandEvent& event) {
@@ -1707,7 +1887,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State.m_black_score = 0.0;
         m_japanese_rule = tree->get_rule();
         for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
-            m_State.m_win_rate[i] = 100.0;
+            m_State.m_win_rate[i] = 0.5f;
         }
         m_move_handi.clear();
         for (int i = 0; i < m_State.board.get_boardsize(); i++) {
@@ -1752,7 +1932,11 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
 }
 
 void MainFrame::doOpenSGF(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    stopEngine(false);
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_update_score = false;
@@ -1762,6 +1946,7 @@ void MainFrame::doOpenSGF(wxCommandEvent& event) {
     } else {
         stopEngine(false);
     }
+#endif
 
     wxString caption = _("Choose a file");
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
@@ -1785,7 +1970,11 @@ void MainFrame::doOpenSGF(wxCommandEvent& event) {
 }
 
 void MainFrame::doSaveSGF(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    stopEngine();
+#else
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_post_doSaveSGF = true;
@@ -1794,6 +1983,7 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
     } else {
         stopEngine();
     }
+#endif
 
     std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor, m_japanese_rule);
 
@@ -1816,8 +2006,16 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
 }
 
 void MainFrame::doForceMove(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    gameNoLongerCounts();
+    m_ponderedOnce = true;
+    bool wasAnalyzing = m_analyzing && !m_pondering;
+    bool wasPondering = m_pondering;
+    bool wasRunning = stopEngine();
+#else
     bool wasRunning;
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_wasRunning = true;
@@ -1832,6 +2030,7 @@ void MainFrame::doForceMove(wxCommandEvent& event) {
     m_ponderedOnce = true;
     bool wasAnalyzing = m_analyzing && !m_pondering;
     bool wasPondering = m_pondering;
+#endif
     if (!wasRunning || wasAnalyzing || wasPondering) {
         m_analyzing = false;
         m_pondering = false;
@@ -1843,7 +2042,11 @@ void MainFrame::doForceMove(wxCommandEvent& event) {
 
 void MainFrame::doResign(wxCommandEvent& event) {
     if (m_State.get_to_move() == m_playerColor) {
+#ifdef USE_THREAD
+        stopEngine();
+#else
         if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+            // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
             if (m_katagoStatus != KATAGO_IDLE) {
                 m_runflag = false;
                 m_post_doResign = true;
@@ -1852,7 +2055,10 @@ void MainFrame::doResign(wxCommandEvent& event) {
         } else {
             stopEngine();
         }
+#endif
+
         m_State.play_move(FastBoard::RESIGN);
+
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
         ::wxPostEvent(GetEventHandler(), myevent);
@@ -1860,8 +2066,14 @@ void MainFrame::doResign(wxCommandEvent& event) {
 }
 
 void MainFrame::doAnalyze(wxCommandEvent& event) {
+#ifdef USE_THREAD
+    gameNoLongerCounts();
+    bool wasAnalyzing = m_analyzing && !m_pondering;
+    bool wasRunning = stopEngine();
+#else
     bool wasRunning;
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
             m_runflag = false;
             m_wasRunning = true;
@@ -1874,6 +2086,7 @@ void MainFrame::doAnalyze(wxCommandEvent& event) {
     }
     gameNoLongerCounts();
     bool wasAnalyzing = m_analyzing && !m_pondering;
+#endif
     m_ponderedOnce |= wasRunning;
     m_pondering = false;
 
@@ -2051,7 +2264,7 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_State.m_black_score = 0.0;
                 m_japanese_rule = sgftree->get_rule();
                 for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
-                    m_State.m_win_rate[i] = 100.0;
+                    m_State.m_win_rate[i] = 0.5f;
                 }
                 m_move_handi.clear();
                 std::unique_ptr<GameState> tmp_state = std::make_unique<GameState>(m_State);
@@ -2099,6 +2312,42 @@ void MainFrame::loadSGF(const wxString & filename, int movenum) {
     }
 }
 
+#ifdef USE_THREAD
+std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
+    std::string res_msg = "";
+    char buffer[2048];
+    if (!m_process->GetOutputStream()) {
+        return "";
+    }
+    while (m_process->IsInputAvailable()) {
+        m_in->Read(buffer, WXSIZEOF(buffer) - 1);
+    }
+    m_out->Write(s.c_str(), s.length());
+    while ( true ) {
+        sleep_for(std::chrono::milliseconds(sleep_ms));
+        if (m_process->IsInputAvailable()) {
+            buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+            res_msg += buffer;
+            while (true) {
+                if (res_msg.length() > 0 && res_msg.back() == '\n') {
+                    res_msg.erase(res_msg.length() - 1);
+                    if (res_msg.length() > 0 && res_msg.back() == '\r') {
+                        res_msg.erase(res_msg.length() - 1);
+                    }
+                    return res_msg;
+                }
+                sleep_for(std::chrono::milliseconds(sleep_ms));
+                if (m_process->IsInputAvailable()) {
+                    buffer[m_in->Read(buffer, WXSIZEOF(buffer) - 1).LastRead()] = '\0';
+                    res_msg += buffer;
+                }
+            }
+        }
+    }
+    return res_msg;
+}
+
+#else
 void MainFrame::OnAsyncTermination(SubProcess *process) {
     delete process;
 }
@@ -2112,12 +2361,11 @@ void MainFrame::OnProcessTerminated(SubProcess *process) {
 void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
     if ( !m_runflag ) {
         try {
-            if ( m_katagoStatus == GAME_QUERY_WAIT ) {
+            if ( m_katagoStatus == GAME_FIRST_QUERY_WAIT ) {
                 nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
                 terminate_json["id"] = "terminate_" + m_query_id;
                 terminate_json["terminateId"] = "play1_" + m_query_id;
                 std::string req_query_terminate = terminate_json.dump();
-                m_terminate_res = false;
                 wxString send_msg = req_query_terminate + "\n";
                 m_out->Write(send_msg, send_msg.length());
             } else if ( m_katagoStatus == ANALYSIS_QUERY_WAIT ) {
@@ -2125,10 +2373,8 @@ void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
                 terminate_json["id"] = "terminate_" + m_query_id;
                 terminate_json["terminateId"] = "analysis_" + m_query_id;
                 std::string req_query_terminate = terminate_json.dump();
-                m_terminate_res = false;
                 wxString send_msg = req_query_terminate + "\n";
                 m_out->Write(send_msg, send_msg.length());
-                m_katagoStatus = ANALYSIS_TERMINATE_WAIT;
             }
         } catch(const std::exception& e) {
             wxLogError(_("Exception at startKataGo: %s %s\n"), typeid(e).name(), e.what());
@@ -2159,6 +2405,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     }
     std::unique_ptr<wxString> bundle(reinterpret_cast<wxString*>(rawdataptr));
     auto kataRes = *bundle;
+    m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
 
     if (m_katagoStatus == KATAGO_STRATING) {
         if (kataRes.find("Uncaught exception:") != std::string::npos ||
@@ -2174,10 +2421,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 m_close_window = true;
             }
             cfg_use_engine = GTP::ORIGINE_ENGINE;
-            m_in = nullptr;
-            m_err = nullptr;
-            m_out = nullptr;
-            wxProcess::Kill(m_process->GetPid());
         } else if (kataRes.length() > 35 && kataRes.substr(9, 1) == "2" && kataRes.substr(13, 1) == "-" && kataRes.substr(16, 1) == "-") {
             SetStatusBarText(_("KataGo starting... ") + kataRes.substr(35), 1); // "(stderr):YYYY-MM-DD HH:MM:SS+0900: "
         } else if (kataRes.length() > 9) {
@@ -2234,22 +2477,20 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                     m_close_window = true;
                 }
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
-                m_in = nullptr;
-                m_err = nullptr;
-                m_out = nullptr;
-                wxProcess::Kill(m_process->GetPid());
             }
         }
         if (m_close_window) {
             Close();
         } else if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            m_in = nullptr;
+            m_err = nullptr;
+            m_out = nullptr;
+            wxProcess::Kill(m_process->GetPid());
             wxConfig::Get()->Write(wxT("katagoEnabled"), false);
             m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
-            wxPersistentRegisterAndRestore(this, "MainFrame");
             m_timerIdleWakeUp.Stop();
             m_katagoStatus = KATAGO_STOPED;
             setStartMenus();
-            setActiveMenus();
             wxCommandEvent evt;
             doNewRatedGame(evt);
         }
@@ -2260,9 +2501,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             cfg_board25 = false;
         }
         m_katagoStatus = KATAGO_IDLE;
-        wxPersistentRegisterAndRestore(this, "MainFrame");
         setStartMenus();
-        setActiveMenus();
         wxCommandEvent evt;
         doNewRatedGame(evt);
     } else if (m_katagoStatus == ANALYSIS_QUERY_WAIT) {
@@ -2272,9 +2511,12 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             SetStatusBarText(kataRes, 1);
             postIdle();
             return;
-        } else if (kataRes.find(R"("isDuringSearch":)") == std::string::npos) {
+        }
+        std::string::size_type pos = kataRes.find(R"("isDuringSearch":)");;
+        if (pos == std::string::npos) {
             return;
-        } else if (m_isDuringSearch && kataRes.find(R"("isDuringSearch":false)") != std::string::npos) {
+        }
+        if (m_isDuringSearch && kataRes.substr(pos + 17, 5) == "false") {
             m_isDuringSearch = false;
         }
         std::string req_query = "";
@@ -2353,72 +2595,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             wxLogError(_("Exception at ANALYSIS_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
             postIdle();
         }
-    } else if (m_katagoStatus == ANALYSIS_TERMINATE_WAIT) {
-        if (kataRes.find(R"("id":"dummy")") != std::string::npos) {
-            return;
-        } else if (kataRes.find(R"("error":)") != std::string::npos) {
-            SetStatusBarText(kataRes, 1);
-            postIdle();
-            return;
-        } else if (!m_terminate_res && kataRes.find(R"("action":"terminate")") != std::string::npos) {
-            m_terminate_res = true;
-        } else if (m_isDuringSearch && kataRes.find(R"("isDuringSearch":false)") != std::string::npos) {
-            m_isDuringSearch = false;
-            std::string winrate_str = "";
-            std::string scoreMean_str = "";
-            std::string::size_type pos = kataRes.rfind("winrate ");
-            if (pos == std::string::npos) {
-                pos = 0;
-            } else {
-                for (auto i = pos + sizeof("winrate ") - 1; i < kataRes.length(); i++) {
-                    if (kataRes[i] != ' ') {
-                        winrate_str += kataRes[i];
-                    } else {
-                        break;
-                    }
-                }
-            }
-            pos = kataRes.rfind("scoreMean ", pos);
-            if (pos == std::string::npos) {
-                scoreMean_str = "";
-            } else {
-                for (auto i = pos + sizeof("scoreMean ") - 1; i < kataRes.length(); i++) {
-                    if (kataRes[i] != ' ') {
-                        scoreMean_str += kataRes[i];
-                    } else {
-                        break;
-                    }
-                }
-            }
-            if (winrate_str.length() > 0) {
-                m_winrate = stof(winrate_str);
-            }
-            if (scoreMean_str.length() > 0) {
-                m_scoreMean = stof(scoreMean_str);
-            }
-        }
-        if (!m_terminate_res || m_isDuringSearch) {
-            return;
-        }
-        m_StateEngine->m_black_score = -1.0f * m_scoreMean;
-        if (m_update_score && !std::isnan(m_winrate)) {
-            auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
-            auto movenum = m_StateEngine->get_movenum();
-            float lead = 0.5f;
-            if (m_scoreMean > 0.0f) {
-                lead = 0.5f - (std::min)(0.5f, std::sqrt(m_scoreMean) / 40.0f);
-            } else if (m_scoreMean < 0.0) {
-                lead = 0.5f + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
-            }
-            std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0f - m_winrate, lead, 1.0f - m_winrate);
-            event->SetClientData((void*)new auto(scoretuple));
-            wxQueueEvent(GetEventHandler(), event);
-        }
-        wxString mess;
-        mess.Printf(_("Analysis stopped"));
-        SetStatusBarText(mess, 1);
-        postIdle();
-    } else if (m_katagoStatus == GAME_QUERY_WAIT) {
+    } else if (m_katagoStatus == GAME_FIRST_QUERY_WAIT) {
         if (kataRes.find(R"("id":"dummy")") != std::string::npos) {
             return;
         } else if (kataRes.find(R"("error":)") != std::string::npos) {
@@ -2430,71 +2607,102 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             return;
         }
         int who = m_StateEngine->get_to_move();
+        nlohmann::json res_1_json;
         try {
-            nlohmann::json res_1_json;
             res_1_json = nlohmann::json::parse(kataRes);
-            m_move_str = "";
+            m_move_str = "pass";
             if(res_1_json.contains("moveInfos") && res_1_json["moveInfos"].size() > 0 &&
                 !res_1_json["moveInfos"][0]["move"].is_null()) {
                 m_move_str = res_1_json["moveInfos"][0]["move"].get<std::string>();
             }
             m_winrate = res_1_json["rootInfo"]["winrate"].get<float>();
             m_scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
-            int board_size = m_StateEngine->board.get_boardsize();
-            if (m_move_str.length() > 0) {
-                // KataGo's Resignation Decision
-                float initialBlackAdvantageInPoints;
-                if (m_move_handi.size() <= 1) {
-                    initialBlackAdvantageInPoints = 7.0f - m_StateEngine->get_komi();
-                } else {
-                    initialBlackAdvantageInPoints = 14.0f * (m_move_handi.size() - 1) + (7.0f - m_StateEngine->get_komi() - m_move_handi.size());
-                }
-                int minTurnForResignation = 0;
-                int noResignationWhenWhiteScoreAbove = board_size * board_size;
-                if (initialBlackAdvantageInPoints > 0.9f && who == FastBoard::WHITE) {
-                    minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
-                    float numTurnsToCatchUp = 0.60f * noResignationWhenWhiteScoreAbove - (float)minTurnForResignation;
-                    float numTurnsSpent = (float)(m_StateEngine->get_movenum() + 1) - (float)minTurnForResignation;
-                    if (numTurnsToCatchUp <= 1.0f) {
-                        numTurnsToCatchUp = 1.0f;
-                    }
-                    if (numTurnsSpent <= 0.0f) {
-                        numTurnsSpent = 0.0f;
-                    }
-                    if (numTurnsSpent > numTurnsToCatchUp) {
-                        numTurnsSpent = numTurnsToCatchUp;
-                    }
-                    float resignScore = -1.0f * initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
-                    resignScore -= 5.0f;
-                    resignScore -= initialBlackAdvantageInPoints * 0.15f;
-                    noResignationWhenWhiteScoreAbove = resignScore;
-                }
-                bool resign = true;
-                if (m_StateEngine->get_movenum() + 1 < minTurnForResignation) {
-                    resign = false;
-                } else if (who == FastBoard::WHITE && (-1.0f * m_scoreMean) > noResignationWhenWhiteScoreAbove) {
-                    resign = false;
-                } else if ((who == FastBoard::WHITE && (-1.0f * m_scoreMean) > -1.0f * RESIGN_MINSCORE_DIFFERENCE) ||
-                    (who == FastBoard::BLACK && m_scoreMean > (-1.0f * RESIGN_MINSCORE_DIFFERENCE))) {
-                    resign = false;
-                }
-                for (size_t i = 0; i < m_StateEngine->m_win_rate.size() - 1; i++) {
-                    m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 1 - i]
-                        = m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 2 - i];
-                    if (m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 1 - i] >= RESIGN_THRESHOLD) {
-                        resign = false;
-                     }
-                }
-                if (who == FastBoard::BLACK) {
-                    m_StateEngine->m_win_rate[0] = m_winrate;
-                } else {
-                    m_StateEngine->m_win_rate[0] = 1.0f - m_winrate;
-                }
-                if (resign && m_StateEngine->m_win_rate[0] < RESIGN_THRESHOLD) {
-                    m_move_str = "resign";
-                }
+            m_send_json["includeOwnership"] = true;
+            m_send_json["includePolicy"] = true;
+            m_send_json["maxVisits"] = 1;
+            m_send_json["analysisPVLen"] = 1;
+            if (m_State.get_to_move() == FastBoard::BLACK) {
+                m_send_json["moves"][m_State.get_movenum()][0] = "B";
             } else {
-                m_move_str = "pass";
+                m_send_json["moves"][m_State.get_movenum()][0] = "W";
+            }
+            m_send_json["moves"][m_State.get_movenum()][1] = m_move_str;
+            std::string req_query_2 = m_send_json.dump();
+            wxString send_msg = req_query_2 + "\n";
+            m_out->Write(send_msg, send_msg.length());
+            m_katagoStatus = GAME_SECOND_QUERY_WAIT;
+        } catch (const std::exception& e) {
+            m_StateEngine->stop_clock(who);
+            wxLogError(_("Exception at GAME_FIRST_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
+            postIdle();
+            return;
+        }
+    } else if (m_katagoStatus == GAME_SECOND_QUERY_WAIT) {
+        if (kataRes.find(R"("id":"dummy")") != std::string::npos) {
+            return;
+        } else if (kataRes.find(R"("error":)") != std::string::npos) {
+            m_StateEngine->stop_clock(m_StateEngine->get_to_move());
+            SetStatusBarText(kataRes, 1);
+            postIdle();
+            return;
+        } else if (kataRes.find(R"("isDuringSearch":false)") == std::string::npos) {
+            return;
+        }
+        int who = m_StateEngine->get_to_move();
+        nlohmann::json res_2_json;
+        try {
+            res_2_json = nlohmann::json::parse(kataRes);
+            int board_size = m_StateEngine->board.get_boardsize();
+            // KataGo's Resignation Decision
+            float initialBlackAdvantageInPoints;
+            if (m_move_handi.size() <= 1) {
+                initialBlackAdvantageInPoints = 7.0f - m_StateEngine->get_komi();
+            } else {
+                initialBlackAdvantageInPoints = 14.0f * (m_move_handi.size() - 1) + (7.0f - m_StateEngine->get_komi() - m_move_handi.size());
+            }
+            int minTurnForResignation = 0;
+            int noResignationWhenWhiteScoreAbove = board_size * board_size;
+            if (initialBlackAdvantageInPoints > 0.9f && who == FastBoard::WHITE) {
+                minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
+                float numTurnsToCatchUp = 0.60f * noResignationWhenWhiteScoreAbove - (float)minTurnForResignation;
+                float numTurnsSpent = (float)(m_StateEngine->get_movenum() + 1) - (float)minTurnForResignation;
+                if (numTurnsToCatchUp <= 1.0f) {
+                    numTurnsToCatchUp = 1.0f;
+                }
+                if (numTurnsSpent <= 0.0f) {
+                    numTurnsSpent = 0.0f;
+                }
+                if (numTurnsSpent > numTurnsToCatchUp) {
+                    numTurnsSpent = numTurnsToCatchUp;
+                }
+                float resignScore = -1.0f * initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
+                resignScore -= 5.0f;
+                resignScore -= initialBlackAdvantageInPoints * 0.15f;
+                noResignationWhenWhiteScoreAbove = resignScore;
+            }
+            bool resign = true;
+            if (m_StateEngine->get_movenum() + 1 < minTurnForResignation) {
+                resign = false;
+            } else if (who == FastBoard::WHITE && (-1.0f * m_scoreMean) > noResignationWhenWhiteScoreAbove) {
+                resign = false;
+            } else if ((who == FastBoard::WHITE && (-1.0f * m_scoreMean) > -1.0f * RESIGN_MINSCORE_DIFFERENCE) ||
+                (who == FastBoard::BLACK && m_scoreMean > (-1.0f * RESIGN_MINSCORE_DIFFERENCE))) {
+                resign = false;
+            }
+            for (size_t i = 0; i < m_StateEngine->m_win_rate.size() - 1; i++) {
+                m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 1 - i]
+                    = m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 2 - i];
+                if (m_StateEngine->m_win_rate[m_StateEngine->m_win_rate.size() - 1 - i] >= RESIGN_THRESHOLD) {
+                    resign = false;
+                }
+            }
+            if (who == FastBoard::BLACK) {
+                m_StateEngine->m_win_rate[0] = m_winrate;
+            } else {
+                m_StateEngine->m_win_rate[0] = 1.0f - m_winrate;
+            }
+            if (resign && m_StateEngine->m_win_rate[0] < RESIGN_THRESHOLD) {
+                m_move_str = "resign";
             }
             if (m_move_str == "pass") {
                 m_StateEngine->play_move(who, FastBoard::PASS);
@@ -2507,14 +2715,16 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
             std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
             float maxProbability = 0.0f;
-            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+            for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
                 int x = vertex % board_size;
                 int y = vertex / board_size;
                 y = -1 * (y - board_size) - 1;
                 int pos = m_StateEngine->board.get_vertex(x, y);
-                float owner = res_1_json["ownership"][vertex].get<float>();
-                conv_owner[pos] = (owner / 2.0f) + 0.5f;
-                float policy = res_1_json["policy"][vertex].get<float>();
+                if (vertex != board_size * board_size) {
+                    float owner = res_2_json["ownership"][vertex].get<float>();
+                    conv_owner[pos] = (owner / 2.0f) + 0.5f;
+                }
+                float policy = res_2_json["policy"][vertex].get<float>();
                 conv_policy[pos] = policy;
                 if (policy > maxProbability) {
                     maxProbability = policy;
@@ -2524,7 +2734,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
                 m_StateEngine->m_owner.emplace_back(*itr);
             }
-            float policy = res_1_json["policy"][board_size * board_size].get<float>();
+            float policy = res_2_json["policy"][board_size * board_size].get<float>();
             conv_policy[0] = maxProbability;
             conv_policy[1] = policy;
             m_StateEngine->m_policy.clear();
@@ -2556,15 +2766,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 event->SetClientData((void*)new auto(scoretuple));
                 wxQueueEvent(GetEventHandler(), event);
             }
-            wxString mess;
-            if (who == FastBoard::BLACK) {
-                mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), 100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean);
-            } else {
-                mess.Printf(_("Win rate:%3.1f%% Score:%.1f"), m_winrate * 100.0f, m_scoreMean);
-            }
         } catch (const std::exception& e) {
             m_StateEngine->stop_clock(who);
-            wxLogError(_("Exception at GAME_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
+            wxLogError(_("Exception at GAME_SECOND_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
             postIdle();
             return;
         }
@@ -2577,6 +2781,20 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         SetStatusBarText(mess, 1);
         wxQueueEvent(GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
         m_StateEngine->stop_clock(who);
+#ifdef PERFORMANCE
+        FILE* outputfile;
+        outputfile = fopen("LeelaGUIPerf.log", "a");
+        if (outputfile != NULL) {
+            auto query_end = std::chrono::system_clock::now();
+            nlohmann::json jorder = res_1_json["moveInfos"];
+            nlohmann::json::reverse_iterator it = jorder.rbegin();
+            fprintf(outputfile, "Visits:%d Order:%d Query time:%d[ms]\n", (*it)["order"].get<int>(),
+                    res_1_json["rootInfo"]["visits"].get<int>(),
+                    (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count());
+            fflush(outputfile);
+            fclose(outputfile);
+        }
+#endif
         postIdle();
     }
 }
@@ -2674,49 +2892,106 @@ void MainFrame::postIdle() {
         m_post_doAnalyze = false;
     }
 }
+#endif
 
 void MainFrame::setStartMenus(bool enable) {
-   m_menu1->FindItem(ID_NEWGAME)->Enable(enable);
-   m_menu1->FindItem(ID_NEWRATED)->Enable(enable);
-   m_menu1->FindItem(ID_RATEDSIZE)->Enable(enable);
-   m_menu1->FindItem(ID_OPEN)->Enable(enable);
-   m_menu1->FindItem(ID_SAVE)->Enable(enable);
-   m_menu1->FindItem(ID_COPYCLIPBOARD)->Enable(enable);
-   m_menu1->FindItem(ID_PASTECLIPBOARD)->Enable(enable);
-   m_menu2->FindItem(ID_UNDO)->Enable(enable);
-   m_menu2->FindItem(ID_REDO)->Enable(enable);
-   m_menu2->FindItem(ID_BACK10)->Enable(enable);
-   m_menu2->FindItem(ID_FWD10)->Enable(enable);
-   m_menu2->FindItem(ID_FORCE)->Enable(enable);
-   m_menu2->FindItem(ID_PASS)->Enable(enable);
-   m_menu2->FindItem(ID_RESIGN)->Enable(enable);
-   m_menu2->FindItem(ID_SCORE)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_POPPOS)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_MAINLINE)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Enable(enable);
-   m_menuAnalyze->FindItem(ID_SCOREHISTOGRAMTOGGLE)->Enable(enable);
-   m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(enable);
-   m_menuTools->FindItem(ID_BEST_MOVES)->Enable(enable);
-   m_menuTools->FindItem(ID_SHOWTERRITORY)->Enable(enable);
-   m_menuTools->FindItem(ID_SHOWMOYO)->Enable(enable);
-   m_menuTools->FindItem(wxID_PREFERENCES)->Enable(enable);
-   m_menuTools->FindItem(ID_ADJUSTCLOCKS)->Enable(enable);
-   GetToolBar()->EnableTool(ID_NEWGAME, enable);
-   GetToolBar()->EnableTool(ID_NEWRATED, enable);
-   GetToolBar()->EnableTool(ID_OPEN, enable);
-   GetToolBar()->EnableTool(ID_SAVE, enable);
-   GetToolBar()->EnableTool(ID_BACK10, enable);
-   GetToolBar()->EnableTool(ID_UNDO, enable);
-   GetToolBar()->EnableTool(ID_REDO, enable);
-   GetToolBar()->EnableTool(ID_FWD10, enable);
-   GetToolBar()->EnableTool(ID_FORCE, enable);
-   GetToolBar()->EnableTool(ID_PUSHPOS, enable);
-   GetToolBar()->EnableTool(ID_POPPOS, enable);
-   GetToolBar()->EnableTool(ID_MAINLINE, enable);
-   GetToolBar()->EnableTool(ID_ANALYZE, enable);
-   GetToolBar()->EnableTool(ID_PASS, enable);
-   GetToolBar()->EnableTool(ID_SCORE, enable);
-   GetToolBar()->EnableTool(ID_RESIGN, enable);
+    m_menu1->FindItem(ID_NEWGAME)->Enable(enable);
+    m_menu1->FindItem(ID_NEWRATED)->Enable(enable);
+    m_menu1->FindItem(ID_RATEDSIZE)->Enable(enable);
+    m_menu1->FindItem(ID_OPEN)->Enable(enable);
+    m_menu1->FindItem(ID_SAVE)->Enable(enable);
+    m_menu1->FindItem(ID_COPYCLIPBOARD)->Enable(enable);
+    m_menu1->FindItem(ID_PASTECLIPBOARD)->Enable(enable);
+    m_menu2->FindItem(ID_UNDO)->Enable(enable);
+    m_menu2->FindItem(ID_REDO)->Enable(enable);
+    m_menu2->FindItem(ID_BACK10)->Enable(enable);
+    m_menu2->FindItem(ID_FWD10)->Enable(enable);
+    m_menu2->FindItem(ID_FORCE)->Enable(enable);
+    m_menu2->FindItem(ID_PASS)->Enable(enable);
+    m_menu2->FindItem(ID_RESIGN)->Enable(enable);
+    m_menu2->FindItem(ID_SCORE)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_ANALYZE)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_PUSHPOS)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_POPPOS)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_MAINLINE)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_ANALYSISWINDOWTOGGLE)->Enable(enable);
+    m_menuAnalyze->FindItem(ID_SCOREHISTOGRAMTOGGLE)->Enable(enable);
+    m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(enable);
+    m_menuTools->FindItem(ID_BEST_MOVES)->Enable(enable);
+    m_menuTools->FindItem(ID_SHOWTERRITORY)->Enable(enable);
+    m_menuTools->FindItem(ID_SHOWMOYO)->Enable(enable);
+    m_menuTools->FindItem(wxID_PREFERENCES)->Enable(enable);
+    m_menuTools->FindItem(ID_ADJUSTCLOCKS)->Enable(enable);
+    GetToolBar()->EnableTool(ID_NEWGAME, enable);
+    GetToolBar()->EnableTool(ID_NEWRATED, enable);
+    GetToolBar()->EnableTool(ID_OPEN, enable);
+    GetToolBar()->EnableTool(ID_SAVE, enable);
+    GetToolBar()->EnableTool(ID_BACK10, enable);
+    GetToolBar()->EnableTool(ID_UNDO, enable);
+    GetToolBar()->EnableTool(ID_REDO, enable);
+    GetToolBar()->EnableTool(ID_FWD10, enable);
+    GetToolBar()->EnableTool(ID_FORCE, enable);
+    GetToolBar()->EnableTool(ID_PUSHPOS, enable);
+    GetToolBar()->EnableTool(ID_POPPOS, enable);
+    GetToolBar()->EnableTool(ID_MAINLINE, enable);
+    GetToolBar()->EnableTool(ID_ANALYZE, enable);
+    GetToolBar()->EnableTool(ID_PASS, enable);
+    GetToolBar()->EnableTool(ID_SCORE, enable);
+    GetToolBar()->EnableTool(ID_RESIGN, enable);
+    if (!enable) {
+        return;
+    }
+    setActiveMenus();
+    // Create the window already, so we start saving move evaluations
+    m_scoreHistogramWindow = new ScoreHistogram(this);
+    m_scoreHistogramWindow->Hide();
+
+    // Restore open windows
+    bool restoreAnalysisWindow =
+        wxConfig::Get()->ReadBool(wxT("analysisWindowOpen"), false);
+    bool restoreScoreHistogramWindow =
+        wxConfig::Get()->ReadBool(wxT("scoreHistogramWindowOpen"), false);
+    if (restoreAnalysisWindow) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_ANALYSISWINDOWTOGGLE);
+        event->SetInt(NO_WINDOW_AUTOSIZE);
+        GetEventHandler()->QueueEvent(event);
+    }
+    if (restoreScoreHistogramWindow) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_SCOREHISTOGRAMTOGGLE);
+        GetEventHandler()->QueueEvent(event);
+    }
+    // Restore menu options
+    bool restoreShowOwner =
+        wxConfig::Get()->ReadBool("showOwnerEnabled", false);
+    bool restoreShowMoyo =
+        wxConfig::Get()->ReadBool("showMoyoEnabled", false);
+    bool restoreShowBestMoves =
+        wxConfig::Get()->ReadBool("showBestMovesEnabled", false);
+    bool restoreShowProbabilities =
+        wxConfig::Get()->ReadBool("showProbabilitiesEnabled", false);
+    if (restoreShowOwner) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_SHOWTERRITORY);
+        GetEventHandler()->QueueEvent(event);
+    }
+    if (restoreShowMoyo) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_SHOWMOYO);
+        GetEventHandler()->QueueEvent(event);
+    }
+    if (restoreShowBestMoves) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_BEST_MOVES);
+        GetEventHandler()->QueueEvent(event);
+    }
+    if (restoreShowProbabilities) {
+        auto event = new wxCommandEvent(wxEVT_MENU, ID_MOVE_PROBABILITIES);
+        GetEventHandler()->QueueEvent(event);
+    }
+    wxPersistentRegisterAndRestore(this, "MainFrame");
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+#ifdef USE_THREAD
+        cfg_num_threads = 2;
+#else
+        cfg_num_threads = 1;
+#endif
+    }
+    thread_pool.initialize(cfg_num_threads);
 }

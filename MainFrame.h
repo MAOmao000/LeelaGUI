@@ -23,11 +23,15 @@ wxDECLARE_EVENT(wxEVT_BESTMOVES_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_PURGE_VIZ, wxCommandEvent);
+#ifndef USE_THREAD
 wxDECLARE_EVENT(wxEVT_RECIEVE_KATAGO, wxCommandEvent);
+#endif
+
+#ifndef USE_THREAD
+class SubProcess;
+#endif
 
 static wxLocale m_locale;
-
-class SubProcess;
 
 class MainFrame : public TMainFrame {
 	public:
@@ -36,11 +40,13 @@ class MainFrame : public TMainFrame {
 		void SetStatusBarText(wxString mess, int pos);
 		void loadSGF(const wxString & filename, int movenum = 999);
 		virtual void doNewRatedGame(wxCommandEvent& event) override;
+		void doInit();
+#ifndef USE_THREAD
 		void OnAsyncTermination(SubProcess *process);
 		void OnProcessTerminated(SubProcess *process);
 		void OnIdleTimer(wxTimerEvent& event);
 		void OnIdle(wxIdleEvent& event);
-		void doInit();
+#endif
 
 	private:
 	virtual void doActivate(wxActivateEvent& event) override;
@@ -82,7 +88,9 @@ class MainFrame : public TMainFrame {
 	virtual void doShowHideScoreHistogram( wxCommandEvent& event ) override;
 	virtual void doCopyClipboard( wxCommandEvent& event ) override;
 	virtual void doPasteClipboard( wxCommandEvent& event ) override;
+#ifndef USE_THREAD
 	virtual void doRecieveKataGo(wxCommandEvent& event);
+#endif
 	void doEvalUpdate(wxCommandEvent& event);
 	void doRealUndo(int count = 1);
 	void doRealForward(int count = 1);
@@ -91,7 +99,9 @@ class MainFrame : public TMainFrame {
 	void broadcastCurrentMove();
 
 	void startEngine();
+#ifndef USE_THREAD
 	void startKataGo();
+#endif
 	bool stopEngine(bool update_score = true);
 	// true = user accepts score
 	bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
@@ -103,13 +113,19 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 
-	void postIdle();
 	void setStartMenus(bool enable = true);
+#ifdef USE_THREAD
+	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
+#else
+	void postIdle();
+#endif
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
-	GameState m_State;
+#ifndef USE_THREAD
 	std::unique_ptr<GameState> m_StateEngine;
+#endif
+	GameState m_State;
 	std::vector<GameState> m_StateStack;
 	int m_playerColor;
 	int m_visitLimit;
@@ -125,14 +141,13 @@ class MainFrame : public TMainFrame {
 	bool m_pondering;
 	bool m_disputing;
 	bool m_ponderedOnce;
+#ifndef USE_THREAD
 	nlohmann::json m_send_json;
 	int  m_katagoStatus;
 	bool m_runflag;
 	bool m_wasRunning;
 	bool m_isDuringSearch;
-	bool m_terminate_res;
 	bool m_update_score;
-
 	bool m_post_destructor;
 	bool m_post_doExit;
 	bool m_post_doNewMove;
@@ -148,30 +163,37 @@ class MainFrame : public TMainFrame {
 	bool m_post_doForceMove;
 	bool m_post_doResign;
 	bool m_post_doAnalyze;
-
+	std::string m_move_str;
+	float m_winrate;
+	float m_scoreMean;
+#ifdef PERFORMANCE
+	std::chrono::time_point<std::chrono::system_clock> m_query_start;
+#endif
+#endif
 	std::vector<int> m_move_handi;
 	std::unique_ptr<TEngineThread> m_engineThread;
 	AnalysisWindow* m_analysisWindow{nullptr};
 	ScoreHistogram* m_scoreHistogramWindow{nullptr};
 	std::vector<std::string> m_overrideSettings;
-	std::string m_move_str;
-	float m_winrate;
-	float m_scoreMean;
-	std::string m_query_id;
-
 	friend class TEngineThread;
 	friend class TBoardPanel;
 
+#ifdef USE_THREAD
+	wxProcess* m_process{nullptr};
+	std::mutex m_GTPmutex;
+#else
+	SubProcess* m_process{nullptr};
+	wxTimer m_timerIdleWakeUp;
+#endif
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
 	wxInputStream* m_err{nullptr};
 	bool m_close_window;
 	bool m_japanese_rule;
-	SubProcess *m_process;
-	wxTimer m_timerIdleWakeUp;
 	std::vector<wxString> m_ini_line;
+	std::string m_query_id;
 
-public:
+	public:
 	static void setLocale(bool japanese) {
 		if (japanese) {
 			if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
@@ -186,6 +208,7 @@ public:
 	}
 };
 
+#ifndef USE_THREAD
 class SubProcess : public wxProcess {
 public:
 	SubProcess(MainFrame *parent);
@@ -195,4 +218,6 @@ public:
 protected:
 	MainFrame *m_parent;
 };
+#endif
+
 #endif
