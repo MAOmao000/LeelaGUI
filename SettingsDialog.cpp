@@ -15,20 +15,19 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool resignEnabled = wxConfig::Get()->ReadBool(wxT("resignEnabled"), true);
     m_checkBoxResignations->SetValue(resignEnabled);
 
-    bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
-    m_checkBoxPondering->SetValue(ponderEnabled);
-
-    bool ponderKataGoEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
-    m_checkBoxPonderingKataGo->SetValue(ponderKataGoEnabled);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
+        m_checkBoxPondering->SetValue(ponderEnabled);
+    } else {
+        bool ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
+        m_checkBoxPondering->SetValue(ponderEnabled);
+    }
 
     bool netsEnabled = wxConfig::Get()->ReadBool(wxT("netsEnabled"), true);
     m_checkBoxNeuralNet->SetValue(netsEnabled);
 
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
-        m_checkBoxPondering->Enable(false);
         m_checkBoxNeuralNet->Enable(false);
-    } else {
-        m_checkBoxPonderingKataGo->Enable(false);
     }
 
     bool soundEnabled = wxConfig::Get()->ReadBool(wxT("soundEnabled"), true);
@@ -65,10 +64,11 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
     wxConfig::Get()->Write(wxT("resignEnabled"), resignEnabled);
 
     bool ponderEnabled = m_checkBoxPondering->GetValue();
-    wxConfig::Get()->Write(wxT("ponderEnabled"), ponderEnabled);
-
-    bool ponderKataGoEnabled = m_checkBoxPonderingKataGo->GetValue();
-    wxConfig::Get()->Write(wxT("ponderKataGoEnabled"), ponderKataGoEnabled);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        wxConfig::Get()->Write(wxT("ponderEnabled"), ponderEnabled);
+    } else {
+        wxConfig::Get()->Write(wxT("ponderKataGoEnabled"), ponderEnabled);
+    }
 
     bool netsEnabled = m_checkBoxNeuralNet->GetValue();
     wxConfig::Get()->Write(wxT("netsEnabled"), netsEnabled);
