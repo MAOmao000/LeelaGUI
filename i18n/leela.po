@@ -456,16 +456,20 @@ msgid "Handicap"
 msgstr "置き石"
 
 #: GUI.cpp:374
-msgid "Time for game (Leela)"
-msgstr "持ち時間(Leela)"
-
-#: GUI.cpp:374
-msgid "Time for game (KataGo)"
-msgstr "持ち時間(KataGo)"
+msgid "Time for game"
+msgstr "持ち時間"
 
 #: GUI.cpp:379
 msgid "Minutes"
 msgstr "分"
+
+#: GUI.cpp:374
+msgid "Byo time"
+msgstr "秒読み時間"
+
+#: GUI.cpp:379
+msgid "Seconds"
+msgstr "秒"
 
 #: GUI.cpp:392
 msgid "Black"
@@ -592,12 +596,8 @@ msgid "Allow Passes"
 msgstr "パスを許可"
 
 #: GUI.cpp:708
-msgid "Pondering(Leela)"
-msgstr "相手手番中も先読みする (Leela)"
-
-#: GUI.cpp:708
-msgid "Pondering(KataGo)"
-msgstr "相手手番中も先読みする (KataGo)"
+msgid "Pondering"
+msgstr "相手手番中も先読みする"
 
 #: GUI.cpp:712
 msgid "Resignations"
@@ -877,6 +877,11 @@ msgstr "KataGo応答受信"
 #: MainFrame.cpp:2189
 msgid "KataGo starting... "
 msgstr "KataGo起動中... "
+
+#: MainFrame.cpp:723
+#, c-format
+msgid "Thinking at most %d seconds..."
+msgstr "最大%d秒で思考中..."
 
 #: TBoardPanel.cpp:105
 #, c-format
