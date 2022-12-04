@@ -20,14 +20,25 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     int komi = wxConfig::Get()->ReadLong(wxT("DefaultKomi"), (long)7);
     m_spinCtrlKomi->SetValue(komi);
     
-    int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
-    m_radioBoxLevel->SetSelection(simulations);
-    
-    int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
-    m_spinCtrlTime->SetValue(minutes);
-    
-    int minutesKataGo = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
-    m_spinCtrlTimeKataGo->SetValue(minutesKataGo);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
+        m_radioBoxLevel->SetSelection(simulations);
+        
+        int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
+        m_spinCtrlTime->SetValue(minutes);
+        
+        int byo = wxConfig::Get()->ReadLong(wxT("DefaultByo"), (long)2);
+        m_spinCtrlByo->SetValue(byo);
+    } else {
+        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsKataGo"), (long)6);
+        m_radioBoxLevel->SetSelection(simulations);
+        
+        int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
+        m_spinCtrlTime->SetValue(minutes);
+        
+        int byo = wxConfig::Get()->ReadLong(wxT("DefaultByoKataGo"), (long)2);
+        m_spinCtrlByo->SetValue(byo);
+    }
     
     int color = wxConfig::Get()->ReadLong(wxT("DefaultColor"), (long)0);
     m_radioBoxColor->SetSelection(color);
@@ -35,13 +46,7 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
 
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-        m_spinCtrlTimeKataGo->Enable(false);
-        m_staticText11->Enable(false);
-    } else {
-        m_spinCtrlTime->Enable(false);
-        m_staticText13->Enable(false);
-        m_checkNeuralNet->SetValue(false);
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
         m_checkNeuralNet->Enable(false);
     }
 
@@ -66,7 +71,11 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
     wxConfig::Get()->Write(wxT("DefaultBoardSize"), (long)size);
 
     int simulations = m_radioBoxLevel->GetSelection();
-    wxConfig::Get()->Write(wxT("DefaultSimulations"), (long)simulations);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        wxConfig::Get()->Write(wxT("DefaultSimulations"), (long)simulations);
+    } else {
+        wxConfig::Get()->Write(wxT("DefaultSimulationsKataGo"), (long)simulations);
+    }
 
     int color = m_radioBoxColor->GetSelection();
     wxConfig::Get()->Write(wxT("DefaultColor"), (long)color);
@@ -78,10 +87,14 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
     wxConfig::Get()->Write(wxT("DefaultKomi"), (long)komi);
 
     int minutes = m_spinCtrlTime->GetValue();
-    wxConfig::Get()->Write(wxT("DefaultMinutes"), (long)minutes);
-
-    int minutesKataGo = m_spinCtrlTimeKataGo->GetValue();
-    wxConfig::Get()->Write(wxT("DefaultMinutesKataGo"), (long)minutesKataGo);
+    int byo = m_spinCtrlByo->GetValue();
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        wxConfig::Get()->Write(wxT("DefaultMinutes"), (long)minutes);
+        wxConfig::Get()->Write(wxT("DefaultByo"), (long)byo);
+    } else {
+        wxConfig::Get()->Write(wxT("DefaultMinutesKataGo"), (long)minutes);
+        wxConfig::Get()->Write(wxT("DefaultByoKataGo"), (long)byo);
+    }
 
     bool nets = m_checkNeuralNet->GetValue();
     wxConfig::Get()->Write(wxT("netsEnabled"), nets);
@@ -150,10 +163,11 @@ int NewGameDialog::getPlayerColor() {
 }
 
 int NewGameDialog::getTimeControl() {
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-        return m_spinCtrlTime->GetValue();
-    }
-    return m_spinCtrlTimeKataGo->GetValue();
+    return m_spinCtrlTime->GetValue();
+}
+
+int NewGameDialog::getByoControl() {
+    return m_spinCtrlByo->GetValue();
 }
 
 void NewGameDialog::doHandicapUpdate( wxSpinEvent& event ) {    

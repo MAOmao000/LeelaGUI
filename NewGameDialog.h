@@ -31,6 +31,7 @@ public:
     int getSimulations();
     int getPlayerColor();
     int getTimeControl();
+    int getByoControl();
     bool getNetsEnabled();
     static int simulationsToVisitLimit(int visits);
 
