@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.8.5"
+!define VERSION   "1.8.6"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -338,6 +338,8 @@ Section "LeelaI18N" leela
   #File "bin\libquadmath-0.dll"
   File "bin\libzip.dll"
   File "bin\zlib.dll"
+  File "bin\msvcp140.dll"
+  File "bin\vcruntime140.dll"
   File "bin\katago.exe"
   File "bin\LeelaGUI.ini"
   File "bin\analysis_example.cfg"
@@ -501,6 +503,8 @@ Section "Uninstall"
   Delete "$INSTDIR\zip.dll"
   Delete "$INSTDIR\libzip.dll"
   Delete "$INSTDIR\zlib.dll"
+  Delete "$INSTDIR\msvcp140.dll"
+  Delete "$INSTDIR\vcruntime140.dll"
   Delete "$INSTDIR\katago.exe"
   Delete "$INSTDIR\katago_OpenCL.exe"
   Delete "$INSTDIR\LeelaGUI.ini"
