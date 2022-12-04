@@ -33,9 +33,9 @@
 
 #define PROGRAM_NAME "LeelaI18N"
 #ifdef KGS
-#define PROGRAM_VERSION "1.8.5. I will resign when I have lost. If you are sure you are winning but I haven't resigned yet, the status of some groups is not yet clear to me. I will pass out the game when I have won. You can download the latest stable version at https://sjeng.org/leela"
+#define PROGRAM_VERSION "1.8.6. I will resign when I have lost. If you are sure you are winning but I haven't resigned yet, the status of some groups is not yet clear to me. I will pass out the game when I have won. You can download the latest stable version at https://sjeng.org/leela"
 #else
-#define PROGRAM_VERSION "1.8.5"
+#define PROGRAM_VERSION "1.8.6"
 #endif
 
 // OpenBLAS limitation
@@ -79,5 +79,9 @@ typedef  unsigned long long int uint64;
         typedef time_t rtime_t;
     #endif
 #endif
+
+// Resignation after 3 consecutive win rates of 5% or less
+static constexpr float RESIGN_THRESHOLD = 0.05f;
+static constexpr float RESIGN_MINSCORE_DIFFERENCE = -1e10f;
 
 #endif
