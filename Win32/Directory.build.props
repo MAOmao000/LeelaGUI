@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <LLVMInstallDir>C:\llvm-project\build\Release</LLVMInstallDir>
+    <LLVMToolsVersion>16</LLVMToolsVersion>
+  </PropertyGroup>
+</Project>

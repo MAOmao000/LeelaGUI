@@ -13,6 +13,8 @@ Global
 		ReleaseCPU|x64 = ReleaseCPU|x64
 		ReleaseGPU|Win32 = ReleaseGPU|Win32
 		ReleaseGPU|x64 = ReleaseGPU|x64
+		ThreadG|Win32 = ThreadG|Win32
+		ThreadG|x64 = ThreadG|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.ActiveCfg = ReleaseGPU|x64
@@ -26,6 +28,10 @@ Global
 		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|Win32.Build.0 = ReleaseGPU|Win32
 		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|x64.ActiveCfg = ReleaseGPU|x64
 		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseGPU|x64.Build.0 = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ThreadG|Win32.ActiveCfg = ThreadG|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ThreadG|Win32.Build.0 = ThreadG|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ThreadG|x64.ActiveCfg = ThreadG|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.ThreadG|x64.Build.0 = ThreadG|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
