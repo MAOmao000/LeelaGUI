@@ -27,7 +27,7 @@ void GameState::init_game(int size, float komi) {
     m_black_score = 0.0;
 
     for (size_t i = 0; i < m_win_rate.size(); i++) {
-        m_win_rate[i] = 100.0;
+        m_win_rate[i] = 0.5f;
     }
     return;
 };
@@ -45,7 +45,7 @@ void GameState::reset_game() {
     m_black_score = 0.0;
 
     for (size_t i = 0; i < m_win_rate.size(); i++) {
-        m_win_rate[i] = 1.0;
+        m_win_rate[i] = 0.5f;
     }
 }
 
