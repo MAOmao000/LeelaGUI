@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MainFrame.h"
 
+#ifndef USE_THREAD
 SubProcess::SubProcess(MainFrame *parent) : wxProcess(parent) {
     m_parent = parent;
     Redirect();
@@ -40,3 +41,4 @@ void SubProcess::OnTerminate(int pid, int status) {
 
     m_parent->OnAsyncTermination(this);
 }
+#endif
