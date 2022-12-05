@@ -15,6 +15,9 @@ endif(USE_GPU)
 if(USE_WLCOPY)
   set(COMP_OPTS ${COMP_OPTS} "USE_WLCOPY")
 endif(USE_WLCOPY)
+if(USE_THREAD)
+  set(COMP_OPTS ${COMP_OPTS} "USE_THREAD")
+endif(USE_THREAD)
 
 
 message(STATUS "BOOST_ROOT=${BOOST_ROOT}")
@@ -147,6 +150,7 @@ if(MSVC)
   target_compile_definitions(leelagui PUBLIC
     BOOST_ALL_NO_LIB
     USE_GPU
+    USE_THREAD
     WIN32
     NDEBUG
     _WINDOWS
@@ -166,7 +170,6 @@ if(MSVC)
 else()
   target_link_libraries(leelagui PUBLIC
     -Wl,--as-needed,-Bdynamic
-    -fopenmp
     -lpthread
     -lm
     ${Boost_LIBRARIES}
@@ -180,7 +183,6 @@ else()
     -ffast-math
     -march=native
     -mtune=generic
-    -fopenmp
     -Wno-unused-parameter
     -Wno-unused-variable
   )
