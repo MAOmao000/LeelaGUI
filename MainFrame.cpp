@@ -245,7 +245,6 @@ MainFrame::~MainFrame() {
     }
 #endif
 
-    wxPersistentRegisterAndRestore(this, "MainFrame");
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
         m_analysisWindow != nullptr && m_analysisWindow->IsShown());
     wxConfig::Get()->Write(wxT("scoreHistogramWindowOpen"),
@@ -337,13 +336,6 @@ void MainFrame::doInit() {
                 // Start KataGo's analysis engine.
 #ifdef USE_THREAD
                 if ( !(m_process = wxProcess::Open(m_ini_line[0])) ) {
-#else
-                // Case of non use thread engine, receive query response in SubProcess class.
-                SubProcess *process = new SubProcess(this);
-                long pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, process);
-                m_process = process;
-                if ( !pid ) {
-#endif
                     wxLogDebug(_("Failed to launch the command."));
                 } else if ( !(m_in = m_process->GetInputStream()) ) {
                     wxLogDebug(_("Failed to connect to child stdout"));
@@ -357,6 +349,27 @@ void MainFrame::doInit() {
                 } else {
                     cfg_use_engine = GTP::KATAGO_ENGINE;
                 }
+#else
+                // Case of non use thread engine, receive query response in SubProcess class.
+                SubProcess *process = new SubProcess(this);
+                long pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, process);
+                m_process = process;
+                if ( !pid ) {
+                    wxLogDebug(_("Failed to launch the command."));
+                    delete process;
+                } else if ( !(m_in = m_process->GetInputStream()) ) {
+                    wxLogDebug(_("Failed to connect to child stdout"));
+                    delete process;
+                } else if ( !(m_err = m_process->GetErrorStream()) ) {
+                    wxLogDebug(_("Failed to connect to child stderr"));
+                    delete process;
+                } else if ( !(m_out = m_process->GetOutputStream()) ) {
+                    wxLogDebug(_("Failed to connect to child stdin"));
+                    delete process;
+                } else {
+                    cfg_use_engine = GTP::KATAGO_ENGINE;
+                }
+#endif
             }
             if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
                  errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
@@ -2353,9 +2366,7 @@ void MainFrame::OnAsyncTermination(SubProcess *process) {
 }
 
 void MainFrame::OnProcessTerminated(SubProcess *process) {
-    if ( m_process ) {
-        m_timerIdleWakeUp.Stop();
-    }
+    m_timerIdleWakeUp.Stop();
 }
 
 void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
@@ -2715,7 +2726,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
             std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
             float maxProbability = 0.0f;
-            for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
+            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
                 int x = vertex % board_size;
                 int y = vertex / board_size;
                 y = -1 * (y - board_size) - 1;
@@ -2735,6 +2746,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 m_StateEngine->m_owner.emplace_back(*itr);
             }
             float policy = res_2_json["policy"][board_size * board_size].get<float>();
+            if (policy > maxProbability) {
+                maxProbability = policy;
+            }
             conv_policy[0] = maxProbability;
             conv_policy[1] = policy;
             m_StateEngine->m_policy.clear();
