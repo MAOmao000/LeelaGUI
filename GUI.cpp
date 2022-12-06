@@ -375,14 +375,14 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Byo time") ), wxHORIZONTAL );
 
 	m_spinCtrlByo = new wxSpinCtrl( sbSizer9->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 2, 3600, 2 );
-	sbSizer9->Add( m_spinCtrlByo, 0, wxALL, 5 );
+	sbSizer9->Add( m_spinCtrlByo, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	m_staticText11 = new wxStaticText( sbSizer9->GetStaticBox(), wxID_ANY, _("Seconds"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText11->Wrap( -1 );
-	sbSizer9->Add( m_staticText11, 0, wxALL, 5 );
+	sbSizer9->Add( m_staticText11, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
-	bSizer9->Add( sbSizer9, 1, wxEXPAND, 5 );
+	bSizer9->Add( sbSizer9, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 
 	bSizer11->Add( bSizer9, 0, wxALL|wxEXPAND, 5 );
