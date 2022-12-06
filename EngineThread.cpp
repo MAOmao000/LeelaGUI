@@ -486,7 +486,7 @@ void TEngineThread::Run() {
             std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
             std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
             float maxProbability = 0.0f;
-            for (int vertex = 0; vertex < board_size * board_size + 1; vertex++) {
+            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
                 int x = vertex % board_size;
                 int y = vertex / board_size;
                 y = -1 * (y - board_size) - 1;
@@ -506,6 +506,9 @@ void TEngineThread::Run() {
                 m_state->m_owner.emplace_back(*itr);
             }
             float policy = res_2_json["policy"][board_size * board_size].get<float>();
+            if (policy > maxProbability) {
+                maxProbability = policy;
+            }
             conv_policy[0] = maxProbability;
             conv_policy[1] = policy;
             m_state->m_policy.clear();
