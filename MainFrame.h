@@ -201,9 +201,9 @@ class MainFrame : public TMainFrame {
 				return;
 			}
 			m_locale.Init(wxLANGUAGE_JAPANESE, wxLOCALE_DONT_LOAD_DEFAULT);
-			m_locale.AddCatalogLookupPathPrefix(_T("catalogs"));
-			m_locale.AddCatalog(_T("messages"));
-			m_locale.AddCatalog(_T("wxstd"));
+			m_locale.AddCatalogLookupPathPrefix(wxT("catalogs"));
+			m_locale.AddCatalog(wxT("messages"));
+			m_locale.AddCatalog(wxT("wxstd"));
 		}
 	}
 };
