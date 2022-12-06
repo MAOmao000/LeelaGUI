@@ -77,9 +77,11 @@ bool MyApp::OnInit()
     ::wxSetWorkingDirectory(::wxPathOnly(wxString::FromUTF8(prg_path)));
 #endif
 
+#ifdef NDEBUG
     bool japanese = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     MainFrame::setLocale(japanese);
     ::wxSetWorkingDirectory(cwd);
+#endif
 
     wxImage::AddHandler(new wxPNGHandler());
 
