@@ -22,6 +22,7 @@ public:
     void display_times();
     int get_remaining_time(int color);
     void reset_clocks();
+    bool byo_yomi(int color);
 
 private:
     size_t opening_moves(int boardsize) const;

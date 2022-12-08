@@ -248,3 +248,15 @@ void TimeControl::set_boardsize(int boardsize) {
 int TimeControl::get_remaining_time(int color) {
     return m_remaining_time[color];
 }
+
+bool TimeControl::byo_yomi(int color) {
+    if (m_byotime != 0) {
+        if (m_byostones == 0 && m_byoperiods == 0) {
+            return false;
+        }
+        if (m_inbyo[color]) {
+            return true;
+        }
+    }
+    return false;
+}
