@@ -303,20 +303,13 @@ void TEngineThread::Run() {
             } else {
                 time_for_move = (time_for_move + 50) / 100 + 1;
             }
-            if (time_for_move > 2 &&
+            if (!m_state->get_timecontrol().byo_yomi(who) &&
+                time_for_move > 2 &&
                 m_state->m_win_rate[0] > 0.6f &&
                 m_state->m_win_rate[1] > 0.6f &&
                 m_state->m_win_rate[2] > 0.6f) {
                 time_for_move--;
             }
-            /*
-            } else if (time_for_move > 1 &&
-                m_state->m_win_rate[0] > 0.5f &&
-                m_state->m_win_rate[1] > 0.5f &&
-                m_state->m_win_rate[2] > 0.5f) {
-                time_for_move--;
-            }
-            */
             Utils::GUIprintf(cfg_lang, _("Thinking at most %d seconds...").utf8_str(), time_for_move);
             nlohmann::json res_1_json;
             send_json["id"] = "play1_" + m_query_id;
@@ -374,6 +367,7 @@ void TEngineThread::Run() {
             send_json["includeOwnership"] = true;
             send_json["includePolicy"] = true;
             send_json["maxVisits"] = 1;
+            send_json["analysisPVLen"] = 1;
             if (who == FastBoard::BLACK) {
                 send_json["moves"][m_state->get_movenum()][0] = "B";
             } else {
