@@ -423,10 +423,10 @@ void MainFrame::doInit() {
                         break;
                     }
                 } else {
-                    sleep_for(std::chrono::milliseconds(100));
+                    sleep_for(std::chrono::milliseconds(50));
                 }
             } else {
-                sleep_for(std::chrono::milliseconds(100));
+                sleep_for(std::chrono::milliseconds(50));
             }
         }
     }
@@ -465,6 +465,7 @@ void MainFrame::doInit() {
             m_overrideSettings.clear();
             m_overrideSettings.emplace_back(tmp_query);
          } catch(const std::exception& e) {
+            wxProcess::Kill(m_process->GetPid());
             cfg_use_engine = GTP::ORIGINE_ENGINE;
             errorString.Printf(_("The query definition is incorrect: %s\nStart with the Leela engine?"),
                                wxString(e.what()).mb_str());
@@ -639,6 +640,13 @@ void MainFrame::startKataGo() {
             time_for_move = 1 + 1;
         } else {
             time_for_move = (time_for_move + 50) / 100 + 1;
+        }
+        if (!m_StateEngine->get_timecontrol().byo_yomi(color) &&
+            time_for_move > 2 &&
+            m_StateEngine->m_win_rate[0] > 0.6f &&
+            m_StateEngine->m_win_rate[1] > 0.6f &&
+            m_StateEngine->m_win_rate[2] > 0.6f) {
+            time_for_move--;
         }
         uint64_t query_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         m_query_id = std::to_string(query_ms);
@@ -2481,6 +2489,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 m_katagoStatus = ANALYSIS_RESPONSE_WAIT;
                 return;
             } catch(const std::exception& e) {
+                delete m_process;
                 wxString errStr;
                 errStr.Printf(_("The query definition is incorrect: %s\nStart with the Leela engine?"), wxString(e.what()).mb_str());
                 int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
@@ -2496,7 +2505,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             m_in = nullptr;
             m_err = nullptr;
             m_out = nullptr;
-            wxProcess::Kill(m_process->GetPid());
             wxConfig::Get()->Write(wxT("katagoEnabled"), false);
             m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
             m_timerIdleWakeUp.Stop();
@@ -3002,7 +3010,7 @@ void MainFrame::setStartMenus(bool enable) {
     wxPersistentRegisterAndRestore(this, "MainFrame");
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
 #ifdef USE_THREAD
-        cfg_num_threads = 2;
+        cfg_num_threads = std::max(1, cfg_num_threads / 2);
 #else
         cfg_num_threads = 1;
 #endif
