@@ -117,8 +117,10 @@ class MainFrame : public TMainFrame {
 #ifdef USE_THREAD
 	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
 #else
+	void playMove(int who);
 	void postIdle();
 #endif
+	void MainFrameEnd();
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 
@@ -166,9 +168,14 @@ class MainFrame : public TMainFrame {
 	std::string m_move_str;
 	float m_winrate;
 	float m_scoreMean;
-#ifdef PERFORMANCE
-	std::chrono::time_point<std::chrono::system_clock> m_query_start;
 #endif
+	std::chrono::time_point<std::chrono::system_clock> m_query_start;
+	int m_visit;
+#ifdef PERFORMANCE
+	int m_thinking_time;
+	bool m_thinking;
+	int m_think_num;
+	int m_visits;
 #endif
 	std::vector<int> m_move_handi;
 	std::unique_ptr<TEngineThread> m_engineThread;

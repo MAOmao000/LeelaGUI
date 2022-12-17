@@ -24,6 +24,7 @@ class TEngineThread {
                       wxOutputStream *std_out,
                       std::vector<std::string>& overrideSettings,
                       const std::string& query_id,
+                      const std::chrono::time_point<std::chrono::system_clock>& query_start,
                       std::mutex *GTPmutex);
 #else
         TEngineThread(const GameState& gamestate, MainFrame *frame);
@@ -37,8 +38,12 @@ class TEngineThread {
         void set_nopass(bool flag);
         void set_quiet(bool flag);
         void set_nets(bool flag);
+        void set_thinking(bool flag);
+        bool get_thinking();
 #ifdef USE_THREAD
         void set_handi(std::vector<int> handi);
+        void set_show_owner(bool flag);
+        void set_show_probabilities(bool flag);
 #endif
         void stop_engine(void);
         void kill_score_update(void);
@@ -58,6 +63,7 @@ class TEngineThread {
         wxInputStream *m_err;
         wxOutputStream *m_out;
         std::string m_query_id;
+        std::chrono::time_point<std::chrono::system_clock> m_query_start;
 #endif
         int m_maxvisits=0;
         bool m_nets;
@@ -68,8 +74,11 @@ class TEngineThread {
         bool m_nopass;
         bool m_update_score;
 #ifdef USE_THREAD
+        bool m_show_owner;
+        bool m_show_probabilities;
         std::vector<std::string> m_overrideSettings{};
         std::vector<int> m_handi;
+        std::atomic<bool> m_thinking;
 #endif
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
