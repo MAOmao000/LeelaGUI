@@ -62,6 +62,11 @@ msgstr ""
 msgid "Win rate:%3.1f%% Score:%.1f"
 msgstr "勝率:%3.1f%% %.1f目差"
 
+#: EngineThread.cpp:xxx
+#, c-format
+msgid "Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"
+msgstr "勝率:%3.1f%% %.1f目差 %d[ms] %d回"
+
 #: EngineThread.cpp:323 GUI.cpp:645 engine\UCTSearch.cpp:204
 msgid "Effort%"
 msgstr "探索比率%"
@@ -78,6 +83,11 @@ msgstr "目数"
 #: EngineThread.cpp:352 EngineThread.cpp:354
 msgid "Under analysis... "
 msgstr "検討中... "
+
+#: EngineThread.cpp:1669
+#, c-format
+msgid " Time:%d[ms] Visits:%d"
+msgstr " %d[ms] %d回"
 
 #: GUI.cpp:98
 msgid "&New Game..."
@@ -511,6 +521,10 @@ msgstr "20,000回試行"
 msgid "Unlimited"
 msgstr "無制限"
 
+#: GUI.cpp:399
+msgid "Specify a number"
+msgstr "数値指定"
+
 #: GUI.cpp:400
 msgid "Engine max level"
 msgstr "エンジン最大レベル"
@@ -865,6 +879,11 @@ msgstr "時間調整がクリックされました"
 #: MainFrame.cpp:1669
 msgid "Analysis stopped"
 msgstr "検討を停止しました"
+
+#: MainFrame.cpp:1669
+#, c-format
+msgid "Analysis stopped. Time:%d[ms] Visits:%d"
+msgstr "検討を停止しました(%d[ms] %d回)"
 
 #: MainFrame.cpp:1824
 msgid "GTP error response: "
