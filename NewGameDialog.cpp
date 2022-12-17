@@ -20,9 +20,13 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     int komi = wxConfig::Get()->ReadLong(wxT("DefaultKomi"), (long)7);
     m_spinCtrlKomi->SetValue(komi);
     
+    int simulations;
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
+        simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
         m_radioBoxLevel->SetSelection(simulations);
+        
+        int simulations_num = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsNum"), (long)250);
+        m_spinCtrlLevel->SetValue(simulations_num);
         
         int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
         m_spinCtrlTime->SetValue(minutes);
@@ -30,8 +34,11 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
         int byo = wxConfig::Get()->ReadLong(wxT("DefaultByo"), (long)2);
         m_spinCtrlByo->SetValue(byo);
     } else {
-        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsKataGo"), (long)6);
+        simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsKataGo"), (long)6);
         m_radioBoxLevel->SetSelection(simulations);
+        
+        int simulations_num = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsNumKataGo"), (long)250);
+        m_spinCtrlLevel->SetValue(simulations_num);
         
         int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
         m_spinCtrlTime->SetValue(minutes);
@@ -58,8 +65,22 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
         m_radioBoxBoardSize->Enable(5, false);
     }
 
+    if (simulations != 7) {
+         m_spinCtrlLevel->Enable(false);
+    }
+
     checkNetsEnabled();
     checkHandicapRange();
+}
+
+void NewGameDialog::doLevel( wxUpdateUIEvent& event ) {
+    int simuls = m_radioBoxLevel->GetSelection();
+    if (simuls != 7) {
+        m_spinCtrlLevel->Enable(false);
+    } else {
+        m_spinCtrlLevel->Enable(true);
+    }
+    event.Skip();
 }
 
 void NewGameDialog::doCancel( wxCommandEvent& event ) {
@@ -71,10 +92,13 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
     wxConfig::Get()->Write(wxT("DefaultBoardSize"), (long)size);
 
     int simulations = m_radioBoxLevel->GetSelection();
+    int simulations_num = m_spinCtrlLevel->GetValue();
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
         wxConfig::Get()->Write(wxT("DefaultSimulations"), (long)simulations);
+        wxConfig::Get()->Write(wxT("DefaultSimulationsNum"), (long)simulations_num);
     } else {
         wxConfig::Get()->Write(wxT("DefaultSimulationsKataGo"), (long)simulations);
+        wxConfig::Get()->Write(wxT("DefaultSimulationsNumKataGo"), (long)simulations_num);
     }
 
     int color = m_radioBoxColor->GetSelection();
@@ -98,6 +122,10 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
 
     bool nets = m_checkNeuralNet->GetValue();
     wxConfig::Get()->Write(wxT("netsEnabled"), nets);
+
+    if (simulations != 7) {
+         m_spinCtrlLevel->Enable(false);
+    }
 
     event.Skip();
 }
@@ -153,7 +181,11 @@ int NewGameDialog::simulationsToVisitLimit(int simuls) {
 
 int NewGameDialog::getSimulations() {
     int simuls = m_radioBoxLevel->GetSelection();
-    return simulationsToVisitLimit(simuls);
+    if (simuls != 7) {
+        return simulationsToVisitLimit(simuls);
+    } else {
+        return m_spinCtrlLevel->GetValue();
+    }
 }
 
 int NewGameDialog::getPlayerColor() {

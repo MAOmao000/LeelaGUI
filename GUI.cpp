@@ -307,6 +307,7 @@ BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_INIT_DIALOG( TNewGameDialog::_wxFB_doInit )
 	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doRadioBox )
 	EVT_SPINCTRL( ID_HANDICAPSPIN, TNewGameDialog::_wxFB_doHandicapUpdate )
+	EVT_UPDATE_UI( wxID_ANY, TNewGameDialog::_wxFB_doLevel )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel1 )
 END_EVENT_TABLE()
@@ -396,11 +397,14 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_radioBoxColor->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxColor, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Unlimited") };
+	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Unlimited"), _("Specify a number") };
 	int m_radioBoxLevelNChoices = sizeof( m_radioBoxLevelChoices ) / sizeof( wxString );
 	m_radioBoxLevel = new wxRadioBox( this, wxID_ANY, _("Engine max level"), wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
-	m_radioBoxLevel->SetSelection( 6 );
+	m_radioBoxLevel->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxLevel, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	m_spinCtrlLevel = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 136,-1 ), wxSP_ARROW_KEYS, 1, 1000000, 250 );
+	bSizer10->Add( m_spinCtrlLevel, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* sbSizerEngineSettings;
 	sbSizerEngineSettings = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Engine settings (19 x 19)") ), wxVERTICAL );

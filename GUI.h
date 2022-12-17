@@ -208,6 +208,7 @@ class TNewGameDialog : public wxDialog
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
 		void _wxFB_doRadioBox( wxCommandEvent& event ){ doRadioBox( event ); }
 		void _wxFB_doHandicapUpdate( wxSpinEvent& event ){ doHandicapUpdate( event ); }
+		void _wxFB_doLevel( wxUpdateUIEvent& event ){ doLevel( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 		void _wxFB_doCancel1( wxCommandEvent& event ){ doCancel1( event ); }
 
@@ -230,6 +231,7 @@ class TNewGameDialog : public wxDialog
 		wxStaticText* m_staticText11;
 		wxRadioBox* m_radioBoxColor;
 		wxRadioBox* m_radioBoxLevel;
+		wxSpinCtrl* m_spinCtrlLevel;
 		wxCheckBox* m_checkNeuralNet;
 		wxButton* m_button10;
 		wxButton* m_button_new_game_cancel;
@@ -238,6 +240,7 @@ class TNewGameDialog : public wxDialog
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void doRadioBox( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doHandicapUpdate( wxSpinEvent& event ) { event.Skip(); }
+		virtual void doLevel( wxUpdateUIEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel1( wxCommandEvent& event ) { event.Skip(); }
 
