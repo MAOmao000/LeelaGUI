@@ -403,8 +403,8 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_radioBoxLevel->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxLevel, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	m_spinCtrlLevel = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 136,-1 ), wxSP_ARROW_KEYS, 1, 1000000, 250 );
-	bSizer10->Add( m_spinCtrlLevel, 0, wxALL, 5 );
+	m_spinCtrlLevel = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 150,-1 ), wxSP_ARROW_KEYS, 1, 1000000, 250 );
+	bSizer10->Add( m_spinCtrlLevel, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	wxStaticBoxSizer* sbSizerEngineSettings;
 	sbSizerEngineSettings = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Engine settings (19 x 19)") ), wxVERTICAL );

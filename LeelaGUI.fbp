@@ -1697,7 +1697,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="1">
                                     <property name="border">5</property>
-                                    <property name="flag">wxALL</property>
+                                    <property name="flag">wxALIGN_CENTER|wxALL</property>
                                     <property name="proportion">0</property>
                                     <object class="wxSpinCtrl" expanded="1">
                                         <property name="BottomDockable">1</property>
@@ -1746,7 +1746,7 @@
                                         <property name="pos"></property>
                                         <property name="resize">Resizable</property>
                                         <property name="show">1</property>
-                                        <property name="size">136,-1</property>
+                                        <property name="size">150,-1</property>
                                         <property name="style">wxSP_ARROW_KEYS</property>
                                         <property name="subclass">; ; forward_declare</property>
                                         <property name="toolbar_pane">0</property>
