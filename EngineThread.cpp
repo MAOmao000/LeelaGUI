@@ -394,6 +394,7 @@ void TEngineThread::Run() {
             winrate = res_1_json["rootInfo"]["winrate"].get<float>();
             scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
             int visits = res_1_json["rootInfo"]["visits"].get<int>();
+            m_state->m_black_score = scoreMean;
             if (m_show_owner) {
                 send_json.erase("includeOwnership");
                 // Edit Ownership Information
@@ -410,7 +411,6 @@ void TEngineThread::Run() {
                 for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
                     m_state->m_owner.emplace_back(*itr);
                 }
-                m_state->m_black_score = scoreMean;
                 std::bitset<FastBoard::MAXSQ> blackowns;
                 for (int i = 0; i < board_size; i++) {
                     for (int j = 0; j < board_size; j++) {

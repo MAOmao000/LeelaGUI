@@ -2782,6 +2782,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             int board_size = m_StateEngine->board.get_boardsize();
             m_winrate = res_1_json["rootInfo"]["winrate"].get<float>();
             m_scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
+            m_StateEngine->m_black_score = m_scoreMean;
             // Edit Ownership Information
             if (res_1_json.contains("ownership")) {
                 std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
@@ -2797,7 +2798,6 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
                     m_StateEngine->m_owner.emplace_back(*itr);
                 }
-                m_StateEngine->m_black_score = m_scoreMean;
                 std::bitset<FastBoard::MAXSQ> blackowns;
                 for (int i = 0; i < board_size; i++) {
                     for (int j = 0; j < board_size; j++) {
