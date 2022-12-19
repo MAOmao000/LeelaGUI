@@ -209,7 +209,7 @@ void TEngineThread::Run() {
                     }
                     if (res_query.find(R"("error":)") != string::npos) {
                         ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_ERROR);
-                        Utils::GUIprintf(cfg_lang, _(""));
+                        Utils::GUIprintf(_(""));
                         m_thinking.store(false, std::memory_order_release);
                         return;
                     }
@@ -236,7 +236,7 @@ void TEngineThread::Run() {
                     if (res_1_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
                         continue;
                     } else if (res_1_json.contains("noResults") && res_1_json["noResults"].get<bool>()) {
-                        Utils::GUIprintf(cfg_lang, _(""));
+                        Utils::GUIprintf(_(""));
                         m_thinking.store(false, std::memory_order_release);
                         return;
                     }
@@ -280,10 +280,10 @@ void TEngineThread::Run() {
                     auto query_end = std::chrono::system_clock::now();
                     int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
                     if (who == FastBoard::BLACK) {
-                        Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
+                        Utils::GUIprintf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
                             100 - winrate * 100, -1 * scoreMean, think_time, res_1_json["rootInfo"]["visits"].get<int>());
                     } else {
-                        Utils::GUIprintf(cfg_lang, (_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
+                        Utils::GUIprintf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
                             winrate * 100, scoreMean, think_time, res_1_json["rootInfo"]["visits"].get<int>());
                     }
                     Utils::GUIAnalysis((void*)analysis_packet.release());
@@ -307,7 +307,7 @@ void TEngineThread::Run() {
                 }
                 auto query_end = std::chrono::system_clock::now();
                 int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
-                Utils::GUIprintf(cfg_lang, _("Analysis stopped. Time:%d[ms] Visits:%d").utf8_str(),
+                Utils::GUIprintf(_("Analysis stopped. Time:%d[ms] Visits:%d").utf8_str(),
                                  think_time, res_1_json["rootInfo"]["visits"].get<int>());
                 m_thinking.store(false, std::memory_order_release);
                 return;
@@ -328,7 +328,7 @@ void TEngineThread::Run() {
                 m_state->m_win_rate[2] > 0.6f) {
                 time_for_move--;
             }
-            Utils::GUIprintf(cfg_lang, _("Thinking at most %d seconds...").utf8_str(), time_for_move);
+            Utils::GUIprintf(_("Thinking at most %d seconds...").utf8_str(), time_for_move);
             nlohmann::json res_1_json;
             send_json["id"] = "play1_" + m_query_id;
             if (m_maxvisits <= 0) {
@@ -351,7 +351,7 @@ void TEngineThread::Run() {
                 }
                 if (res_query.find(R"("error":)") != string::npos) {
                     ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                    Utils::GUIprintf(cfg_lang, _(""));
+                    Utils::GUIprintf(_(""));
                     m_state->stop_clock(who);
                     m_thinking.store(false, std::memory_order_release);
                     return;
@@ -377,7 +377,7 @@ void TEngineThread::Run() {
                     if (res_1_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
                         continue;
                     } else if (res_1_json.contains("noResults") && res_1_json["noResults"].get<bool>()) {
-                        Utils::GUIprintf(cfg_lang, _(""));
+                        Utils::GUIprintf(_(""));
                         m_state->stop_clock(who);
                         m_thinking.store(false, std::memory_order_release);
                         return;
@@ -449,7 +449,7 @@ void TEngineThread::Run() {
                     }
                     if (res_query.find(R"("error":)") != string::npos) {
                         ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
-                        Utils::GUIprintf(cfg_lang, _(""));
+                        Utils::GUIprintf(_(""));
                         m_state->stop_clock(who);
                         return;
                     }
@@ -474,7 +474,7 @@ void TEngineThread::Run() {
                         if (res_2_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
                             continue;
                         } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
-                            Utils::GUIprintf(cfg_lang, _(""));
+                            Utils::GUIprintf(_(""));
                             m_state->stop_clock(who);
                             return;
                         }
@@ -587,10 +587,10 @@ void TEngineThread::Run() {
             auto query_end = std::chrono::system_clock::now();
             int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
             if (who == FastBoard::BLACK) {
-                Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d").utf8_str(),
+                Utils::GUIprintf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d").utf8_str(),
                     100.0f - winrate * 100.0f, -1.0f * scoreMean, think_time, visits);
             } else {
-                Utils::GUIprintf(cfg_lang, _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d").utf8_str(),
+                Utils::GUIprintf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d").utf8_str(),
                     winrate * 100.0f, scoreMean, think_time, visits);
             }
 
@@ -610,7 +610,7 @@ void TEngineThread::Run() {
             wxString errorString;
             errorString.Printf(_("Exception %s %s\n"), typeid(e).name(), e.what());
             ::wxMessageBox(errorString, _("Leela"), wxOK | wxICON_ERROR);
-            Utils::GUIprintf(cfg_lang, _(""));
+            Utils::GUIprintf( _(""));
             m_state->stop_clock(who);
             return;
         }

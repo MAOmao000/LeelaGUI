@@ -57,7 +57,7 @@ static constexpr long MIN_RANK = -30L;
 static constexpr int WAKE_UP_TIMER_MS = 100;
 enum {
     INIT,
-    KATAGO_STRATING,
+    KATAGO_STARTING,
     ANALYSIS_RESPONSE_WAIT,
     KATAGO_IDLE,
     KATAGO_STOPED,
@@ -537,7 +537,7 @@ void MainFrame::doInit() {
     m_post_doForceMove = false;
     m_post_doResign = false;
     m_post_doAnalyze = false;
-    m_katagoStatus = KATAGO_STRATING;
+    m_katagoStatus = KATAGO_STARTING;
 #endif
 
 }
@@ -2542,7 +2542,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     auto kataRes = *bundle;
     m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
 
-    if (m_katagoStatus == KATAGO_STRATING) {
+    if (m_katagoStatus == KATAGO_STARTING) {
         if (kataRes.find("Uncaught exception:") != std::string::npos ||
             kataRes.find("PARSE ERROR:") != std::string::npos ||
             kataRes.find("failed with error") != std::string::npos ||
@@ -2718,7 +2718,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
             Utils::GUIBestMoves((void*)move_data.release());
             m_StateEngine->m_black_score = -1.0f * m_scoreMean;
             if (m_update_score && !std::isnan(m_winrate)) {
-                auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                auto event_w = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
                 auto movenum = m_StateEngine->get_movenum();
                 float lead = 0.5f;
                 if (m_scoreMean > 0.0f) {
@@ -2727,8 +2727,8 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                     lead = 0.5f + (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
                 }
                 std::tuple<int, float, float, float> scoretuple = std::make_tuple(movenum, 1.0f - m_winrate, lead, 1.0f - m_winrate);
-                event->SetClientData((void*)new auto(scoretuple));
-                wxQueueEvent(GetEventHandler(), event);
+                event_w->SetClientData((void*)new auto(scoretuple));
+                wxQueueEvent(GetEventHandler(), event_w);
             }
             if (!m_isDuringSearch) {
                 m_visit = res_1_json["rootInfo"]["visits"].get<int>();
@@ -2789,9 +2789,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                     int x = vertex % board_size;
                     int y = vertex / board_size;
                     y = -1 * (y - board_size) - 1;
-                    int pos = m_StateEngine->board.get_vertex(x, y);
+                    int pos_owner = m_StateEngine->board.get_vertex(x, y);
                     float owner = res_1_json["ownership"][vertex].get<float>();
-                    conv_owner[pos] = (owner / 2.0f) + 0.5f;
+                    conv_owner[pos_owner] = (owner / 2.0f) + 0.5f;
                 }
                 m_StateEngine->m_owner.clear();
                 for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
@@ -2881,9 +2881,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
                 int x = vertex % board_size;
                 int y = vertex / board_size;
                 y = -1 * (y - board_size) - 1;
-                int pos = m_StateEngine->board.get_vertex(x, y);
+                int pos_policy = m_StateEngine->board.get_vertex(x, y);
                 float policy = res_2_json["policy"][vertex].get<float>();
-                conv_policy[pos] = policy;
+                conv_policy[pos_policy] = policy;
                 if (policy > maxProbability) {
                     maxProbability = policy;
                 }
