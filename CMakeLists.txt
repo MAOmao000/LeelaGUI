@@ -3,7 +3,12 @@ project(leelagui VERSION 1.1.0)
 
 if(MSVC)
   cmake_policy(SET CMP0091 NEW)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /EHsc")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /EHsc /wd\"4100\" /wd\"4305\"")
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DBUILD_TYPE=\\\"Debug\\\"")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DBUILD_TYPE=\\\"Release\\\"")
+  endif()
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++14")
 endif(MSVC)
@@ -18,7 +23,9 @@ endif(USE_WLCOPY)
 if(USE_THREAD)
   set(COMP_OPTS ${COMP_OPTS} "USE_THREAD")
 endif(USE_THREAD)
-
+if(PERFORMANCE)
+  set(COMP_OPTS ${COMP_OPTS} "PERFORMANCE")
+endif(PERFORMANCE)
 
 message(STATUS "BOOST_ROOT=${BOOST_ROOT}")
 message(STATUS "OpenCL_ROOT=${OpenCL_ROOT}")
@@ -148,9 +155,8 @@ if(MSVC)
   set_property(TARGET leelagui PROPERTY
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   target_compile_definitions(leelagui PUBLIC
+    ${COMP_OPTS}
     BOOST_ALL_NO_LIB
-    USE_GPU
-    USE_THREAD
     WIN32
     NDEBUG
     _WINDOWS
