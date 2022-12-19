@@ -41,7 +41,9 @@ public:
     std::tuple<float, float, float> get_scores();
 
 private:
+#ifdef _CONSOLE
     void dump_stats(KoState & state, UCTNode & parent);
+#endif
     void dump_GUI_stats(GameState & state, UCTNode & parent);
     std::string get_pv(KoState & state, UCTNode & parent);
     void dump_thinking();

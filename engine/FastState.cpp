@@ -456,7 +456,7 @@ std::vector<bool> FastState::mark_dead(float *winrate) {
     fill(dead_group.begin(), dead_group.end(), false);
 
     float wins = 0.0;
-    for (int i = 0; i < MARKING_RUNS; i++) {
+    for (int i_base = 0; i_base < MARKING_RUNS; i_base++) {
         FastState workstate(*this);
         Playout p;
 

@@ -124,7 +124,7 @@ void Utils::GUIBestMoves(void* data) {
 #endif
 }
 
-void Utils::GUIprintf(const int lang, const char *fmt, ...) {
+void Utils::GUIprintf(const char *fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);

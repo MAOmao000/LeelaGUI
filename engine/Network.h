@@ -73,6 +73,7 @@ public:
 private:
 #ifdef USE_CAFFE
     static std::unique_ptr<caffe::Net> s_net;
+    void train_network(TrainVector& tv, size_t&, size_t&);
 #endif
 
     static Netresult get_scored_moves_internal(
@@ -80,7 +81,6 @@ private:
     static float get_value_internal(
       FastState * state, NNPlanes & planes, int rotation);
     void gather_traindata(std::string filename, TrainVector& tv);
-    void train_network(TrainVector& tv, size_t&, size_t&);
     static void gather_features_policy(FastState * state, NNPlanes & planes,
                                        BoardPlane** ladder = nullptr);
     static void gather_features_value(FastState * state, NNPlanes & planes);

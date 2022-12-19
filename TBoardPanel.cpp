@@ -184,8 +184,8 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
                         frac = 0.25f + frac * 3.0f;
                     }
 
-                    wxBrush brush(wxColour(red, green, blue, (unsigned char)(255.0f * frac)));
-                    gc->SetBrush(brush);
+                    wxBrush brush_w(wxColour(red, green, blue, (unsigned char)(255.0f * frac)));
+                    gc->SetBrush(brush_w);
                     if (val > 0.20f || cellDim < 9) {
                         gc->DrawRectangle(xoff, yoff, cellDim, cellDim);
                     } else if (val > 0.05f) {
@@ -476,9 +476,9 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         int vtx = m_State->board.get_vertex(cellX, cellY);
         
         if (m_State->legal_move(vtx)) {
-            wxCommandEvent event(wxEVT_NEW_MOVE, GetId());
-            event.SetEventObject(this);
-            ::wxPostEvent(GetEventHandler(), event);
+            wxCommandEvent event_w(wxEVT_NEW_MOVE, GetId());
+            event_w.SetEventObject(this);
+            ::wxPostEvent(GetEventHandler(), event_w);
 
             m_State->play_move(vtx);
             

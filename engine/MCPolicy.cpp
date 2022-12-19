@@ -65,7 +65,7 @@ void MCPolicy::mse_from_file(std::string filename) {
         };
 
         int who_won = sgftree->get_winner();
-        int handicap = sgftree->get_state()->get_handicap();
+        //int handicap = sgftree->get_state()->get_handicap();
 
         int movecount = sgftree->count_mainline_moves();
         int move_pick = Random::get_Rng()->randuint16(movecount);
@@ -155,8 +155,8 @@ void MCPolicy::mse_from_file(std::string filename) {
         }
 
         if (count % 10000 == 0) {
-            std::string filename = "rltune_" + std::to_string(count) + ".txt";
-            std::ofstream out(filename);
+            std::string filename_w = "rltune_" + std::to_string(count) + ".txt";
+            std::ofstream out(filename_w);
             out.precision(std::numeric_limits<float>::max_digits10);
             out << std::defaultfloat;
             for (int w = 0; w < NUM_FEATURES; w++) {
@@ -259,8 +259,8 @@ void MCPolicy::mse_from_file2(std::string filename) {
             correct = 0;
 
             std::cout << "w";
-            std::string filename = "sltune_" + std::to_string(count) + ".txt";
-            std::ofstream out(filename);
+            std::string filename_w = "sltune_" + std::to_string(count) + ".txt";
+            std::ofstream out(filename_w);
             out.precision(std::numeric_limits<float>::max_digits10);
             out << std::defaultfloat;
             for (int w = 0; w < NUM_FEATURES; w++) {

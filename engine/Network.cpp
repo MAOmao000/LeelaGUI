@@ -1336,12 +1336,16 @@ skipnext:
             myprintf("Game %d, %d new positions, %d total\n",
                      gamecount, data.size(), train_pos + data.size());
         }
+#ifdef USE_CAFFE
         if (gamecount % (50000) == 0) {
             train_network(data, train_pos, test_pos);
         }
+#endif
     }
 
+#ifdef USE_CAFFE
     train_network(data, train_pos, test_pos);
+#endif
 
     std::cout << train_pos << " training positions." << std::endl;
     std::cout << test_pos << " testing positions." << std::endl;
@@ -1389,10 +1393,10 @@ int Network::rotate_nn_idx(const int vertex, int symmetry) {
     return newvtx;
 }
 
+#ifdef USE_CAFFE
 void Network::train_network(TrainVector& data,
                             size_t& total_train_pos,
                             size_t& total_test_pos) {
-#ifdef USE_CAFFE
     size_t data_size = data.size();
     size_t traincut = (data_size * 98) / 100;
 
@@ -1516,8 +1520,8 @@ void Network::train_network(TrainVector& data,
     total_test_pos += test_pos;
 
     std::cout << std::endl;
-#endif
 }
+#endif
 
 void Network::autotune_from_file(std::string filename) {
 #ifdef USE_CAFFE

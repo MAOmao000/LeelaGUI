@@ -275,8 +275,8 @@ void FastBoard::add_neighbour(const int i, const int color) {
         m_neighbours[ai] += (1 << (NBR_SHIFT * color)) - (1 << (NBR_SHIFT * EMPTY));
 
         bool found = false;
-        for (int i = 0; i < nbr_par_cnt; i++) {
-            if (nbr_pars[i] == m_parent[ai]) {
+        for (int j = 0; j < nbr_par_cnt; j++) {
+            if (nbr_pars[j] == m_parent[ai]) {
                 found = true;
                 break;
             }
@@ -301,8 +301,8 @@ void FastBoard::remove_neighbour(const int i, const int color) {
                           - (1 << (NBR_SHIFT * color));
 
         bool found = false;
-        for (int i = 0; i < nbr_par_cnt; i++) {
-            if (nbr_pars[i] == m_parent[ai]) {
+        for (int j = 0; j < nbr_par_cnt; j++) {
+            if (nbr_pars[j] == m_parent[ai]) {
                 found = true;
                 break;
             }
@@ -775,7 +775,7 @@ int FastBoard::update_board_eye(const int color, const int i) {
 
     add_neighbour(i, color);
 
-    int captured_sq;
+    int captured_sq = 0;
     int captured_stones = 0;
 
     for (int k = 0; k < 4; k++) {
@@ -2093,9 +2093,9 @@ void FastBoard::check_nakade(int color, int vertex, int komove,
                 }
                 if (!found) {
                     if (sq_count < nakade.size()) {
-                        int nbrs = count_neighbours(EMPTY, ai);
-                        nbr_to_coord[nbrs] = ai;
-                        empty_counts[nbrs]++;
+                        int nbrs_w = count_neighbours(EMPTY, ai);
+                        nbr_to_coord[nbrs_w] = ai;
+                        empty_counts[nbrs_w]++;
                         nakade[sq_count++] = ai;
                     } else {
                         // Too much eyespace, always alive

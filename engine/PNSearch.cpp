@@ -39,10 +39,10 @@ void PNSearch::classify_groups() {
                         m_rootstate.board.augment_chain(chains, vtx);                        
 
                         // mark the entire augmented chain
-                        for (size_t i = 0; i < chains.size(); i++) {
-                            groupstatus[chains[i]] = status;
-                            groupmarker[chains[i]] = true;
-                            std::string groupname = m_rootstate.board.move_to_text(chains[i]);
+                        for (size_t k = 0; k < chains.size(); k++) {
+                            groupstatus[chains[k]] = status;
+                            groupmarker[chains[k]] = true;
+                            std::string groupname = m_rootstate.board.move_to_text(chains[k]);
                             chain_list.append(groupname);
                             chain_list.append(" ");                            
                         }

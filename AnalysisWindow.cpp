@@ -285,8 +285,8 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
                     break;
                 }
             }
-            auto data = new wxTextDataObject(pvstring);
-            wxTheClipboard->SetData(data);
+            auto data_w = new wxTextDataObject(pvstring);
+            wxTheClipboard->SetData(data_w);
             wxTheClipboard->Flush();
             wxTheClipboard->Close();
         }
@@ -303,8 +303,8 @@ void AnalysisWindow::onContextMenuClick(wxCommandEvent& event) {
                     pvstring.Append(", ");
                 }
             }
-            auto data = new wxTextDataObject(pvstring);
-            wxTheClipboard->SetData(data);
+            auto data_w = new wxTextDataObject(pvstring);
+            wxTheClipboard->SetData(data_w);
             wxTheClipboard->Flush();
             wxTheClipboard->Close();
         }

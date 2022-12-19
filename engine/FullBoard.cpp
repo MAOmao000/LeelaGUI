@@ -149,7 +149,7 @@ int FullBoard::update_board(const int color, const int i, bool & capture) {
      /* did we play into an opponent eye? */
     int eyeplay = (m_neighbours[i] & s_eyemask[!color]);           
        
-    int captured_sq;
+    int captured_sq = 0;
     int captured_stones = 0;
     
     for (int k = 0; k < 4; k++) {

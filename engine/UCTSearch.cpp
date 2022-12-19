@@ -188,7 +188,7 @@ void UCTSearch::dump_GUI_stats(GameState & state, UCTNode & parent) {
     auto & analysis_data = std::get<2>(*analysis_packet);
 
     node = bestnode;
-    int movecount = 0;
+    //int movecount = 0;
     while (node != nullptr) {
         if (node->get_score() > 0.005f || node->get_visits() > 0) {
             std::string movestr = state.move_to_text(node->get_move());
@@ -237,8 +237,8 @@ void UCTSearch::dump_GUI_stats(GameState & state, UCTNode & parent) {
 #endif
 }
 
-void UCTSearch::dump_stats(KoState & state, UCTNode & parent) {
 #ifdef _CONSOLE
+void UCTSearch::dump_stats(KoState & state, UCTNode & parent) {
     const int color = state.get_to_move();
 
     if (!parent.has_children()) {
@@ -304,8 +304,8 @@ void UCTSearch::dump_stats(KoState & state, UCTNode & parent) {
     myprintf(get_pv(tmpstate, parent).c_str());
 
     myprintf("\n");
-#endif
 }
+#endif
 
 bool UCTSearch::easy_move_precondition() {
    if (!m_use_nets) {
@@ -437,12 +437,12 @@ std::pair<int, float> UCTSearch::get_best_move_nosearch(std::vector<std::pair<fl
     if (moves.size() > min_alternates) {
         float best_score = moves[0].first;
         float cumul_score = best_score;
-        int viable_moves = 1;
+        //int viable_moves = 1;
         for (size_t i = 1; i < max_consider; i++) {
             // Must be at least half as likely to be played.
             if (moves[i].first > best_score / 2.0f) {
                 cumul_score += moves[i].first;
-                viable_moves++;
+                //viable_moves++;
             } else {
                 break;
             }
@@ -469,11 +469,11 @@ std::pair<int, float> UCTSearch::get_best_move_nosearch(std::vector<std::pair<fl
                 // passing would actually win.
                 if (m_rootstate.board.self_atari(color, altmove)) {
                     // score with no dead group removal
-                    float score = m_rootstate.calculate_mc_score();
+                    float score_w = m_rootstate.calculate_mc_score();
                     // passing would lose? play the self-atari
-                    if ((score > 0.0f && color == FastBoard::WHITE)
+                    if ((score_w > 0.0f && color == FastBoard::WHITE)
                         ||
-                        (score < 0.0f && color == FastBoard::BLACK)) {
+                        (score_w < 0.0f && color == FastBoard::BLACK)) {
                         myprintf("Passing loses, playing self-atari.\n");
                         ret.first/*Best move*/ = altmove;
                     } else {
@@ -491,11 +491,11 @@ std::pair<int, float> UCTSearch::get_best_move_nosearch(std::vector<std::pair<fl
         // Check what happens if we pass twice
         if (m_rootstate.get_last_move() == FastBoard::PASS) {
             // score including dead stone removal
-            float score = m_rootstate.final_score();
+            float score_w = m_rootstate.final_score();
             // do we lose by passing?
-            if ((score > 0.0f && color == FastBoard::WHITE)
+            if ((score_w > 0.0f && color == FastBoard::WHITE)
                 ||
-                (score < 0.0f && color == FastBoard::BLACK)) {
+                (score_w < 0.0f && color == FastBoard::BLACK)) {
                 myprintf("Passing loses :-(\n");
                 // We were going to pass, so try something else
                 if (ret.first/*Best move*/ == FastBoard::PASS) {
@@ -717,10 +717,10 @@ void UCTSearch::dump_analysis(void) {
     }
 
     if (!m_quiet) {
-        GUIprintf(cfg_lang, _("Nodes: %d, Win: %5.2f%%, PV: %s").utf8_str(), m_root.get_visits(),
+        GUIprintf(_("Nodes: %d, Win: %5.2f%%, PV: %s").utf8_str(), m_root.get_visits(),
                    mixrate, pvstring.c_str());
     } else {
-        GUIprintf(cfg_lang, _("%d nodes searched").utf8_str(), m_root.get_visits());
+        GUIprintf(_("%d nodes searched").utf8_str(), m_root.get_visits());
     }
 }
 
@@ -785,7 +785,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
     if (!m_analyzing) {
         m_rootstate.get_timecontrol().set_boardsize(m_rootstate.board.get_boardsize());
         time_for_move = m_rootstate.get_timecontrol().max_time_for_move(color);
-        GUIprintf(cfg_lang, _("Thinking at most %.1f seconds...").utf8_str(), time_for_move/100.0f);
+        GUIprintf(_("Thinking at most %.1f seconds...").utf8_str(), time_for_move/100.0f);
 #ifdef KGS
         if (m_rootstate.get_handicap() > 3
             || m_rootstate.get_komi() < 0.0f
@@ -804,7 +804,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
 #endif
     } else {
         time_for_move = INT_MAX;
-        GUIprintf(cfg_lang, _("Thinking...").utf8_str());
+        GUIprintf(_("Thinking...").utf8_str());
     }
 
     // do some preprocessing for move ordering
@@ -942,7 +942,9 @@ int UCTSearch::think(int color, passflag_t passflag) {
     // display search info
     myprintf("\n");
 
+#ifdef _CONSOLE
     dump_stats(m_rootstate, m_root);
+#endif
     dump_GUI_stats(m_rootstate, m_root);
 
     Time elapsed;
@@ -953,7 +955,7 @@ int UCTSearch::think(int color, passflag_t passflag) {
                  (int)m_nodes,
                  (int)m_playouts,
                  (m_playouts * 100) / (centiseconds_elapsed+1));
-        GUIprintf(cfg_lang, _("%d visits, %d nodes, %d playouts, %d p/s").utf8_str(),
+        GUIprintf(_("%d visits, %d nodes, %d playouts, %d p/s").utf8_str(),
                  m_root.get_visits(),
                   (int)m_nodes,
                   (int)m_playouts,
@@ -976,13 +978,13 @@ int UCTSearch::think(int color, passflag_t passflag) {
     }
     std::string bm_str = m_rootstate.move_to_text(ret.first/*Best move*/);
     if (bm_str == "pass") {
-        GUIprintf(cfg_lang, (_("Best move: pass(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
+        GUIprintf((_("Best move: pass(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else if (bm_str == "resign") {
-        GUIprintf(cfg_lang, (_("Best move: resign(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
+        GUIprintf((_("Best move: resign(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else if (bm_str == "error") {
-        GUIprintf(cfg_lang, (_("Best move: error(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
+        GUIprintf((_("Best move: error(Win rate:%3.1f%%)") + scoreString).utf8_str(), 100 - ret.second*100);
     } else {
-        GUIprintf(cfg_lang, (_("Best move: %s(Win rate:%3.1f%%)") + scoreString).utf8_str(), bm_str.c_str(), 100 - ret.second*100);
+        GUIprintf((_("Best move: %s(Win rate:%3.1f%%)") + scoreString).utf8_str(), bm_str.c_str(), 100 - ret.second*100);
     }
 
     return ret.first/*Best move*/;
@@ -1014,7 +1016,9 @@ void UCTSearch::ponder() {
     tg.wait_all();
     // display search info
     myprintf("\n");
+#ifdef _CONSOLE
     dump_stats(m_rootstate, m_root);
+#endif
     dump_GUI_stats(m_rootstate, m_root);
 
     myprintf("\n%d visits, %d nodes\n\n", m_root.get_visits(), (int)m_nodes);

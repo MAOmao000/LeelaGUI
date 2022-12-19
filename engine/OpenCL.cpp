@@ -497,7 +497,7 @@ void OpenCL_Network::forward(std::vector<float>& input,
     opencl.ensure_thread_initialized();
     opencl_thread_data.m_results_outstanding.fetch_add(1, std::memory_order_release);
     size_t inSize = sizeof(float) * input.size();
-    size_t outSize = sizeof(float) * output.size();
+    //size_t outSize = sizeof(float) * output.size();
     size_t finalSize = m_layers.back().outputs * 19 * 19 * sizeof(float);
 
     if (!opencl_thread_data.m_buffers_allocated) {
@@ -585,12 +585,12 @@ void OpenCL_Network::convolve(int filter_size, int channels, int outputs,
     constexpr int width = 19;
     constexpr int height = 19;
     constexpr int boardsize = width * height;
-    unsigned int filter_len = filter_size * filter_size;
+    //unsigned int filter_len = filter_size * filter_size;
 
-    size_t inSize = width * height * channels * sizeof(float);
+    //size_t inSize = width * height * channels * sizeof(float);
 
     // Every input channel is this big
-    size_t chanSize = width * height * sizeof(float);
+    //size_t chanSize = width * height * sizeof(float);
 
     size_t outputGroup;
 
