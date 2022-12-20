@@ -78,7 +78,7 @@ cmake --build .
 	+ -DOPENBLAS_ROOT=xxx:Specify the folder where OpenBLAS will be installed (optional)
 	+ -DwxWidgets_ROOT_DIR=Specifies the folder where wxWidgets is installed (Windows option)
 	+ -DwxWidgets_CONFIG_EXECUTABLE=xxx:Specify the path to the script named wx-config (Linux option)
-```
+
 You can also build with Visual Studio using LeelaGUI.sln (information such as paths must be modified for each environment).
 
 The following is the readme for the original LeelaGUI.
