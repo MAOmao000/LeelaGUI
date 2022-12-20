@@ -58,25 +58,28 @@ The second and subsequent lines are optional.
 	+ "maxVisitsAnalysis":1000000
 	+ "maxTimeAnalysis":3600
 
-## cmake によるソースコードからのビルド
+## Build from source code with cmake
+wxWidgets-3.2 or later requires cmake 3.24 or later.
 ```
 git clone https://github.com/MAOmao000/LeelaGUI.git
 cd LeelaGUI
 mkdir build
 cd build
 cmake .. -DUSE_GPU=1 -DUSE_THREAD=1 -DUSE_WLCOPY=1 -DPERFORMANCE=1 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.1 -DwxWidgets_CONFIG_EXECUTABLE=/path/to/wx-config
+cmake --build .
 ```
-- 引数は以下です.
-	+ -DUSE_GPU=1:OpenCL(GPU)を使用する場合に指定します(オプション)
-	+ -DUSE_THREAD=1:スレッドインタフェースでKataGoと通信する場合に指定します(オプション)
-	+ -DUSE_WLCOPY=1:クリップボードコピーをwlcopyコマンドで行う場合に指定します(オプション)
-	+ -DPERFORMANCE=1:対局毎に一手あたりの平均思考時間と平均試行回数をLeelaGUIPerf.logに出力します(オプション)
-	+ -DBOOST_ROOT=xxx:boostのインストール先フォルダを指定します(オプション)
-	+ -DOpenCL_ROOT=xxx:OpenCLのインストール先フォルダを指定します(オプション)
-	+ -DOPENBLAS_ROOT=xxx:OpenBLASのインストール先フォルダを指定します(オプション)
-	+ -DwxWidgets_ROOT_DIR=wxWidgetsのインストール先フォルダを指定します(Windowsオプション)
-	+ -DwxWidgets_CONFIG_EXECUTABLE=xxx:wx-config というスクリプトのパスを指定します(Linuxオプション)
+- The arguments are as follows.
+	+ -DUSE_GPU=1:Specify if OpenCL (GPU) is used (optional)
+	+ -DUSE_THREAD=1:Specify if communicating with KataGo via threaded interface (optional)
+	+ -DUSE_WLCOPY=1:Specify if clipboard copy is done by wlcopy command (optional)
+	+ -DPERFORMANCE=1:Output average thinking time per move and average number of attempts per game to LeelaGUIPerf.log (optional)
+	+ -DBOOST_ROOT=xxx:Specify the folder where boost will be installed (optional)
+	+ -DOpenCL_ROOT=xxx:Specify the folder where OpenCL will be installed (optional)
+	+ -DOPENBLAS_ROOT=xxx:Specify the folder where OpenBLAS will be installed (optional)
+	+ -DwxWidgets_ROOT_DIR=Specifies the folder where wxWidgets is installed (Windows option)
+	+ -DwxWidgets_CONFIG_EXECUTABLE=xxx:Specify the path to the script named wx-config (Linux option)
 ```
+You can also build with Visual Studio using LeelaGUI.sln (information such as paths must be modified for each environment).
 
 The following is the readme for the original LeelaGUI.
 
