@@ -33,6 +33,16 @@
 #include <wx/utils.h>
 #endif
 
+#include <iostream>
+#include <filesystem>
+#ifdef WIN32
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem::v1;
+#else
+namespace fs = std::filesystem;
+#endif
+
 using std::this_thread::sleep_for;
 using namespace std::chrono;
 
@@ -218,16 +228,16 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     SetIcon(wxICON(aaaa));
 
-#ifdef __WXGTK__
-    SetSize(530, 640);
-    if (m_japaneseEnabled) {
-        m_statusBar->SetMinHeight(30);
-    }
-#elif defined(__WXMAC__)
-    SetSize(570, 640);
-#else
-    SetSize(530, 640);
-#endif
+//#ifdef __WXGTK__
+//    SetSize(530, 640);
+//    if (m_japaneseEnabled) {
+//        m_statusBar->SetMinHeight(30);
+//    }
+//#elif defined(__WXMAC__)
+//    SetSize(570, 640);
+//#else
+//    SetSize(530, 640); // 527,630
+//#endif
 
     Center();
     setStartMenus(false);
@@ -323,7 +333,7 @@ void MainFrame::doInit() {
                 } else {
                     auto pos_ponder = s.find("ponderingEnabled");
                     if (pos_ponder != std::string::npos) {
-                        for (int i = pos_ponder + sizeof("ponderingEnabled") - 1; i < s.size(); i++) {
+                        for (size_t i = pos_ponder + sizeof("ponderingEnabled") - 1; i < s.size(); i++) {
                             if (s.substr(i, 1) == "t" || s.substr(i, 1) == "T") {
                                 if (!wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
                                     s.replace(i, 4, "false");
@@ -548,26 +558,30 @@ void MainFrame::doInit() {
     if (cfg_engine_type == GTP::ANALYSIS) {
         std::string tmp_query = "";
         if (m_ini_line.size() <= 1) {
+            std::string default_analysis_pv_len = std::to_string(DEFAULT_ANALYSIS_PV_LEN);
+            std::string default_report_during_search = std::to_string(DEFAULT_REPORT_DURING_SEARCH);
+            std::string default_max_visits_analysis = std::to_string(DEFAULT_REPORT_DURING_SEARCH);
+            std::string default_max_time_analysis = std::to_string(DEFAULT_MAX_TIME_ANALYSIS);
             if (m_japanese_rule_init) {
                 tmp_query = R"({"rules":"japanese","analysisPVLen":)" +
-                            std::string(DEFAULT_ANALYSIS_PV_LEN) +
+                            default_analysis_pv_len +
                             R"(,"reportDuringSearchEvery":)" +
-                            std::string(DEFAULT_REPORT_DURING_SEARCH) +
+                            default_report_during_search +
                             R"(,"maxVisitsAnalysis":)" +
-                            std::string(DEFAULT_MAX_VISITS_ANALYSIS) +
+                            default_max_visits_analysis +
                             R"(,"maxTimeAnalysis":)" +
-                            std::string(DEFAULT_MAX_TIME_ANALYSIS) +
+                            default_max_time_analysis +
                             R"(})";
                 m_japanese_rule = true;
             } else {
                 tmp_query = R"({"rules":"chinese","whiteHandicapBonus":"N","analysisPVLen":)" +
-                            std::string(DEFAULT_ANALYSIS_PV_LEN) +
+                            default_analysis_pv_len +
                             R"(,reportDuringSearchEvery":)" +
-                            std::string(DEFAULT_REPORT_DURING_SEARCH) +
+                            default_report_during_search +
                             R"(,"maxVisitsAnalysis":)" +
-                            std::string(DEFAULT_MAX_VISITS_ANALYSIS) +
+                            default_max_visits_analysis +
                             R"(,"maxTimeAnalysis":)" +
-                            std::string(DEFAULT_MAX_TIME_ANALYSIS) +
+                            default_max_time_analysis +
                             R"(})";
                 m_japanese_rule = false;
             }
@@ -593,16 +607,16 @@ void MainFrame::doInit() {
                     m_japanese_rule = false;
                 }
                 if (!dummy.contains("analysisPVLen")) {
-                    dummy["analysisPVLen"] = atoi(DEFAULT_ANALYSIS_PV_LEN);
+                    dummy["analysisPVLen"] = DEFAULT_ANALYSIS_PV_LEN;
                 }
                 if (!dummy.contains("reportDuringSearchEvery")) {
-                    dummy["reportDuringSearchEvery"] = atof(DEFAULT_REPORT_DURING_SEARCH);
+                    dummy["reportDuringSearchEvery"] = DEFAULT_REPORT_DURING_SEARCH;
                 }
                 if (!dummy.contains("maxVisitsAnalysis")) {
-                    dummy["maxVisitsAnalysis"] = atoi(DEFAULT_MAX_VISITS_ANALYSIS);
+                    dummy["maxVisitsAnalysis"] = DEFAULT_MAX_VISITS_ANALYSIS;
                 }
                 if (!dummy.contains("maxTimeAnalysis")) {
-                    dummy["maxTimeAnalysis"] = atoi(DEFAULT_MAX_TIME_ANALYSIS);
+                    dummy["maxTimeAnalysis"] = DEFAULT_MAX_TIME_ANALYSIS;
                 }
                 tmp_query = dummy.dump();
                 m_overrideSettings.emplace_back(tmp_query);
@@ -865,7 +879,7 @@ void MainFrame::startKataGo() {
                     }
                     m_send_json.erase("maxVisitsAnalysis");
                 } else if (m_analyzing | m_pondering) {
-                    m_send_json["maxVisits"] = atoi(DEFAULT_MAX_VISITS_ANALYSIS);
+                    m_send_json["maxVisits"] = DEFAULT_MAX_VISITS_ANALYSIS;
                 }
                 if (m_send_json.contains("maxTimeAnalysis")) {
                     if (m_analyzing | m_pondering) {
@@ -873,7 +887,7 @@ void MainFrame::startKataGo() {
                     }
                     m_send_json.erase("maxTimeAnalysis");
                 } else if (m_analyzing | m_pondering) {
-                    m_send_json["overrideSettings"]["maxTime"] = atoi(DEFAULT_MAX_TIME_ANALYSIS);
+                    m_send_json["overrideSettings"]["maxTime"] = DEFAULT_MAX_TIME_ANALYSIS;
                 }
                 if (m_analyzing | m_pondering) {
                     std::string req_query = m_send_json.dump();
@@ -1868,10 +1882,12 @@ void MainFrame::ratedGameEnd(bool won) {
 
     if (won) {
         rank = rank + adjust;
-        rank = std::min(MAX_RANK, rank);
+        long max_rank = MAX_RANK;
+        rank = std::min(max_rank, rank);
     } else {
         rank = rank - adjust;
-        rank = std::max(MIN_RANK, rank);
+        long min_rank = MIN_RANK;
+        rank = std::max(min_rank, rank);
     }
 
     if (m_ratedSize == 9) {
@@ -2734,10 +2750,13 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                         return;
                     }
                     m_StateEngine = std::make_unique<GameState>(m_State);
-                    std::string filename = tmpnam(NULL);
+                    uint64_t now_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+                    fs::path p = fs::temp_directory_path();
+                    fs::path::string_type str = p;
+                    std::string filename = str + "LeelaGUI" + std::to_string(now_ms) + ".sgf";
                     wxFileOutputStream file(filename);
                     file.Write(sgfstring.c_str(), sgfstring.length());
-                    m_gtp_send_cmd = wxString("loadsgf " +  filename + "\n");
+                    m_gtp_send_cmd = wxString("loadsgf " + filename + "\n");
                     m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                     m_gtp_send_cmd = wxString("loadsgf remove " +  filename + "\n");
                     // lock the board
@@ -2901,7 +2920,7 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
             m_out->Write(send_msg, strlen(send_msg));
             m_katagoStatus = ANALYSIS_RESPONSE_WAIT;
         } else if (cfg_engine_type == GTP::GTP_INTERFACE && kataRes.rfind("GTP ready, beginning main protocol loop") != std::string::npos) {
-            if (m_ini_line_idx < m_ini_line.size()) {
+            if (m_ini_line_idx < (int)m_ini_line.size()) {
                 m_gtp_send_cmd = m_ini_line[m_ini_line_idx] + wxString("\n");
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                 m_ini_line_idx++;
@@ -3231,7 +3250,7 @@ void MainFrame::doKataGameStartingWait(const wxString& kataRes) {
         doNewRatedGame(evt);
         return;
     }
-    if (m_ini_line_idx < m_ini_line.size()) {
+    if (m_ini_line_idx < (int)m_ini_line.size()) {
         m_gtp_send_cmd = m_ini_line[m_ini_line_idx] + wxString("\n");
         m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
         m_ini_line_idx++;
@@ -3573,7 +3592,7 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
         try {
             if (kataRes.length() > 11 && kataRes.substr(0, 11) == "policyPass ") {
                 std::string s = "";
-                int offset = sizeof("policyPass ") - 1;
+                size_t offset = sizeof("policyPass ") - 1;
                 while (offset < kataRes.length()) {
                     if (kataRes[offset] == ' ') {
                         offset++;
@@ -3601,7 +3620,7 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                 m_pick_ownership = true;
                 return;
             } else if (m_pick_policy) {
-                int offset = 0;
+                size_t offset = 0;
                 std::string s;
                 for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
                     s = "";
@@ -3629,7 +3648,7 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                     }
                 }
             } else if (m_pick_ownership) {
-                int offset = 0;
+                size_t offset = 0;
                 std::string s;
                 for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
                     s = "";
