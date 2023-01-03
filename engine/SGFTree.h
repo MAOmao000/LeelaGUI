@@ -30,7 +30,7 @@ public:
     int get_move(int tomove);
     FastBoard::square_t get_winner();
 
-    bool get_rule(void);
+    int get_rule(void);
 
     static std::string state_to_string(GameState * state, int compcolor, bool japanese_rule=false);
 

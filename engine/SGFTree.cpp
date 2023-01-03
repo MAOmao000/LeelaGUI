@@ -502,16 +502,16 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor, bool jap
     return result;
 }
 
-bool SGFTree::get_rule() {
+int SGFTree::get_rule() {
     PropertyMap::iterator it;        
     it = m_properties.find("RU");
     if (it != m_properties.end()) {
         std::string result = it->second;
         if (result == "Japanese") {
-            return true;
+            return 1;
         } else {
-            return false;
+            return 0;
         }
     }
-    return false;
+    return -1;
 }
