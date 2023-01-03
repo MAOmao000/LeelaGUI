@@ -671,7 +671,14 @@ UCTNode* UCTNode::uct_select_child(int color, bool use_nets) {
     return best;
 }
 
-class NodeComp : public std::binary_function<UCTNode::sortnode_t, UCTNode::sortnode_t, bool> {   
+template <typename Arg1, typename Arg2, typename Result>
+struct binary_function {
+    typedef Arg1 first_argument_type;
+    typedef Arg2 second_argument_type;
+    typedef Result result_type;
+};
+
+class NodeComp : public binary_function<UCTNode::sortnode_t, UCTNode::sortnode_t, bool> {   
 private:
     const int m_maxvisits;
 public:
