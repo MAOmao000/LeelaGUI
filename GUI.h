@@ -191,7 +191,7 @@ class TMainFrame : public wxFrame
 
 	public:
 
-		TMainFrame( wxWindow* parent, wxWindowID id = ID_MAINFRAME, const wxString& title = _("Leela"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 527,630 ), long style = wxDEFAULT_FRAME_STYLE|wxWANTS_CHARS, const wxString& name = wxT("LeelaGUI") );
+		TMainFrame( wxWindow* parent, wxWindowID id = ID_MAINFRAME, const wxString& title = _("Leela"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxWANTS_CHARS, const wxString& name = wxT("LeelaGUI") );
 
 		~TMainFrame();
 
@@ -464,7 +464,7 @@ class TSettingsDialog : public wxDialog
 
 	public:
 
-		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Settings"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,575 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Settings"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 
 		~TSettingsDialog();
 
@@ -504,7 +504,7 @@ class TScoreDialog : public wxDialog
 
 	public:
 
-		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Game Score"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 392,270 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
+		TScoreDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Game Score"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
 
 		~TScoreDialog();
 
