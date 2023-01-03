@@ -518,8 +518,8 @@ msgid "20000 simulations"
 msgstr "20,000回試行"
 
 #: GUI.cpp:398
-msgid "Unlimited"
-msgstr "無制限"
+msgid "Ponder/Time priority"
+msgstr "熟考/時間優先"
 
 #: GUI.cpp:399
 msgid "Specify a number"
@@ -622,16 +622,76 @@ msgid "Neural Networks"
 msgstr "ニューラルネットワーク"
 
 #: GUI.cpp:727
+msgid "Engine Select (needs restart)"
+msgstr "エンジンの選択(要再起動)"
+
+#: GUI.cpp:727
+msgid "Leela or ini File"
+msgstr "Leela または ini ファイル"
+
+#: GUI.cpp:727
+msgid "KataGo Analysis"
+msgstr "KataGo 分析エンジン"
+
+#: GUI.cpp:727
+msgid "KataGo GTP"
+msgstr "KataGo GTPエンジン"
+
+#: GUI.cpp:727
+msgid "Engine"
+msgstr "KataGoエンジン実行ファイル"
+
+#: GUI.cpp:727
+msgid "Configration"
+msgstr "KataGoエンジン構成定義ファイル"
+
+#: GUI.cpp:727
+msgid "Model"
+msgstr "KataGoエンジンモデル格納ファイル"
+
+#: GUI.cpp:727
+#msgid "Engine"
+#msgstr "エンジン実行ファイル"
+
+#: GUI.cpp:737
+msgid "Chinese"
+msgstr "中国ルール"
+
+#: GUI.cpp:737
+msgid "Japanese"
+msgstr "日本ルール"
+
+#: GUI.cpp:739
+msgid "Default Rule"
+msgstr "デフォルトルール"
+
+#: GUI.cpp:752 GUI.cpp:754 GUI.cpp:764 GUI.cpp:773
+msgid "Select a file"
+msgstr "ファイルを選択"
+
+#: GUI.cpp:752
+msgid "Engine files (*.exe)|*.exe"
+msgstr "エンジン実行ファイル (*.exe)|*.exe"
+
+#: GUI.cpp:754
+msgid "Engine files (*)|*"
+msgstr "エンジン実行ファイル (*)|*"
+
+#: GUI.cpp:752
+msgid "Configration files (*.cfg)|*.cfg"
+msgstr "エンジン構成定義ファイル (*.cfg)|*.cfg"
+
+#: GUI.cpp:752
+msgid "Model files (*.gz)|*.gz"
+msgstr "エンジンモデル格納ファイル (*.gz)|*.gz"
+
+#: GUI.cpp:750
 msgid "Interface Settings"
 msgstr "インタフェース設定"
 
 #: GUI.cpp:729
 msgid "Sound"
 msgstr "音"
-
-#: GUI.cpp:690
-msgid "KataGo (needs restart)"
-msgstr "KataGoエンジンの使用(要再起動)"
 
 #: GUI.cpp:707
 msgid "Allow DPI Scaling (needs restart)"
@@ -828,6 +888,14 @@ msgstr "白の勝ちです"
 #: MainFrame.cpp:1297
 msgid "I am not sure I am scoring this correctly."
 msgstr "この目数の数値は不確かです"
+
+#: MainFrame.cpp:1989
+msgid "Average thinking time per one move   "
+msgstr "1手あたりの平均思考時間"
+
+#: MainFrame.cpp:1990
+msgid "Average number of visits per one move"
+msgstr "1手あたりの平均訪問回数"
 
 #: MainFrame.cpp:1327
 #, c-format
