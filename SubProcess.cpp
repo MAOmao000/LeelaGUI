@@ -9,23 +9,32 @@ SubProcess::SubProcess(MainFrame *parent) : wxProcess(parent) {
 
 bool SubProcess::HasInput() {
     bool hasInput = false;
-    if ( IsInputAvailable() ) {
-        wxTextInputStream tis(*GetInputStream());
-        wxString msg;
-        msg << tis.ReadLine();
+    try {
+        if ( IsInputAvailable() ) {
+            wxTextInputStream tis(*GetInputStream());
+            wxString msg;
+            msg << tis.ReadLine();
+            auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
+            event->SetClientData((void*)new auto(msg));
+            wxQueueEvent(m_parent->GetEventHandler(), event);
+            hasInput = true;
+        }
+        if ( IsErrorAvailable() ) {
+            wxTextInputStream tis(*GetErrorStream());
+            wxString msg;
+            msg << "(stderr):" << tis.ReadLine();
+            auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
+            event->SetClientData((void*)new auto(msg));
+            wxQueueEvent(m_parent->GetEventHandler(), event);
+            hasInput = true;
+        }
+    } catch (const std::exception& e) {
+        wxLogError(_("Exception at SubProcess::HasInput: %s %s\n"), typeid(e).name(), e.what());
+        wxString mess;
+        mess.Printf(_("Exception at SubProcess::HasInput: %s %s\n"), typeid(e).name(), e.what());
         auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
-        event->SetClientData((void*)new auto(msg));
+        event->SetClientData((void*)new auto(mess));
         wxQueueEvent(m_parent->GetEventHandler(), event);
-        hasInput = true;
-    }
-    if ( IsErrorAvailable() ) {
-        wxTextInputStream tis(*GetErrorStream());
-        wxString msg;
-        msg << "(stderr):" << tis.ReadLine();
-        auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
-        event->SetClientData((void*)new auto(msg));
-        wxQueueEvent(m_parent->GetEventHandler(), event);
-        hasInput = true;
     }
     return hasInput;
 }
