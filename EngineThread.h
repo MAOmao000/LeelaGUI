@@ -6,7 +6,6 @@
 #include "Utils.h"
 #include <atomic>
 #ifdef USE_THREAD
-#include "json.hpp"
 #include <vector>
 #endif
 
@@ -40,10 +39,9 @@ class TEngineThread {
         void set_nets(bool flag);
         void set_thinking(bool flag);
         bool get_thinking();
+
 #ifdef USE_THREAD
         void set_handi(std::vector<int> handi);
-        void set_show_owner(bool flag);
-        void set_show_probabilities(bool flag);
 #endif
         void stop_engine(void);
         void kill_score_update(void);
@@ -54,17 +52,19 @@ class TEngineThread {
 #ifdef USE_THREAD
         void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=100);
         TimeControl m_tm;
-#endif
-        std::unique_ptr<GameState> m_state;
-        MainFrame *m_frame;
-#ifdef USE_THREAD
         wxProcess *m_process;
         wxInputStream *m_in;
         wxInputStream *m_err;
         wxOutputStream *m_out;
         std::string m_query_id;
         std::chrono::time_point<std::chrono::system_clock> m_query_start;
+        std::vector<std::string> m_overrideSettings{};
+        std::vector<int> m_handi;
+        std::atomic<bool> m_thinking;
+        std::mutex *m_GTPmutex;
 #endif
+        std::unique_ptr<GameState> m_state;
+        MainFrame *m_frame;
         int m_maxvisits=0;
         bool m_nets;
         bool m_resigning;
@@ -73,18 +73,7 @@ class TEngineThread {
         bool m_quiet;
         bool m_nopass;
         bool m_update_score;
-#ifdef USE_THREAD
-        bool m_show_owner;
-        bool m_show_probabilities;
-        std::vector<std::string> m_overrideSettings{};
-        std::vector<int> m_handi;
-        std::atomic<bool> m_thinking;
-#endif
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
-#ifdef USE_THREAD
-        std::mutex *m_GTPmutex;
-#endif
 };
-
 #endif

@@ -1,10 +1,5 @@
 #include "stdafx.h"
 
-#include <thread>
-#ifdef USE_THREAD
-#include <chrono>
-#include <regex>
-#endif
 #include "EngineThread.h"
 #include "UCTSearch.h"
 #include "MainFrame.h"
@@ -30,14 +25,16 @@ TEngineThread::TEngineThread(GameState& state,
                              const std::chrono::time_point<std::chrono::system_clock>& query_start,
                              std::mutex *GTPmutex)
     :m_tm(state.get_timecontrol()),
-     m_state(std::make_unique<GameState>(state)),
-     m_frame(frame),
      m_process(process),
      m_in(std_in),
      m_err(std_err),
      m_out(std_out),
      m_query_id(query_id),
      m_query_start(query_start),
+     m_overrideSettings(overrideSettings),
+     m_GTPmutex(GTPmutex),
+     m_state(std::make_unique<GameState>(state)),
+     m_frame(frame),
      m_maxvisits(0),
      m_nets(true),
      m_resigning(true),
@@ -46,11 +43,7 @@ TEngineThread::TEngineThread(GameState& state,
      m_quiet(false),
      m_nopass(false),
      m_update_score(true),
-     m_show_owner(false),
-     m_show_probabilities(false),
-     m_overrideSettings(overrideSettings),
-     m_runflag(true),
-     m_GTPmutex(GTPmutex)
+     m_runflag(true)
 {
     m_state->set_timecontrol(m_tm);
 }
@@ -167,16 +160,13 @@ void TEngineThread::Run() {
                     send_json["initialPlayer"] = "B";
                 }
             }
-            if (!send_json.contains("reportDuringSearchEvery")) {
-                send_json["reportDuringSearchEvery"] = 1.0;
-            }
             if (send_json.contains("maxVisitsAnalysis")) {
                 if (m_analyseflag) {
                     send_json["maxVisits"] = send_json["maxVisitsAnalysis"].get<int>();
                 }
                 send_json.erase("maxVisitsAnalysis");
             } else if (m_analyseflag) {
-                send_json["maxVisits"] = 1000000;
+                send_json["maxVisits"] = atoi(MainFrame::DEFAULT_MAX_VISITS_ANALYSIS);
             }
             if (send_json.contains("maxTimeAnalysis")) {
                 if (m_analyseflag) {
@@ -184,7 +174,7 @@ void TEngineThread::Run() {
                 }
                 send_json.erase("maxTimeAnalysis");
             } else if (m_analyseflag) {
-                send_json["overrideSettings"]["maxTime"] = 3600;
+                send_json["overrideSettings"]["maxTime"] = atoi(MainFrame::DEFAULT_MAX_TIME_ANALYSIS);
             }
             string req_query = send_json.dump();
             string move_str;
@@ -338,9 +328,7 @@ void TEngineThread::Run() {
             }
             send_json["overrideSettings"]["maxTime"] = time_for_move - 1;
             send_json.erase("reportDuringSearchEvery");
-            if (m_show_owner) {
-                send_json["includeOwnership"] = true;
-            }
+            send_json["includeOwnership"] = true;
             req_query = send_json.dump();
             while (true) {
                 res_query = "";
@@ -395,116 +383,112 @@ void TEngineThread::Run() {
             scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
             int visits = res_1_json["rootInfo"]["visits"].get<int>();
             m_state->m_black_score = scoreMean;
-            if (m_show_owner) {
-                send_json.erase("includeOwnership");
-                // Edit Ownership Information
-                std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
-                for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                    int x = vertex % board_size;
-                    int y = vertex / board_size;
-                    y = -1 * (y - board_size) - 1;
-                    int pos = m_state->board.get_vertex(x, y);
-                    float owner = res_1_json["ownership"][vertex].get<float>();
-                    conv_owner[pos] = (owner / 2.0f) + 0.5f;
-                }
-                m_state->m_owner.clear();
-                for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-                    m_state->m_owner.emplace_back(*itr);
-                }
-                std::bitset<FastBoard::MAXSQ> blackowns;
-                for (int i = 0; i < board_size; i++) {
-                    for (int j = 0; j < board_size; j++) {
-                        int vtx = m_state->board.get_vertex(i, j);
-                        if (m_state->m_owner[vtx] >= 0.5) {
-                            blackowns[vtx] = true;
-                        }
-                    }
-                }
-                MCOwnerTable::get_MCO()->update_owns(blackowns, 1.0f - winrate, -1.0f * scoreMean);
+            send_json.erase("includeOwnership");
+            // Edit Ownership Information
+            std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+                int x = vertex % board_size;
+                int y = vertex / board_size;
+                y = -1 * (y - board_size) - 1;
+                int pos = m_state->board.get_vertex(x, y);
+                float owner = res_1_json["ownership"][vertex].get<float>();
+                conv_owner[pos] = (owner / 2.0f) + 0.5f;
             }
-            if (m_show_probabilities) {
-                // Send query to get ownership and policy
-                send_json["id"] = "play2_" + m_query_id;
-                send_json["includePolicy"] = true;
-                send_json["maxVisits"] = 1;
-                send_json["analysisPVLen"] = 1;
-                if (who == FastBoard::BLACK) {
-                    send_json["moves"][m_state->get_movenum()][0] = "B";
-                } else {
-                    send_json["moves"][m_state->get_movenum()][0] = "W";
-                }
-                if(move_str.length() > 0) {
-                    send_json["moves"][m_state->get_movenum()][1] = move_str;
-                } else {
-                    send_json["moves"][m_state->get_movenum()][1] = "pass";
-                }
-                string req_query_2 = send_json.dump();
-                nlohmann::json res_2_json;
-                while (true) {
-                    res_query = "";
-                    GTPSend(req_query_2 + "\n", res_query);
-                    req_query_2 = "";
-                    if (!res_query.length()) {
-                        continue;
+            m_state->m_owner.clear();
+            for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+                m_state->m_owner.emplace_back(*itr);
+            }
+            std::bitset<FastBoard::MAXSQ> blackowns;
+            for (int i = 0; i < board_size; i++) {
+                for (int j = 0; j < board_size; j++) {
+                    int vtx = m_state->board.get_vertex(i, j);
+                    if (m_state->m_owner[vtx] >= 0.5) {
+                        blackowns[vtx] = true;
                     }
-                    if (res_query.find(R"("error":)") != string::npos) {
-                        ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                }
+            }
+            MCOwnerTable::get_MCO()->update_owns(blackowns, 1.0f - winrate, -1.0f * scoreMean);
+            // Send query to get ownership and policy
+            send_json["id"] = "play2_" + m_query_id;
+            send_json["includePolicy"] = true;
+            send_json["maxVisits"] = 1;
+            send_json["analysisPVLen"] = 1;
+            if (who == FastBoard::BLACK) {
+                send_json["moves"][m_state->get_movenum()][0] = "B";
+            } else {
+                send_json["moves"][m_state->get_movenum()][0] = "W";
+            }
+            if(move_str.length() > 0) {
+                send_json["moves"][m_state->get_movenum()][1] = move_str;
+            } else {
+                send_json["moves"][m_state->get_movenum()][1] = "pass";
+            }
+            string req_query_2 = send_json.dump();
+            nlohmann::json res_2_json;
+            while (true) {
+                res_query = "";
+                GTPSend(req_query_2 + "\n", res_query);
+                req_query_2 = "";
+                if (!res_query.length()) {
+                    continue;
+                }
+                if (res_query.find(R"("error":)") != string::npos) {
+                    ::wxMessageBox(res_query, _("Leela"), wxOK | wxICON_EXCLAMATION);
+                    Utils::GUIprintf(_(""));
+                    m_state->stop_clock(who);
+                    return;
+                }
+                pos = res_query.find(R"("isDuringSearch":)");
+                if (pos == string::npos) {
+                    continue;
+                }
+                if (res_query.substr(pos + 17, 5) == "false") {
+                    pos1 = res_query.substr(0, pos).rfind(R"({"id":"play2_)");
+                    pos2 = res_query.substr(pos).find("\r\n");
+                    if (pos2 == string::npos) {
+                        pos2 = res_query.substr(pos).find("\n");
+                    }
+                    if (pos2 == string::npos) {
+                        last_query = res_query.substr(pos1);
+                        res_query = last_query;
+                    } else {
+                        last_query = res_query.substr(pos1, pos + pos2 - pos1);
+                        res_query = last_query;
+                    }
+                    res_2_json = nlohmann::json::parse(res_query);
+                    if (res_2_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
+                        continue;
+                    } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
                         Utils::GUIprintf(_(""));
                         m_state->stop_clock(who);
                         return;
                     }
-                    pos = res_query.find(R"("isDuringSearch":)");
-                    if (pos == string::npos) {
-                        continue;
-                    }
-                    if (res_query.substr(pos + 17, 5) == "false") {
-                        pos1 = res_query.substr(0, pos).rfind(R"({"id":"play2_)");
-                        pos2 = res_query.substr(pos).find("\r\n");
-                        if (pos2 == string::npos) {
-                            pos2 = res_query.substr(pos).find("\n");
-                        }
-                        if (pos2 == string::npos) {
-                            last_query = res_query.substr(pos1);
-                            res_query = last_query;
-                        } else {
-                            last_query = res_query.substr(pos1, pos + pos2 - pos1);
-                            res_query = last_query;
-                        }
-                        res_2_json = nlohmann::json::parse(res_query);
-                        if (res_2_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
-                            continue;
-                        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
-                            Utils::GUIprintf(_(""));
-                            m_state->stop_clock(who);
-                            return;
-                        }
-                        break;
-                    }
+                    break;
                 }
-                // Edit Policy Information
-                std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
-                float maxProbability = 0.0f;
-                for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                    int x = vertex % board_size;
-                    int y = vertex / board_size;
-                    y = -1 * (y - board_size) - 1;
-                    int pos = m_state->board.get_vertex(x, y);
-                    float policy = res_2_json["policy"][vertex].get<float>();
-                    conv_policy[pos] = policy;
-                    if (policy > maxProbability) {
-                        maxProbability = policy;
-                    }
-                }
-                float policy = res_2_json["policy"][board_size * board_size].get<float>();
+            }
+            // Edit Policy Information
+            std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
+            float maxProbability = 0.0f;
+            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+                int x = vertex % board_size;
+                int y = vertex / board_size;
+                y = -1 * (y - board_size) - 1;
+                int pos = m_state->board.get_vertex(x, y);
+                float policy = res_2_json["policy"][vertex].get<float>();
+                conv_policy[pos] = policy;
                 if (policy > maxProbability) {
                     maxProbability = policy;
                 }
-                conv_policy[0] = maxProbability;
-                conv_policy[1] = policy;
-                m_state->m_policy.clear();
-                for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-                    m_state->m_policy.emplace_back(*itr);
-                }
+            }
+            float policy = res_2_json["policy"][board_size * board_size].get<float>();
+            if (policy > maxProbability) {
+                maxProbability = policy;
+            }
+            conv_policy[0] = maxProbability;
+            conv_policy[1] = policy;
+            m_state->m_policy.clear();
+            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+                m_state->m_policy.emplace_back(*itr);
             }
             if (move_str.length() > 0) {
                 // KataGo's Resignation Decision
@@ -594,14 +578,10 @@ void TEngineThread::Run() {
                     winrate * 100.0f, scoreMean, think_time, visits);
             }
 
-#ifdef PERFORMANCE
             auto event = new wxCommandEvent(wxEVT_NEW_MOVE);
             int *num = new int(visits);
             event->SetClientData((void*)num);
             wxQueueEvent(m_frame->GetEventHandler(), event);
-#else
-            wxQueueEvent(m_frame->GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
-#endif
 
             m_state->stop_clock(who);
             // KataGo analysis engine (games) end
@@ -664,14 +644,6 @@ void TEngineThread::set_handi(std::vector<int> handi) {
     m_handi = handi;
 }
 
-void TEngineThread::set_show_owner(bool flag) {
-    m_show_owner = flag;
-}
-
-void TEngineThread::set_show_probabilities(bool flag) {
-    m_show_probabilities = flag;
-}
-
 void TEngineThread::set_thinking(bool flag) {
     m_thinking.store(flag, std::memory_order_release);
 }
@@ -721,6 +693,9 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
                 }
                 return;
             }
+        } else if (m_process->IsErrorAvailable()) {
+            m_err->Read(buffer, WXSIZEOF(buffer) - 1);
+            m_GTPmutex->unlock();
         } else {
             m_GTPmutex->unlock();
             sleep_for(chrono::milliseconds(sleep_current));
