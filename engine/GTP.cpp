@@ -62,6 +62,7 @@ FILE* cfg_logfile_handle;
 bool cfg_quiet;
 int cfg_lang;
 int cfg_use_engine;
+int cfg_engine_type;
 bool cfg_board25;
 
 void GTP::setup_default_parameters(int lang, int use_engine, bool board25) {
@@ -104,7 +105,12 @@ void GTP::setup_default_parameters(int lang, int use_engine, bool board25) {
     cfg_logfile_handle = nullptr;
     cfg_quiet = false;
     cfg_lang = lang;
-    cfg_use_engine = use_engine;
+    cfg_engine_type = use_engine;
+    if (use_engine) {
+        cfg_use_engine = KATAGO_ENGINE;
+    } else {
+        cfg_use_engine = ORIGINE_ENGINE;
+    }
     cfg_board25 = board25;
 }
 
