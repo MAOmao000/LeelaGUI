@@ -47,8 +47,8 @@ class MainFrame : public TMainFrame {
 		void OnAsyncTermination(SubProcess *process);
 		void OnProcessTerminated(SubProcess *process);
 #endif
-	static constexpr char DEFAULT_MAX_VISITS_ANALYSIS[] = "1000000";
-	static constexpr char DEFAULT_MAX_TIME_ANALYSIS[] = "3600";
+	static constexpr int DEFAULT_MAX_VISITS_ANALYSIS = 1000000;
+	static constexpr int DEFAULT_MAX_TIME_ANALYSIS = 3600;
 
 	private:
 	virtual void doActivate(wxActivateEvent& event) override;
@@ -133,10 +133,10 @@ class MainFrame : public TMainFrame {
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
 	static constexpr long MAX_RANK = 13L;
 	static constexpr long MIN_RANK = -30L;
-	static constexpr char DEFAULT_ANALYSIS_PV_LEN[] = "15";
-	static constexpr char DEFAULT_REPORT_DURING_SEARCH[] = "1.0";
-	static constexpr char GTP_ANALYZE_INTERVAL[] = "200";
-	static constexpr char GTP_ANALYZE_MAX_MOVES[] = "50";
+	static constexpr int DEFAULT_ANALYSIS_PV_LEN = 15;
+	static constexpr float DEFAULT_REPORT_DURING_SEARCH = 1.0f;
+	static constexpr int GTP_ANALYZE_INTERVAL = 200;
+	static constexpr int GTP_ANALYZE_MAX_MOVES = 50;
 
 #ifndef USE_THREAD
 	static constexpr int WAKE_UP_TIMER_MS = 100;
