@@ -10,7 +10,7 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DBUILD_TYPE=\\\"Release\\\"")
   endif()
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif(MSVC)
 
 set(COMP_OPTS "NDEBUG")
@@ -150,7 +150,7 @@ if(NOT MSVC)
   add_definitions(${GTK_CFLAGS_OTHER})
 endif()
 
-target_compile_features(leelagui PUBLIC cxx_std_14)
+target_compile_features(leelagui PUBLIC cxx_std_17)
 if(MSVC)
   set_property(TARGET leelagui PROPERTY
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
