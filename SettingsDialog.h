@@ -18,6 +18,7 @@ class SettingsDialog : public TSettingsDialog
         virtual void doInit( wxInitDialogEvent& event );
         virtual void doCancel( wxCommandEvent& event );
         virtual void doOK( wxCommandEvent& event );
+        virtual void doChangeEngine( wxUpdateUIEvent& event );
 
     public:
 	/** Constructor */

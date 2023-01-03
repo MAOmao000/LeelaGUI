@@ -2,6 +2,10 @@
 #define MAINFRAME_H
 
 #include <memory>
+#include <chrono>
+#include <thread>
+#include <fstream>
+#include <regex>
 #include <wx/process.h>
 
 #include "stdafx.h"
@@ -14,6 +18,9 @@
 
 class AnalysisWindow;
 class ScoreHistogram;
+#ifndef USE_THREAD
+class SubProcess;
+#endif
 
 wxDECLARE_EVENT(wxEVT_NEW_MOVE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_BOARD_UPDATE, wxCommandEvent);
@@ -22,13 +29,8 @@ wxDECLARE_EVENT(wxEVT_ANALYSIS_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_BESTMOVES_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
-wxDECLARE_EVENT(wxEVT_PURGE_VIZ, wxCommandEvent);
 #ifndef USE_THREAD
 wxDECLARE_EVENT(wxEVT_RECIEVE_KATAGO, wxCommandEvent);
-#endif
-
-#ifndef USE_THREAD
-class SubProcess;
 #endif
 
 static wxLocale m_locale;
@@ -44,9 +46,9 @@ class MainFrame : public TMainFrame {
 #ifndef USE_THREAD
 		void OnAsyncTermination(SubProcess *process);
 		void OnProcessTerminated(SubProcess *process);
-		void OnIdleTimer(wxTimerEvent& event);
-		void OnIdle(wxIdleEvent& event);
 #endif
+	static constexpr char DEFAULT_MAX_VISITS_ANALYSIS[] = "1000000";
+	static constexpr char DEFAULT_MAX_TIME_ANALYSIS[] = "3600";
 
 	private:
 	virtual void doActivate(wxActivateEvent& event) override;
@@ -88,20 +90,13 @@ class MainFrame : public TMainFrame {
 	virtual void doShowHideScoreHistogram( wxCommandEvent& event ) override;
 	virtual void doCopyClipboard( wxCommandEvent& event ) override;
 	virtual void doPasteClipboard( wxCommandEvent& event ) override;
-#ifndef USE_THREAD
-	virtual void doRecieveKataGo(wxCommandEvent& event);
-#endif
 	void doEvalUpdate(wxCommandEvent& event);
-	void doRealUndo(int count = 1);
-	void doRealForward(int count = 1);
+	void doRealUndo(int count = 1, bool force = false);
+	void doRealForward(int count = 1, bool force = false);
 	void doPostMoveChange(bool wasAnalyzing);
 	void gotoMoveNum(wxCommandEvent& event);
 	void broadcastCurrentMove();
-
 	void startEngine();
-#ifndef USE_THREAD
-	void startKataGo();
-#endif
 	bool stopEngine(bool update_score = true);
 	// true = user accepts score
 	bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
@@ -112,20 +107,54 @@ class MainFrame : public TMainFrame {
 	void setActiveMenus();
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
-
 	void setStartMenus(bool enable = true);
+	void MainFrameEnd();
 #ifdef USE_THREAD
 	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
 #else
+	virtual void doRecieveKataGo(wxCommandEvent& event);
+	void OnIdleTimer(wxTimerEvent& event);
+	void OnIdle(wxIdleEvent& event);
+	void startKataGo();
 	void playMove(int who);
 	void postIdle();
+	void doKataGoStart(const wxString& kataRes);
+	void doAnalysisResponse(const wxString& kataRes);
+	void doAnalysisQuery(const wxString& kataRes);
+	void doGameFirstQuery(const wxString& kataRes);
+	void doGameSecondQuery(const wxString& kataRes);
+	void doKataGameStartingWait(const wxString& kataRes);
+	void doKataGameStart(const wxString& kataRes);
+	void doKataGTPAnalysis(const wxString& kataRes);
+	void doKataGTPWait(const wxString& kataRes);
+	void doKataGTPEtcWait(const wxString& kataRes);
 #endif
-	void MainFrameEnd();
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
+	static constexpr long MAX_RANK = 13L;
+	static constexpr long MIN_RANK = -30L;
+	static constexpr char DEFAULT_ANALYSIS_PV_LEN[] = "15";
+	static constexpr char DEFAULT_REPORT_DURING_SEARCH[] = "1.0";
+	static constexpr char GTP_ANALYZE_INTERVAL[] = "200";
+	static constexpr char GTP_ANALYZE_MAX_MOVES[] = "50";
 
 #ifndef USE_THREAD
-	std::unique_ptr<GameState> m_StateEngine;
+	static constexpr int WAKE_UP_TIMER_MS = 100;
+	enum {
+		INIT,
+		KATAGO_STARTING,
+		 KATAGO_STARTING_WAIT,
+		ANALYSIS_RESPONSE_WAIT,
+		KATAGO_IDLE,
+		KATAGO_STOPED,
+		ANALYSIS_QUERY_WAIT,
+		GAME_FIRST_QUERY_WAIT,
+		GAME_SECOND_QUERY_WAIT,
+		KATAGO_GAME_START,
+		KATAGO_GTP_ANALYSIS,
+		KATAGO_GTP_WAIT,
+		KATAGO_GTP_ETC_WAIT,
+	};
 #endif
 	GameState m_State;
 	std::vector<GameState> m_StateStack;
@@ -143,7 +172,52 @@ class MainFrame : public TMainFrame {
 	bool m_pondering;
 	bool m_disputing;
 	bool m_ponderedOnce;
-#ifndef USE_THREAD
+	std::unique_ptr<TEngineThread> m_engineThread;
+	AnalysisWindow* m_analysisWindow{nullptr};
+	ScoreHistogram* m_scoreHistogramWindow{nullptr};
+	friend class TEngineThread;
+	friend class TBoardPanel;
+	std::vector<int> m_move_handi;
+	std::vector<std::string> m_overrideSettings;
+	std::chrono::time_point<std::chrono::system_clock> m_query_start;
+	int m_visit;
+	wxOutputStream* m_out{nullptr};
+	wxInputStream* m_in{nullptr};
+	wxInputStream* m_err{nullptr};
+	bool m_japanese_rule;
+	bool m_japanese_rule_init;
+	std::vector<wxString> m_ini_line;
+	std::string m_query_id;
+	int m_ini_line_idx;
+	wxString m_gtp_send_cmd;
+	wxString m_info_move;
+	int m_undo_num;
+	int m_undo_count;
+	int m_forward_num;
+	int m_forward_count;
+	bool m_pass_send;
+	bool m_resign_send;
+	bool m_black_win;
+	float m_black_winrate;
+	float m_black_score;
+	int m_visit_count;
+	bool m_pick_policy;
+	bool m_picked_pass;
+	bool m_pick_ownership;
+	float m_policy_pass;
+	int m_policy_row;
+	int m_ownership_row;
+	std::vector<float> m_policy;
+	std::vector<float> m_ownership;
+	int m_thinking_time;
+	bool m_thinking;
+	int m_think_num;
+	int m_visits;
+#ifdef USE_THREAD
+	wxProcess* m_process{nullptr};
+	std::mutex m_GTPmutex;
+#else
+	std::unique_ptr<GameState> m_StateEngine;
 	nlohmann::json m_send_json;
 	int  m_katagoStatus;
 	bool m_runflag;
@@ -168,37 +242,9 @@ class MainFrame : public TMainFrame {
 	std::string m_move_str;
 	float m_winrate;
 	float m_scoreMean;
-#endif
-	std::chrono::time_point<std::chrono::system_clock> m_query_start;
-	int m_visit;
-#ifdef PERFORMANCE
-	int m_thinking_time;
-	bool m_thinking;
-	int m_think_num;
-	int m_visits;
-#endif
-	std::vector<int> m_move_handi;
-	std::unique_ptr<TEngineThread> m_engineThread;
-	AnalysisWindow* m_analysisWindow{nullptr};
-	ScoreHistogram* m_scoreHistogramWindow{nullptr};
-	std::vector<std::string> m_overrideSettings;
-	friend class TEngineThread;
-	friend class TBoardPanel;
-
-#ifdef USE_THREAD
-	wxProcess* m_process{nullptr};
-	std::mutex m_GTPmutex;
-#else
 	SubProcess* m_process{nullptr};
 	wxTimer m_timerIdleWakeUp;
 #endif
-	wxOutputStream* m_out{nullptr};
-	wxInputStream* m_in{nullptr};
-	wxInputStream* m_err{nullptr};
-	bool m_close_window;
-	bool m_japanese_rule;
-	std::vector<wxString> m_ini_line;
-	std::string m_query_id;
 
 	public:
 	static void setLocale(bool japanese) {
@@ -221,10 +267,8 @@ public:
 	SubProcess(MainFrame *parent);
 	virtual void OnTerminate(int pid, int status) wxOVERRIDE;
 	bool HasInput();
-
 protected:
 	MainFrame *m_parent;
 };
 #endif
-
 #endif
