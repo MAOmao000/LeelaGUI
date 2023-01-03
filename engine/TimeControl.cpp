@@ -260,3 +260,15 @@ bool TimeControl::byo_yomi(int color) {
     }
     return false;
 }
+
+int TimeControl::get_maintime() {
+    return m_maintime;
+}
+
+int TimeControl::get_byotime() {
+    return m_byotime;
+}
+
+int TimeControl::get_byostones() {
+    return m_byostones;
+}

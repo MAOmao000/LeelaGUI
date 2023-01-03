@@ -189,6 +189,18 @@ void GameState::adjust_time(int color, int time, int stones) {
     m_timecontrol.adjust_time(color, time, stones);
 }
 
+int GameState::get_maintime() {
+    return m_timecontrol.get_maintime();
+}
+
+int GameState::get_byotime() {
+    return m_timecontrol.get_byotime();
+}
+
+int GameState::get_byostones() {
+    return m_timecontrol.get_byostones();
+}
+
 void GameState::anchor_game_history(void) {
     // handicap moves don't count in game history
     m_movenum = 0;

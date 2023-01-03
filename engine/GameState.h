@@ -42,6 +42,9 @@ public:
                          int byoperiods);
     void set_timecontrol(TimeControl tmc);
     void adjust_time(int color, int time, int stones);
+    int get_maintime();
+    int get_byotime();
+    int get_byostones();
 
     void display_state();
 
