@@ -478,6 +478,15 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         if (m_State->legal_move(vtx)) {
             wxCommandEvent event_w(wxEVT_NEW_MOVE, GetId());
             event_w.SetEventObject(this);
+            if (cfg_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxString msg;
+                if (m_State->get_to_move() == FastBoard::BLACK) {
+                    msg = wxString("play b " + m_State->move_to_text(vtx));
+                } else {
+                    msg = wxString("play w " + m_State->move_to_text(vtx));
+                }
+                event_w.SetString(msg);
+            }
             ::wxPostEvent(GetEventHandler(), event_w);
 
             m_State->play_move(vtx);
