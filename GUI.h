@@ -36,6 +36,7 @@ class TScorePanel;
 #include <wx/dialog.h>
 #include <wx/hyperlink.h>
 #include <wx/grid.h>
+#include <wx/filepicker.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -421,6 +422,7 @@ class TSettingsDialog : public wxDialog
 
 		// Private event handlers
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
+		void _wxFB_doChangeEngine( wxUpdateUIEvent& event ){ doChangeEngine( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
 
@@ -432,7 +434,6 @@ class TSettingsDialog : public wxDialog
 			ID_PONDERTOGGLE,
 			ID_RESIGNTOGGLE,
 			ID_NETWORKTOGGLE,
-			ID_KATAGOTOGGLE,
 			ID_SOUNDSWITCH,
 			ID_DPISCALING,
 			ID_JAPANESE
@@ -443,7 +444,11 @@ class TSettingsDialog : public wxDialog
 		wxCheckBox* m_checkBoxPondering;
 		wxCheckBox* m_checkBoxResignations;
 		wxCheckBox* m_checkBoxNeuralNet;
-		wxCheckBox* m_checkBoxKataGo;
+		wxRadioBox* m_radioBoxDefaultRule;
+		wxRadioBox* m_radioBoxEngineType;
+		wxFilePickerCtrl* m_filePickerEngine;
+		wxFilePickerCtrl* m_filePickerConfigration;
+		wxFilePickerCtrl* m_filePickerModel;
 		wxCheckBox* m_checkBoxSound;
 		wxCheckBox* m_checkBoxDPIScaling;
 		wxCheckBox* m_checkBoxJapanese;
@@ -452,13 +457,14 @@ class TSettingsDialog : public wxDialog
 
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void doChangeEngine( wxUpdateUIEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:
 
-		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Settings"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+		TSettingsDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Settings"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,575 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 
 		~TSettingsDialog();
 

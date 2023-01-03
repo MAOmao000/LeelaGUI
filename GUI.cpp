@@ -397,7 +397,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_radioBoxColor->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxColor, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Unlimited"), _("Specify a number") };
+	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Ponder/Time priority"), _("Specify a number") };
 	int m_radioBoxLevelNChoices = sizeof( m_radioBoxLevelChoices ) / sizeof( wxString );
 	m_radioBoxLevel = new wxRadioBox( this, wxID_ANY, _("Engine max level"), wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
 	m_radioBoxLevel->SetSelection( 0 );
@@ -441,7 +441,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer22->Add( m_button_new_game_cancel, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 
 
-	bSizer7->Add( bSizer22, 0, wxALIGN_RIGHT|wxALL|wxEXPAND|wxRIGHT, 5 );
+	bSizer7->Add( bSizer22, 0, wxALL|wxEXPAND|wxRIGHT, 5 );
 
 
 	this->SetSizer( bSizer7 );
@@ -688,6 +688,7 @@ TAnalysisWindow::~TAnalysisWindow()
 
 BEGIN_EVENT_TABLE( TSettingsDialog, wxDialog )
 	EVT_INIT_DIALOG( TSettingsDialog::_wxFB_doInit )
+	EVT_UPDATE_UI( wxID_ANY, TSettingsDialog::_wxFB_doChangeEngine )
 	EVT_BUTTON( wxID_OK, TSettingsDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TSettingsDialog::_wxFB_doCancel )
 END_EVENT_TABLE()
@@ -724,12 +725,57 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_checkBoxNeuralNet->SetValue(true);
 	gSizer1->Add( m_checkBoxNeuralNet, 0, wxALL, 5 );
 
-	m_checkBoxKataGo = new wxCheckBox( sbSizer7->GetStaticBox(), ID_KATAGOTOGGLE, _("KataGo (needs restart)"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_checkBoxKataGo->SetValue(true);
-	gSizer1->Add( m_checkBoxKataGo, 0, wxALL, 5 );
-
 
 	sbSizer7->Add( gSizer1, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer22;
+	bSizer22 = new wxBoxSizer( wxVERTICAL );
+
+	wxString m_radioBoxDefaultRuleChoices[] = { _("Chinese"), _("Japanese") };
+	int m_radioBoxDefaultRuleNChoices = sizeof( m_radioBoxDefaultRuleChoices ) / sizeof( wxString );
+	m_radioBoxDefaultRule = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Default Rule"), wxDefaultPosition, wxDefaultSize, m_radioBoxDefaultRuleNChoices, m_radioBoxDefaultRuleChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxDefaultRule->SetSelection( 0 );
+	bSizer22->Add( m_radioBoxDefaultRule, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	wxString m_radioBoxEngineTypeChoices[] = { _("Leela or ini File"), _("KataGo Analysis"), _("KataGo GTP") };
+	int m_radioBoxEngineTypeNChoices = sizeof( m_radioBoxEngineTypeChoices ) / sizeof( wxString );
+	m_radioBoxEngineType = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Engine Select (needs restart)"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineTypeNChoices, m_radioBoxEngineTypeChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxEngineType->SetSelection( 1 );
+	bSizer22->Add( m_radioBoxEngineType, 0, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* sbSizer10;
+	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Engine") ), wxVERTICAL );
+
+#ifdef WIN32
+	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*.exe)|*.exe"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+#else
+	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*)|*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+#endif
+	sbSizer10->Add( m_filePickerEngine, 0, wxALL|wxEXPAND, 5 );
+
+
+	bSizer22->Add( sbSizer10, 1, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* sbSizer101;
+	sbSizer101 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Configration") ), wxVERTICAL );
+
+	m_filePickerConfigration = new wxFilePickerCtrl( sbSizer101->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Configration files (*.cfg)|*.cfg"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+	sbSizer101->Add( m_filePickerConfigration, 0, wxALL|wxEXPAND, 5 );
+
+
+	bSizer22->Add( sbSizer101, 1, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* sbSizer102;
+	sbSizer102 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Model") ), wxVERTICAL );
+
+	m_filePickerModel = new wxFilePickerCtrl( sbSizer102->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Model files (*.gz)|*.gz"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+	sbSizer102->Add( m_filePickerModel, 0, wxALL|wxEXPAND, 5 );
+
+
+	bSizer22->Add( sbSizer102, 1, wxALL|wxEXPAND, 5 );
+
+
+	sbSizer7->Add( bSizer22, 0, wxEXPAND, 5 );
 
 
 	bSizer15->Add( sbSizer7, 0, wxBOTTOM|wxEXPAND, 5 );
@@ -754,7 +800,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_panel4->SetSizer( bSizer15 );
 	m_panel4->Layout();
 	bSizer15->Fit( m_panel4 );
-	bSizer13->Add( m_panel4, 1, wxEXPAND | wxALL, 5 );
+	bSizer13->Add( m_panel4, 1, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* m_sdbSizer3;
 	m_sdbSizer3 = new wxBoxSizer( wxHORIZONTAL );
@@ -780,7 +826,6 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
 	this->SetSizer( bSizer13 );
 	this->Layout();
-	bSizer13->Fit( this );
 
 	this->Centre( wxBOTH );
 }
