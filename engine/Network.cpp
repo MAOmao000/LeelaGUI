@@ -11,6 +11,7 @@
 #include <thread>
 #include <boost/utility.hpp>
 #include <boost/format.hpp>
+#include <random>
 
 #ifdef USE_CAFFE
 #include <caffe/proto/caffe.pb.h>
@@ -1221,7 +1222,10 @@ void Network::gather_traindata(std::string filename, TrainVector& data) {
 
     myprintf("Total games in file: %d\n", gametotal);
     myprintf("Shuffling...\n");
-    std::random_shuffle(games.begin(), games.end());
+    //std::random_shuffle(games.begin(), games.end());
+    std::random_device seed_gen;
+    std::mt19937 engine(seed_gen());
+    std::shuffle(games.begin(), games.end(), engine);
 
     while (gamecount < gametotal) {
         std::unique_ptr<SGFTree> sgftree(new SGFTree);
