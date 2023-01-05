@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "1.8.8"
+!define VERSION   "2.0.0"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -34,7 +34,6 @@ ManifestDPIAware true
   ShowUninstDetails       hide
   ShowInstDetails         hide
   RequestExecutionLevel   user
-  #RequestExecutionLevel   admin
 
 ;  !if "${V4}" != ""
 ;  OutFile "setupLeela${V1}${V2}${V3}${V4}.exe"
@@ -333,10 +332,7 @@ Section "LeelaI18N" leela
   ${EndIf}
 
   File "bin\${LEELABIN}"
-  #File "bin\libgcc_s_seh-1.dll"
   File "bin\libopenblas.dll"
-  #File "bin\libgfortran-3.dll"
-  #File "bin\libquadmath-0.dll"
   File "bin\libcrypto-1_1-x64.dll"
   File "bin\libssl-1_1-x64.dll"
   File "bin\libz.dll"
@@ -346,8 +342,9 @@ Section "LeelaI18N" leela
   File "bin\VCRUNTIME140.dll"
   File "bin\VCRUNTIME140_1.dll"
   File "bin\katago.exe"
-  File "bin\LeelaGUI.ini"
+  #File "bin\LeelaGUI.ini"
   File "bin\analysis_example.cfg"
+  File "bin\gtp_example.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "bin\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
   File "license.rtf"
@@ -377,9 +374,8 @@ SectionEnd
 
 Section /o "LeelaI18N (GPU accelerated)" leela_ocl
   File "bin\${LEELAOCL}"
-  #File "bin\OpenCL.dll"
   File "bin\katago_OpenCL.exe"
-  File "bin\LeelaGUI_OpenCL.ini"
+  #File "bin\LeelaGUI_OpenCL.ini"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\LeelaI18N (GPU accelerated).lnk" "$INSTDIR\${LEELAOCL}" ""
@@ -503,13 +499,15 @@ Section "Uninstall"
   ;Delete Files
   Delete "$INSTDIR\${LEELABIN}"
   Delete "$INSTDIR\${LEELAOCL}"
-  #Delete "$INSTDIR\libgcc_s_dw2-1.dll"
   Delete "$INSTDIR\libopenblas.dll"
   Delete "$INSTDIR\libcrypto-1_1-x64.dll"
   Delete "$INSTDIR\libssl-1_1-x64.dll"
   Delete "$INSTDIR\libz.dll"
   Delete "$INSTDIR\libzip.dll"
+  Delete "$INSTDIR\zip.dll"
   Delete "$INSTDIR\zlib.dll"
+  Delete "$INSTDIR\msvcp140.dll"
+  Delete "$INSTDIR\vcruntime140.dll"
   Delete "$INSTDIR\MSVCP140.dll"
   Delete "$INSTDIR\VCRUNTIME140.dll"
   Delete "$INSTDIR\VCRUNTIME140_1.dll"
@@ -518,17 +516,16 @@ Section "Uninstall"
   Delete "$INSTDIR\LeelaGUI.ini"
   Delete "$INSTDIR\LeelaGUI_OpenCL.ini"
   Delete "$INSTDIR\analysis_example.cfg"
-  Delete "$INSTDIR\default_gtp.cfg"
+  Delete "$INSTDIR\gtp_example.cfg"
   Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   Delete "$INSTDIR\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
-  #Delete "$INSTDIR\libgfortran-3.dll"
-  #Delete "$INSTDIR\libquadmath-0.dll"
-  #Delete "$INSTDIR\OpenCL.dll"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"
+  Delete "$INSTDIR\analysis.log"
   Delete "$INSTDIR\gtp.log"
   RMDir /r "$INSTDIR\catalogs"
+  RMDir /r "$INSTDIR\analysis_logs"
   RMDir /r "$INSTDIR\gtp_logs"
   RMDir /r "$INSTDIR\KataGoData"
 
