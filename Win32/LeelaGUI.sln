@@ -17,8 +17,8 @@ Global
 		ThreadG|x64 = ThreadG|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.ActiveCfg = ReleaseGPU|x64
-		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.Build.0 = ReleaseGPU|x64
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|Win32.Build.0 = Debug|Win32
 		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|x64.ActiveCfg = Debug|x64
 		{9302BF69-D79E-4267-A192-53452C07A84D}.Debug|x64.Build.0 = Debug|x64
 		{9302BF69-D79E-4267-A192-53452C07A84D}.ReleaseCPU|Win32.ActiveCfg = ReleaseCPU|Win32

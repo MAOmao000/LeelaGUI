@@ -150,6 +150,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>LeelaI18N_OpenCL</TargetName>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
@@ -171,9 +173,9 @@
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <AdditionalOptions>/source-charset:utf-8 -Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <FloatingPointExceptions>true</FloatingPointExceptions>
@@ -213,17 +215,19 @@
       <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\x64\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_THREAD;USE_GPU;BOOST_ALL_NO_LIB;WIN32;_CRT_SECURE_NO_DEPRECATE=1;_CRT_NON_CONFORMING_SWPRINTFS=1;_SCL_SECURE_NO_WARNINGS=1;__WXMSW__;NDEBUG;_UNICODE;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Fast</FloatingPointModel>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <AdditionalOptions>/source-charset:utf-8 -Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -256,20 +260,23 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\x64\include\boost-1_80;C:\wxWidgets-3.2.1\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.1\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\x64\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_GPU;BOOST_ALL_NO_LIB;WIN32;_CRT_SECURE_NO_DEPRECATE=1;_CRT_NON_CONFORMING_SWPRINTFS=1;_SCL_SECURE_NO_WARNINGS=1;__WXMSW__;_UNICODE;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <AdditionalOptions>/source-charset:utf-8 /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <DisableSpecificWarnings>4100;4305</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -281,13 +288,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>C:\OpenCL-SDK\install\lib;C:\boost\x64\lib;C:\wxWidgets-3.2.1\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\OpenCL-SDK\install\lib;C:\boost\x64\lib;C:\wxWidgets-3.2.0\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <TargetMachine>MachineX64</TargetMachine>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Manifest />
     <Manifest>
@@ -302,10 +310,10 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>C:\aoki\IGO\OpenBLAS-0.3.20-x86\include;C:\boost\x64\include\boost-1_80;C:\wxWidgets-3.2.1\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.1\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenBLAS-0.3.20-x86\include;C:\boost\x64\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BOOST_ALL_NO_LIB;WIN32;_CRT_SECURE_NO_DEPRECATE=1;_CRT_NON_CONFORMING_SWPRINTFS=1;_SCL_SECURE_NO_WARNINGS=1;__WXMSW__;NDEBUG;_UNICODE;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Fast</FloatingPointModel>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -314,6 +322,9 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>-Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -325,7 +336,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>C:\aoki\IGO\OpenBLAS-0.3.20-x64\lib;C:\boost\x64\lib;C:\wxWidgets-3.2.1\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\OpenBLAS-0.3.20-x64\lib;C:\boost\x64\lib;C:\wxWidgets-3.2.0\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
@@ -340,7 +351,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\aoki\IGO\OpenBLAS-0.3.20-x86\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.1\lib\vc_lib\mswu;C:\wxWidgets-3.2.1\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenBLAS-0.3.20-x86\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCPU|Win32'">
@@ -354,36 +365,39 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Fast</FloatingPointModel>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <AdditionalOptions>-Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\aoki\IGO\OpenBLAS-0.3.20-x86\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.1\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\OpenBLAS-0.3.20-x86\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libopenblas.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\aoki\work\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.1\lib\vc_lib\mswu;C:\wxWidgets-3.2.1\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ThreadG|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\aoki\work\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.1\lib\vc_lib\mswu;C:\wxWidgets-3.2.1\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\aoki\work\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenCL-SDK\install\include;C:\boost\Win32\include\boost-1_80;C:\wxWidgets-3.2.0\lib\vc_lib\mswu;C:\wxWidgets-3.2.0\include;..\engine;..\..\LeelaGUI;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGPU|Win32'">
@@ -398,18 +412,22 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <OpenMPSupport>true</OpenMPSupport>
       <AdditionalOptions>-Wno-unused-local-typedef -Wno-microsoft-include -Wno-deprecated-builtins %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\aoki\work\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.1\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>C:\aoki\work\OpenCL-SDK\install\lib\OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ThreadG|Win32'">
@@ -428,8 +446,8 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\aoki\work\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.1\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>C:\aoki\work\OpenCL-SDK\install\lib\OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\OpenCL-SDK\install\lib\OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
@@ -448,18 +466,24 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <FloatingPointModel>Fast</FloatingPointModel>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <DisableSpecificWarnings>4100;4305</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\aoki\work\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>C:\aoki\work\OpenCL-SDK\install\lib\OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\OpenCL-SDK\install\lib;C:\boost\Win32\lib;C:\wxWidgets-3.2.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\OpenCL-SDK\install\lib\OpenCL.lib;libboost_program_options-vc143-mt-s-x32-1_80.lib;comctl32.lib;rpcrt4.lib;winmm.lib;advapi32.lib;wsock32.lib;wxbase32u.lib;wxjpeg.lib;wxmsw32u_core.lib;wxmsw32u_qa.lib;wxmsw32u_xrc.lib;wxpng.lib;wxregexu.lib;wxzlib.lib;imagehlp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
