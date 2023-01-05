@@ -756,6 +756,20 @@ msgid ""
 "Start with the Leela engine?"
 msgstr "ini ファイルの 1 行目の記述に誤りがあります: %s\nLeela エンジンで開始しますか？"
 
+#: MainFrame.cpp:136
+#, c-format
+msgid ""
+"There is an error in the configuration of the KataGo engine: %s\n"
+"Start with the Leela engine?"
+msgstr "KataGoエンジンの設定に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:136
+#, c-format
+msgid ""
+"A startup error was returned from KataGo engine: %s\n"
+"Start with the Leela engine?"
+msgstr "KataGoエンジンから起動エラーが返却されました: %s\nLeela エンジンで開始しますか？"
+
 #: MainFrame.cpp:192
 #, c-format
 msgid "Error initializing OpenCL: %s (error %d)"
