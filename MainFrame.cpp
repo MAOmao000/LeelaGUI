@@ -80,11 +80,19 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
         lang = 1;
     }
 
-    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineType"), (long)GTP::NONE);
+#ifdef USE_GPU
+    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeGPU"), (long)GTP::NONE);
+#else
+    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeCPU"), (long)GTP::NONE);
+#endif
 #ifdef USE_THREAD
     if (engine_type == GTP::GTP_INTERFACE) {
         engine_type = GTP::ANALYSIS;
-        wxConfig::Get()->Write(wxT("EngineType"), (long)GTP::ANALYSIS);
+#ifdef USE_GPU
+        wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)GTP::ANALYSIS);
+#else
+        wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)GTP::ANALYSIS);
+#endif
     }
 #endif
 
@@ -131,15 +139,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
             delete reinterpret_cast<TDataBundle*>(rawdataptr);
         }
     });
-
-#ifndef USE_THREAD
-    if (engine_type) {
-        m_timerIdleWakeUp.SetOwner(this);
-        // Case of non use thread engine, monitor query response by timer (WAKE_UP_TIMER_MS).
-        Bind(wxEVT_RECIEVE_KATAGO, &MainFrame::doRecieveKataGo, this);
-        Bind(wxEVT_TIMER, &MainFrame::OnIdleTimer, this, m_timerIdleWakeUp.GetId());
-    }
-#endif
 
     auto rng = std::make_unique<Random>(5489UL);
     Zobrist::init_zobrist(*rng);
@@ -228,16 +227,16 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     SetIcon(wxICON(aaaa));
 
-//#ifdef __WXGTK__
-//    SetSize(530, 640);
-//    if (m_japaneseEnabled) {
-//        m_statusBar->SetMinHeight(30);
-//    }
-//#elif defined(__WXMAC__)
-//    SetSize(570, 640);
-//#else
-//    SetSize(530, 640); // 527,630
-//#endif
+#ifdef __WXGTK__
+    SetSize(530, 640);
+    if (m_japaneseEnabled) {
+        m_statusBar->SetMinHeight(30);
+    }
+#elif defined(__WXMAC__)
+    SetSize(570, 640);
+#else
+    SetSize(530, 640); // 527,630
+#endif
 
     Center();
     setStartMenus(false);
@@ -272,129 +271,175 @@ void MainFrame::doInit() {
     wxString errorString;
     wxString engine_path, config_path, model_path;
 
-    std::string ini_file;
+    bool defined_ini = false;
+    std::string ini_file = "";
+    if (cfg_engine_type == GTP::NONE) {
 #ifdef USE_GPU
-    ini_file = "LeelaGUI_OpenCL.ini";
+        ini_file = "LeelaGUI_OpenCL.ini";
 #else
-    ini_file = "LeelaGUI.ini";
+        ini_file = "LeelaGUI.ini";
 #endif
 
 #ifdef WIN32
-    char* ini_path = (char*)calloc(MAX_PATH + 1, sizeof(char));
-    char buf[MAX_PATH+1];
-    GetModuleFileNameA(NULL, buf, MAX_PATH);
-    char drive[MAX_PATH+1], dir[MAX_PATH+1], fname[MAX_PATH+1], ext[MAX_PATH+1];
-    _splitpath(buf, drive, dir, fname, ext);
-    sprintf(ini_path, "%s%s%s", drive, dir, ini_file.c_str());
+        char* ini_path = (char*)calloc(MAX_PATH + 1, sizeof(char));
+        char buf[MAX_PATH+1];
+        GetModuleFileNameA(NULL, buf, MAX_PATH);
+        char drive[MAX_PATH+1], dir[MAX_PATH+1], fname[MAX_PATH+1], ext[MAX_PATH+1];
+        _splitpath(buf, drive, dir, fname, ext);
+        sprintf(ini_path, "%s%s%s", drive, dir, ini_file.c_str());
 #else
-    char* ini_path = (char*)calloc(4096 + 1, sizeof(char));
-    char prg_path[4096];
-    int len = readlink("/proc/self/exe", prg_path, sizeof(prg_path));
-    prg_path[len] = 0;
-    for (int i = len - 1; i > 0; i--) {
-        if (prg_path[i] != '/') {
-            prg_path[i] = 0;
-        } else {
-            break;
+        char* ini_path = (char*)calloc(4096 + 1, sizeof(char));
+        char prg_path[4096];
+        int len = readlink("/proc/self/exe", prg_path, sizeof(prg_path));
+        prg_path[len] = 0;
+        for (int i = len - 1; i > 0; i--) {
+            if (prg_path[i] != '/') {
+                prg_path[i] = 0;
+            } else {
+                break;
+            }
         }
-    }
-    sprintf(ini_path, "%s%s", prg_path, ini_file.c_str());
+        sprintf(ini_path, "%s%s", prg_path, ini_file.c_str());
 #endif
 
-    std::ifstream fin(ini_path);
-    free(ini_path);
-    if (fin) {
-        std::string line;
-        while (std::getline(fin, line)) {
-            // Remove whitespace at the beginning of a line
-            std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
-            if (trim_line.length() <= 0 || trim_line[0] == '#') {
-                continue;
-            }
-            // Remove the first character after `#` starting at the beginning of the line
-            auto pos = trim_line.find('#');
-            std::string erase_line = trim_line;
-            if (pos != std::string::npos) {
-                erase_line = trim_line.erase(pos);
-            }
-            // Remove trailing whitespace characters from lines
-            std::string last_line = std::regex_replace(erase_line, std::regex("\\s+$"), std::string(""));
-            // Replace 2 or more spaces with 1 space
-            std::regex reg(R"(\s+)");
-            std::string s = std::regex_replace(last_line, reg, " ");
-            if (!m_ini_line.size() && s.find(" gtp ") != std::string::npos) {
-                pos = s.find(" -override-config");
-                if (pos == std::string::npos) {
-                    if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
-                        s += R"( -override-config "ponderingEnabled=true")";
-                    } else {
-                        s += R"( -override-config "ponderingEnabled=false")";
-                    }
-                } else {
-                    auto pos_ponder = s.find("ponderingEnabled");
-                    if (pos_ponder != std::string::npos) {
-                        for (size_t i = pos_ponder + sizeof("ponderingEnabled") - 1; i < s.size(); i++) {
-                            if (s.substr(i, 1) == "t" || s.substr(i, 1) == "T") {
-                                if (!wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
-                                    s.replace(i, 4, "false");
-                                }
-                                break;
-                            } else if (s.substr(i, 1) == "f" || s.substr(i, 1) == "F") {
-                                if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
-                                    s.replace(i, 5, "true");
-                                }
-                                break;
-                            }
-                        }
-                    } else {
+        std::ifstream fin(ini_path);
+        free(ini_path);
+        if (fin) {
+            std::string line;
+            while (std::getline(fin, line)) {
+                // Remove whitespace at the beginning of a line
+                std::string trim_line = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
+                if (trim_line.length() <= 0 || trim_line[0] == '#') {
+                    continue;
+                }
+                // Remove the first character after `#` starting at the beginning of the line
+                auto pos = trim_line.find('#');
+                std::string erase_line = trim_line;
+                if (pos != std::string::npos) {
+                    erase_line = trim_line.erase(pos);
+                }
+                // Remove trailing whitespace characters from lines
+                std::string last_line = std::regex_replace(erase_line, std::regex("\\s+$"), std::string(""));
+                // Replace 2 or more spaces with 1 space
+                std::regex reg(R"(\s+)");
+                std::string s = std::regex_replace(last_line, reg, " ");
+                if (!m_ini_line.size() && s.find(" gtp ") != std::string::npos) {
+                    pos = s.find(" -override-config");
+                    if (pos == std::string::npos) {
                         if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
                             s += R"( -override-config "ponderingEnabled=true")";
                         } else {
                             s += R"( -override-config "ponderingEnabled=false")";
                         }
+                    } else {
+                        auto pos_ponder = s.find("ponderingEnabled");
+                        if (pos_ponder != std::string::npos) {
+                            for (size_t i = pos_ponder + sizeof("ponderingEnabled") - 1; i < s.size(); i++) {
+                                if (s.substr(i, 1) == "t" || s.substr(i, 1) == "T") {
+                                    if (!wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                                        s.replace(i, 4, "false");
+                                    }
+                                    break;
+                                } else if (s.substr(i, 1) == "f" || s.substr(i, 1) == "F") {
+                                    if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                                        s.replace(i, 5, "true");
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                                s += R"( -override-config "ponderingEnabled=true")";
+                            } else {
+                                s += R"( -override-config "ponderingEnabled=false")";
+                            }
+                        }
                     }
                 }
+                m_ini_line.emplace_back(s);
             }
-            m_ini_line.emplace_back(s);
+        }
+        if (m_ini_line.size() > 0) {
+            defined_ini = true;
+        } else {
+            cfg_use_engine = GTP::ORIGINE_ENGINE;
         }
     } else {
-        wxConfig::Get()->Read(wxT("EnginePath"), &engine_path);
-        wxConfig::Get()->Read(wxT("ConfigPath"), &config_path);
-        wxConfig::Get()->Read(wxT("ModelPath"), &model_path);
-        if (!engine_path.size() || !config_path.size() || !model_path.size()) {
-            if (cfg_engine_type != GTP::NONE){
+#ifdef USE_GPU
+        wxConfig::Get()->Read(wxT("EnginePathGPU"), &engine_path);
+        wxConfig::Get()->Read(wxT("ConfigPathGPU"), &config_path);
+        wxConfig::Get()->Read(wxT("ModelPathGPU"), &model_path);
+#else
+        wxConfig::Get()->Read(wxT("EnginePathCPU"), &engine_path);
+        wxConfig::Get()->Read(wxT("ConfigPathCPU"), &config_path);
+        wxConfig::Get()->Read(wxT("ModelPathCPU"), &model_path);
+#endif
+
 #ifdef WIN32
-#ifdef USE_OPENCL
-                engine_path = wxT("katago_OpenCL.exe");
-                model_path = wxT("kata1-b40c256-s11840935168-d2898845681.bin.gz");
-#else
-                engine_path = wxT("katago.exe");
-                model_path = wxT("g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
-#endif
-                if (cfg_engine_type == GTP::ANALYSIS) {
-                    config_path = wxT("analysis_example.cfg");
-                } else {
-                    config_path = wxT("gtp_example.cfg");
-                }
-#else
-#ifdef USE_OPENCL
-                engine_path = wxT("/usr/games/katago_OpenCL");
-                model_path = wxT("/usr/games/kata1-b40c256-s11840935168-d2898845681.bin.gz");
-#else
-                engine_path = wxT("/usr/games/katago");
-                model_path = wxT("/usr/games/g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
-#endif
-                if (cfg_engine_type == GTP::ANALYSIS) {
-                    config_path = wxT("/usr/games/analysis_example.cfg");
-                } else {
-                    config_path = wxT("/usr/games/gtp_example.cfg");
-                }
-#endif
-                wxConfig::Get()->Write(wxT("EnginePath"), engine_path);
-                wxConfig::Get()->Write(wxT("ConfigPath"), config_path);
-                wxConfig::Get()->Write(wxT("ModelPath"), model_path);
-            }
+#ifdef USE_GPU
+        if (!engine_path.size()) {
+            engine_path = wxT("katago_OpenCL.exe");
+            wxConfig::Get()->Write(wxT("EnginePathGPU"), engine_path);
         }
+        if (!model_path.size()) {
+            model_path = wxT("kata1-b40c256-s11840935168-d2898845681.bin.gz");
+            wxConfig::Get()->Write(wxT("ModelPathGPU"), model_path);
+        }
+#else
+        if (!engine_path.size()) {
+            engine_path = wxT("katago.exe");
+            wxConfig::Get()->Write(wxT("EnginePathCPU"), engine_path);
+        }
+        if (!model_path.size()) {
+            model_path = wxT("g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
+            wxConfig::Get()->Write(wxT("ModelPathCPU"), model_path);
+        }
+#endif
+        if (!config_path.size()) {
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                config_path = wxT("analysis_example.cfg");
+            } else {
+                config_path = wxT("gtp_example.cfg");
+            }
+#ifdef USE_GPU
+            wxConfig::Get()->Write(wxT("ConfigPathGPU"), config_path);
+#else
+            wxConfig::Get()->Write(wxT("ConfigPathCPU"), config_path);
+#endif
+        }
+#else
+#ifdef USE_GPU
+        if (!engine_path.size()) {
+            engine_path = wxT("/usr/games/katago_OpenCL");
+            wxConfig::Get()->Write(wxT("EnginePathGPU"), engine_path);
+        }
+        if (!model_path.size()) {
+            model_path = wxT("/usr/games/kata1-b40c256-s11840935168-d2898845681.bin.gz");
+            wxConfig::Get()->Write(wxT("ModelPathGPU"), model_path);
+        }
+#else
+        if (!engine_path.size()) {
+            engine_path = wxT("/usr/games/katago");
+            wxConfig::Get()->Write(wxT("EnginePathCPU"), engine_path);
+        }
+        if (!model_path.size()) {
+            model_path = wxT("/usr/games/g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
+            wxConfig::Get()->Write(wxT("ModelPathCPU"), model_path);
+        }
+#endif
+        if (!config_path.size()) {
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                config_path = wxT("/usr/games/analysis_example.cfg");
+            } else {
+                config_path = wxT("/usr/games/gtp_example.cfg");
+            }
+#ifdef USE_GPU
+            wxConfig::Get()->Write(wxT("ConfigPathGPU"), config_path);
+#else
+            wxConfig::Get()->Write(wxT("ConfigPathCPU"), config_path);
+#endif
+        }
+#endif
         wxString exe_cmd;
         if (cfg_engine_type == GTP::ANALYSIS) {
             exe_cmd.Printf("\"%s\" analysis -config \"%s\" -model \"%s\"", engine_path, config_path, model_path);
@@ -410,34 +455,39 @@ void MainFrame::doInit() {
         }
     }
 #ifdef USE_THREAD
-    if (m_ini_line.size() > 0) {
+    if (defined_ini || cfg_engine_type != GTP::NONE) {
+        cfg_use_engine = GTP::ORIGINE_ENGINE;
+        cfg_engine_type = GTP::NONE;
         auto pos = m_ini_line[0].find(" analysis ");
         if (pos != std::string::npos) {
-            cfg_engine_type = GTP::ANALYSIS;
             // Start KataGo's analysis engine.
             if ( !(m_process = wxProcess::Open(m_ini_line[0])) ) {
                 wxLogDebug(_("Failed to launch the command."));
-                cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_in = m_process->GetInputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdout"));
                 wxProcess::Kill(m_process->GetPid());
-                cfg_use_engine = GTP::ORIGINE_ENGINE;
+                m_process = nullptr;
             } else if ( !(m_err = m_process->GetErrorStream()) ) {
                 wxLogDebug(_("Failed to connect to child stderr"));
                 wxProcess::Kill(m_process->GetPid());
-                cfg_use_engine = GTP::ORIGINE_ENGINE;
+                m_process = nullptr;
             } else if ( !(m_out = m_process->GetOutputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdin"));
                 wxProcess::Kill(m_process->GetPid());
-                cfg_use_engine = GTP::ORIGINE_ENGINE;
+                m_process = nullptr;
+            } else {
+                cfg_use_engine = GTP::KATAGO_ENGINE;
+                cfg_engine_type = GTP::ANALYSIS;
             }
-        } else {
-            cfg_use_engine = GTP::ORIGINE_ENGINE;
         }
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-             cfg_engine_type = GTP::NONE;
-             errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
-                                  "Start with the Leela engine?"), m_ini_line[0].mb_str());
+            if (defined_ini) {
+                errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
+                                     "Start with the Leela engine?"), m_ini_line[0].mb_str());
+            } else {
+                errorString.Printf(_("There is an error in the configuration of the KataGo engine: %s\n"
+                                     "Start with the Leela engine?"), engine_path);
+            }
             int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
             if (answer != wxYES) {
                 close_window = true;
@@ -448,7 +498,9 @@ void MainFrame::doInit() {
         cfg_engine_type = GTP::NONE;
     }
 #else
-    if (m_ini_line.size() > 0) {
+    if (defined_ini || cfg_engine_type != GTP::NONE) {
+        cfg_use_engine = GTP::ORIGINE_ENGINE;
+        cfg_engine_type = GTP::NONE;
         auto pos = m_ini_line[0].find(" analysis ");
         if (pos != std::string::npos) {
             cfg_engine_type = GTP::ANALYSIS;
@@ -462,6 +514,7 @@ void MainFrame::doInit() {
             }
         }
         if (pos != std::string::npos) {
+            cfg_use_engine = GTP::KATAGO_ENGINE;
             // Start KataGo's analysis engine.
             // Case of non use thread engine, receive query response in SubProcess class.
             m_process = new SubProcess(this);
@@ -469,25 +522,34 @@ void MainFrame::doInit() {
             if ( !pid ) {
                 wxLogDebug(_("Failed to launch the command."));
                 delete m_process;
+                m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_in = m_process->GetInputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdout"));
                 delete m_process;
+                m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_err = m_process->GetErrorStream()) ) {
                 wxLogDebug(_("Failed to connect to child stderr"));
                 delete m_process;
+                m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_out = m_process->GetOutputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdin"));
                 delete m_process;
+                m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             }
         }
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-             cfg_engine_type = GTP::NONE;
-             errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
-                                  "Start with the Leela engine?"), m_ini_line[0].mb_str());
+            cfg_engine_type = GTP::NONE;
+            if (defined_ini) {
+                errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
+                                     "Start with the Leela engine?"), m_ini_line[0].mb_str());
+            } else {
+                errorString.Printf(_("There is an error in the configuration of the KataGo engine: %s\n"
+                                     "Start with the Leela engine?"), engine_path);
+            }
             int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
             if (answer != wxYES) {
                 close_window = true;
@@ -531,9 +593,10 @@ void MainFrame::doInit() {
                         last_msg.find(": error while loading shared libraries:") != std::string::npos ||
                         last_msg.find("what():") != std::string::npos) {
                         wxProcess::Kill(m_process->GetPid());
+                        m_process = nullptr;
                         cfg_use_engine = GTP::ORIGINE_ENGINE;
                         cfg_engine_type = GTP::NONE;
-                        errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
+                        errorString.Printf(_("A startup error was returned from KataGo engine: %s\n"
                                              "Start with the Leela engine?"), last_msg);
                         int answer = ::wxMessageBox(errorString, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
                         if (answer != wxYES) {
@@ -576,7 +639,7 @@ void MainFrame::doInit() {
             } else {
                 tmp_query = R"({"rules":"chinese","whiteHandicapBonus":"N","analysisPVLen":)" +
                             default_analysis_pv_len +
-                            R"(,reportDuringSearchEvery":)" +
+                            R"(,"reportDuringSearchEvery":)" +
                             default_report_during_search +
                             R"(,"maxVisitsAnalysis":)" +
                             default_max_visits_analysis +
@@ -626,6 +689,7 @@ void MainFrame::doInit() {
 #else
                 delete m_process;
 #endif
+                m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
                 cfg_engine_type = GTP::NONE;
                 errorString.Printf(_("The query definition is incorrect: %s\nStart with the Leela engine?"),
@@ -684,6 +748,10 @@ void MainFrame::doInit() {
     m_post_doResign = false;
     m_post_doAnalyze = false;
     // Case of non use thread engine, start timer monitoring from here.
+    m_timerIdleWakeUp.SetOwner(this);
+    // Case of non use thread engine, monitor query response by timer (WAKE_UP_TIMER_MS).
+    Bind(wxEVT_RECIEVE_KATAGO, &MainFrame::doRecieveKataGo, this);
+    Bind(wxEVT_TIMER, &MainFrame::OnIdleTimer, this, m_timerIdleWakeUp.GetId());
     m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
     m_katagoStatus = KATAGO_STARTING;
 #endif
@@ -2753,7 +2821,14 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                     uint64_t now_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
                     fs::path p = fs::temp_directory_path();
                     fs::path::string_type str = p;
-                    std::string filename = str + "LeelaGUI" + std::to_string(now_ms) + ".sgf";
+#ifdef WIN32
+                    char stringw[500];
+                    sprintf(stringw, "%ls", str.c_str());
+                    std::string filename = stringw;
+                    filename += "LeelaGUI" + std::to_string(now_ms) + ".sgf";
+#else
+                    std::string filename = str + std::to_string(now_ms) + ".sgf";
+#endif
                     wxFileOutputStream file(filename);
                     file.Write(sgfstring.c_str(), sgfstring.length());
                     m_gtp_send_cmd = wxString("loadsgf " + filename + "\n");
@@ -2866,7 +2941,7 @@ void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
             }
         } catch(const std::exception& e) {
-            wxLogError(_("Exception at startKataGo: %s %s\n"), typeid(e).name(), e.what());
+            wxLogError(_("Exception at OnIdleTimer: %s %s\n"), typeid(e).name(), e.what());
         }
     }
     if ( m_katagoStatus != INIT &&
@@ -2893,8 +2968,10 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
         kataRes.find("failed with error") != std::string::npos ||
         kataRes.find(": error while loading shared libraries:") != std::string::npos ||
         kataRes.find("what():") != std::string::npos) {
+        delete m_process;
+        m_process = nullptr;
         wxString errStr;
-        errStr.Printf(_("The first line of the ini file is incorrect: %s\n"
+        errStr.Printf(_("A startup error was returned from KataGo engine: %s\n"
                         "Start with the Leela engine?"), kataRes.mb_str());
         int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
         if (answer != wxYES) {
@@ -4145,7 +4222,6 @@ void MainFrame::MainFrameEnd() {
 #ifdef USE_THREAD
         wxProcess::Kill(m_process->GetPid());
 #else
-        m_process->Detach();
         delete m_process;
 #endif
     }
