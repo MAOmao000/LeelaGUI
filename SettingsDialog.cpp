@@ -43,10 +43,18 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     bool japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
     m_checkBoxJapanese->SetValue(japaneseEnabled);
 
-    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineType"), (long)0);
+#ifdef USE_GPU
+    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeGPU"), (long)0);
+#else
+    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeCPU"), (long)0);
+#endif
 #ifdef USE_THREAD
     if (engine_type == 2) {
-        wxConfig::Get()->Write(wxT("EngineType"), (long)1);
+#ifdef USE_GPU
+        wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)1);
+#else
+        wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)1);
+#endif
         m_radioBoxEngineType->Enable(2, false);
     }
 #endif
@@ -62,12 +70,21 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
     }
 
     wxString str1, str2, str3;
-    wxConfig::Get()->Read(wxT("EnginePath"), &str1);
+#ifdef USE_GPU
+    wxConfig::Get()->Read(wxT("EnginePathGPU"), &str1);
     m_filePickerEngine->SetPath(str1);
-    wxConfig::Get()->Read(wxT("ConfigPath"), &str2);
+    wxConfig::Get()->Read(wxT("ConfigPathGPU"), &str2);
     m_filePickerConfigration->SetPath(str2);
-    wxConfig::Get()->Read(wxT("ModelPath"), &str3);
+    wxConfig::Get()->Read(wxT("ModelPathGPU"), &str3);
     m_filePickerModel->SetPath(str3);
+#else
+    wxConfig::Get()->Read(wxT("EnginePathCPU"), &str1);
+    m_filePickerEngine->SetPath(str1);
+    wxConfig::Get()->Read(wxT("ConfigPathCPU"), &str2);
+    m_filePickerConfigration->SetPath(str2);
+    wxConfig::Get()->Read(wxT("ModelPathCPU"), &str3);
+    m_filePickerModel->SetPath(str3);
+#endif
 
 #ifdef __WXGTK__
     m_checkBoxDPIScaling->Disable();
@@ -111,24 +128,42 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
     bool japaneseEnabled = m_checkBoxJapanese->GetValue();
     wxConfig::Get()->Write(wxT("japaneseEnabled"), japaneseEnabled);
 
+#ifdef USE_GPU
     int engine_type = m_radioBoxEngineType->GetSelection();
-    wxConfig::Get()->Write(wxT("EngineType"), (long)engine_type);
+    wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)engine_type);
 
     wxString path1 = m_filePickerEngine->GetPath();
-    wxConfig::Get()->Write(wxT("EnginePath"), path1);
+    wxConfig::Get()->Write(wxT("EnginePathGPU"), path1);
 
     wxString path2 = m_filePickerConfigration->GetPath();
-    wxConfig::Get()->Write(wxT("ConfigPath"), path2);
+    wxConfig::Get()->Write(wxT("ConfigPathGPU"), path2);
 
     wxString path3 = m_filePickerModel->GetPath();
-    wxConfig::Get()->Write(wxT("ModelPath"), path3);
+    wxConfig::Get()->Write(wxT("ModelPathGPU"), path3);
+#else
+    int engine_type = m_radioBoxEngineType->GetSelection();
+    wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)engine_type);
+
+    wxString path1 = m_filePickerEngine->GetPath();
+    wxConfig::Get()->Write(wxT("EnginePathCPU"), path1);
+
+    wxString path2 = m_filePickerConfigration->GetPath();
+    wxConfig::Get()->Write(wxT("ConfigPathCPU"), path2);
+
+    wxString path3 = m_filePickerModel->GetPath();
+    wxConfig::Get()->Write(wxT("ModelPathCPU"), path3);
+#endif
 
     event.Skip();
 }
 
 void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
     int engine_type = m_radioBoxEngineType->GetSelection();
-    wxConfig::Get()->Write(wxT("EngineType"), (long)engine_type);
+#ifdef USE_GPU
+    wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)engine_type);
+#else
+    wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)engine_type);
+#endif
     if (engine_type == 0) {
         m_filePickerEngine->Disable();
         m_filePickerConfigration->Disable();
