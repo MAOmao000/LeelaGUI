@@ -166,7 +166,7 @@ void TEngineThread::Run() {
                 }
                 send_json.erase("maxVisitsAnalysis");
             } else if (m_analyseflag) {
-                send_json["maxVisits"] = atoi(MainFrame::DEFAULT_MAX_VISITS_ANALYSIS);
+                send_json["maxVisits"] = MainFrame::DEFAULT_MAX_VISITS_ANALYSIS;
             }
             if (send_json.contains("maxTimeAnalysis")) {
                 if (m_analyseflag) {
@@ -174,7 +174,7 @@ void TEngineThread::Run() {
                 }
                 send_json.erase("maxTimeAnalysis");
             } else if (m_analyseflag) {
-                send_json["overrideSettings"]["maxTime"] = atoi(MainFrame::DEFAULT_MAX_TIME_ANALYSIS);
+                send_json["overrideSettings"]["maxTime"] = MainFrame::DEFAULT_MAX_TIME_ANALYSIS;
             }
             string req_query = send_json.dump();
             string move_str;
