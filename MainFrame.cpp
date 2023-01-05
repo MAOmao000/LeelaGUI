@@ -521,22 +521,21 @@ void MainFrame::doInit() {
             long pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, m_process);
             if ( !pid ) {
                 wxLogDebug(_("Failed to launch the command."));
-                delete m_process;
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_in = m_process->GetInputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdout"));
-                delete m_process;
+                wxProcess::Kill(m_process->GetPid());
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_err = m_process->GetErrorStream()) ) {
                 wxLogDebug(_("Failed to connect to child stderr"));
-                delete m_process;
+                wxProcess::Kill(m_process->GetPid());
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             } else if ( !(m_out = m_process->GetOutputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdin"));
-                delete m_process;
+                wxProcess::Kill(m_process->GetPid());
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
             }
@@ -684,11 +683,7 @@ void MainFrame::doInit() {
                 tmp_query = dummy.dump();
                 m_overrideSettings.emplace_back(tmp_query);
             } catch(const std::exception& e) {
-#ifdef USE_THREAD
                 wxProcess::Kill(m_process->GetPid());
-#else
-                delete m_process;
-#endif
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
                 cfg_engine_type = GTP::NONE;
@@ -2911,8 +2906,6 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
 #else
 void MainFrame::OnAsyncTermination(SubProcess *process) {
     ::wxMessageBox(_("KataGo terminated abnormally."), _("Leela"), wxOK | wxICON_EXCLAMATION, this);
-    delete process;
-    Close();
 }
 
 void MainFrame::OnProcessTerminated(SubProcess *process) {
@@ -2968,8 +2961,6 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
         kataRes.find("failed with error") != std::string::npos ||
         kataRes.find(": error while loading shared libraries:") != std::string::npos ||
         kataRes.find("what():") != std::string::npos) {
-        delete m_process;
-        m_process = nullptr;
         wxString errStr;
         errStr.Printf(_("A startup error was returned from KataGo engine: %s\n"
                         "Start with the Leela engine?"), kataRes.mb_str());
@@ -4219,11 +4210,7 @@ void MainFrame::setStartMenus(bool enable) {
 
 void MainFrame::MainFrameEnd() {
     if (m_process) {
-#ifdef USE_THREAD
         wxProcess::Kill(m_process->GetPid());
-#else
-        delete m_process;
-#endif
     }
 
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
