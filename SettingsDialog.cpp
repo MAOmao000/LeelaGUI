@@ -164,6 +164,7 @@ void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
 #else
     wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)engine_type);
 #endif
+    m_filePickerConfigration->SetPath("");
     if (engine_type == 0) {
         m_filePickerEngine->Disable();
         m_filePickerConfigration->Disable();
