@@ -221,7 +221,7 @@ class MainFrame : public TMainFrame {
 	nlohmann::json m_send_json;
 	int  m_katagoStatus;
 	bool m_runflag;
-	bool m_wasRunning;
+	//bool m_wasRunning;
 	bool m_isDuringSearch;
 	bool m_update_score;
 	bool m_post_destructor;
