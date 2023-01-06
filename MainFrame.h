@@ -190,6 +190,7 @@ class MainFrame : public TMainFrame {
 	std::string m_query_id;
 	int m_ini_line_idx;
 	wxString m_gtp_send_cmd;
+	wxString m_gtp_pending_cmd;
 	wxString m_info_move;
 	int m_undo_num;
 	int m_undo_count;

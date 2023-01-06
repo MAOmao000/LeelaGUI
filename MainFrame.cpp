@@ -748,6 +748,7 @@ void MainFrame::doInit() {
     m_post_doForceMove = false;
     m_post_doResign = false;
     m_post_doAnalyze = false;
+    m_gtp_pending_cmd = "";
     // Case of non use thread engine, start timer monitoring from here.
     m_timerIdleWakeUp.SetOwner(this);
     // Case of non use thread engine, monitor query response by timer (WAKE_UP_TIMER_MS).
@@ -1165,7 +1166,26 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
 
 #ifdef USE_THREAD
     stopEngine();
+
+    if (m_thinking) {
+        auto query_end = std::chrono::system_clock::now();
+        m_thinking_time += (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                                (query_end - m_query_start).count();
+        m_thinking = false;
+    }
+    int *visits = (int *)event.GetClientData();
+    if (visits) {
+        m_think_num += 1;
+        m_visits += *visits;
+        delete visits;
+    }
 #else
+    if (cfg_engine_type == GTP::GTP_INTERFACE) {
+        wxString GTPCmd = event.GetString();
+        if (!GTPCmd.IsEmpty() && GTPCmd.length() > 0) {
+            m_gtp_pending_cmd = GTPCmd;
+        }
+    }
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis, MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
@@ -1179,32 +1199,16 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     } else {
         stopEngine();
     }
-#endif
-
-    if (m_thinking) {
-        auto query_end = std::chrono::system_clock::now();
-        m_thinking_time += (int)std::chrono::duration_cast<std::chrono::milliseconds>
-                                (query_end - m_query_start).count();
-        m_thinking = false;
-    }
-#ifdef USE_THREAD
-    int *visits = (int *)event.GetClientData();
-    if (visits) {
-        m_think_num += 1;
-        m_visits += *visits;
-        delete visits;
-    }
-#else
     if (cfg_engine_type == GTP::GTP_INTERFACE) {
-        wxString GTPCmd = event.GetString();
-        if (!GTPCmd.IsEmpty() && GTPCmd.length() > 0) {
+        if (m_gtp_pending_cmd.length() > 0) {
             // lock the board
             m_panelBoard->lockState();
             m_StateEngine = std::make_unique<GameState>(m_State);
-            m_gtp_send_cmd = GTPCmd + wxString("\n");
+            m_gtp_send_cmd = m_gtp_pending_cmd + wxString("\n");
             m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
             m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
             m_katagoStatus = KATAGO_GTP_WAIT;
+            m_gtp_pending_cmd = "";
             return;
         }
     }
@@ -1213,7 +1217,6 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     m_panelBoard->unlockState();
     m_panelBoard->clearViz();
 
-    //if (m_pondering && cfg_engine_type != GTP::GTP_INTERFACE) {
     if (m_pondering) {
         m_pondering = false;
         m_ponderedOnce = true;
@@ -1229,7 +1232,6 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             wxSound tock(tock_data_length, tock_data);
 #endif
             tock.Play(wxSOUND_ASYNC);
-
         }
     } else {
         if (m_State.get_to_move() == m_playerColor
@@ -2968,8 +2970,9 @@ void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
                 wxString send_msg = req_query_terminate + "\n";
                 m_out->Write(send_msg, send_msg.length());
             } else if ( m_katagoStatus == KATAGO_GTP_WAIT ) {
-                m_gtp_send_cmd = wxString("name\n");
-                m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                wxString send_cmd = wxString("name\n");
+                m_out->Write(send_cmd, strlen(send_cmd));
+                m_runflag = true;
             } else if ( m_katagoStatus == KATAGO_GTP_ANALYSIS ) {
                 m_gtp_send_cmd = wxString("name\n");
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
@@ -3142,7 +3145,8 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
             }
             row.emplace_back(_("PV").utf8_str(), pvstring);
             analysis_data.emplace_back(row);
-            move_data->emplace_back(j2["move"].get<std::string>(), (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+            move_data->emplace_back(j2["move"].get<std::string>(),
+                (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
         }
         wxString mess;
         if (who == FastBoard::BLACK) {
@@ -3178,6 +3182,8 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
             auto query_end = std::chrono::system_clock::now();
             int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
                                   (query_end - m_query_start).count();
+            m_thinking_time += think_time;
+            m_thinking = false;
             mess.Printf(_("Analysis stopped. Time:%d[ms] Visits:%d"), think_time, m_visit);
             SetStatusBarText(mess, 1);
             postIdle();
@@ -3335,6 +3341,8 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
     auto query_end = std::chrono::system_clock::now();
     int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
                           (query_end - m_query_start).count();
+    m_thinking_time += think_time;
+    m_thinking = false;
     if (who == FastBoard::BLACK) {
         mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
                     100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, think_time, m_visit);
@@ -3436,11 +3444,12 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
                kataRes.find("= KataGo") != std::string::npos) {
         auto query_end = std::chrono::system_clock::now();
         int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
-                              (query_end - m_query_start).count();
+                            (query_end - m_query_start).count();
+        m_thinking_time += think_time;
+        m_thinking = false;
         wxString mess;
         mess.Printf(_("Analysis stopped. Time:%d[ms] Visits:%d"), think_time, m_visit_count);
         SetStatusBarText(mess, 1);
-        wxQueueEvent(GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
         postIdle();
     } else if (m_gtp_send_cmd.find("kata-analyze ") != std::string::npos &&
                kataRes.find("info move ") != std::string::npos) {
@@ -3596,9 +3605,6 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
 
 void MainFrame::doKataGTPWait(const wxString& kataRes) {
     if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
-        return;
-    } else if (m_gtp_send_cmd.find("name\n") != std::string::npos &&
-               kataRes.find("= KataGo") != std::string::npos) {
         return;
     } else if (m_gtp_send_cmd.find("time_settings ") != std::string::npos) {
         if (m_StateEngine->get_to_move() == FastBoard::BLACK) {
@@ -3871,6 +3877,8 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
             auto query_end = std::chrono::system_clock::now();
             int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
                                   (query_end - m_query_start).count();
+            m_thinking_time += think_time;
+            m_thinking = false;
             mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
                         100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, think_time, m_visit_count);
             SetStatusBarText(mess, 1);
@@ -4105,13 +4113,13 @@ void MainFrame::playMove(int who) {
 
 void MainFrame::postIdle() {
     wxCommandEvent evt;
-    m_katagoStatus = KATAGO_IDLE;
     if (m_StateEngine) {
-        if (!m_analyzing && !m_pondering) {
+        if ((!m_analyzing && !m_pondering) || m_katagoStatus == KATAGO_GTP_WAIT) {
             m_State = *m_StateEngine;
         }
         m_StateEngine.reset();
     }
+    m_katagoStatus = KATAGO_IDLE;
     m_timerIdleWakeUp.Stop();
     if (m_post_destructor) {
         MainFrameEnd();
