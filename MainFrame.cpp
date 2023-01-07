@@ -2376,12 +2376,20 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
     }
 
     // Reset to New Game dialog defaults
-    int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
-    m_State.set_timecontrol(minutes * 60 * 100, 0, 0, 0);
+    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
+        int byo = wxConfig::Get()->ReadLong(wxT("DefaultByoKataGo"), (long)2);
+        m_State.set_timecontrol(minutes * 60 * 100, byo * 100, 1, 0);
+        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsKataGo"), (long)6);
+        m_visitLimit = NewGameDialog::simulationsToVisitLimit(simulations);
+    } else {
+        int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutes"), (long)20);
+        m_State.set_timecontrol(minutes * 60 * 100, 0, 0, 0);
+        int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
+        m_visitLimit = NewGameDialog::simulationsToVisitLimit(simulations);
+    }
     bool nets = wxConfig::Get()->ReadBool(wxT("netsEnabled"), true);
     m_netsEnabled = (m_State.board.get_boardsize() == 19 ? nets : false);
-    int simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
-    m_visitLimit = NewGameDialog::simulationsToVisitLimit(simulations);
 
     m_StateStack.clear();
     m_StateStack.push_back(m_State);
@@ -3190,6 +3198,9 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
         }
     } catch (const std::exception& e) {
         wxLogError(_("Exception at ANALYSIS_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
+        wxString errStr;
+        errStr.Printf(_("Exception at ANALYSIS_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
+        ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         postIdle();
     }
 }
@@ -3271,7 +3282,11 @@ void MainFrame::doGameFirstQuery(const wxString& kataRes) {
         } else {
             m_send_json["moves"][movenum][0] = "W";
         }
-        m_send_json["moves"][movenum][1] = m_move_str;
+        if (m_move_str == "resign") {
+            m_send_json["moves"][movenum][1] = "pass";
+        } else {
+            m_send_json["moves"][movenum][1] = m_move_str;
+        }
         std::string req_query_2 = m_send_json.dump();
         wxString send_msg = req_query_2 + "\n";
         m_out->Write(send_msg, send_msg.length());
@@ -3279,6 +3294,9 @@ void MainFrame::doGameFirstQuery(const wxString& kataRes) {
     } catch (const std::exception& e) {
         m_StateEngine->stop_clock(who);
         wxLogError(_("Exception at GAME_FIRST_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
+        wxString errStr;
+        errStr.Printf(_("Exception at GAME_FIRST_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
+        ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         postIdle();
     }
 }
@@ -3334,6 +3352,9 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
     } catch (const std::exception& e) {
         m_StateEngine->stop_clock(who);
         wxLogError(_("Exception at GAME_SECOND_QUERY_WAIT: %s %s\n"), typeid(e).name(), e.what());
+        wxString errStr;
+        errStr.Printf(_("Exception at GAME_SECOND_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
+        ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         postIdle();
         return;
     }
@@ -3718,6 +3739,10 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
             m_StateEngine->stop_clock(m_StateEngine->get_to_move());
             wxLogError(_("Exception at KATAGO_GTP_WAIT(kata-genmove_analyze): %s %s\n"),
                        typeid(e).name(), e.what());
+            wxString errStr;
+            errStr.Printf(_("Exception at KATAGO_GTP_WAIT(kata-genmove_analyze): %s %s"),
+                       typeid(e).name(), e.what());
+            ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
             postIdle();
         }
     } else if (m_gtp_send_cmd.find("kata-raw-nn 0\n") != std::string::npos) {
@@ -3887,7 +3912,12 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
             postIdle();
         } catch (const std::exception& e) {
             m_StateEngine->stop_clock(1 - m_StateEngine->get_to_move());
-            wxLogError(_("Exception at KATAGO_GTP_WAIT(kata-raw-nn 0): %s %s\n"), typeid(e).name(), e.what());
+            wxLogError(_("Exception at KATAGO_GTP_WAIT(kata-raw-nn 0): %s %s\n"),
+                       typeid(e).name(), e.what());
+            wxString errStr;
+            errStr.Printf(_("Exception at KATAGO_GTP_WAIT(kata-raw-nn 0): %s %s"),
+                          typeid(e).name(), e.what());
+            ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
             postIdle();
         }
     } else if (m_gtp_send_cmd.find("play ") != std::string::npos && kataRes.substr(0,1) == "=") {
@@ -3996,6 +4026,9 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
         }
     } catch (const std::exception& e) {
         wxLogError(_("Exception at KATAGO_GTP_ETC_WAIT: %s %s\n"), typeid(e).name(), e.what());
+        wxString errStr;
+        errStr.Printf(_("Exception at KATAGO_GTP_ETC_WAIT: %s %s"), typeid(e).name(), e.what());
+        ::wxMessageBox(errStr, _("Leela"), wxOK | wxICON_EXCLAMATION, this);
         postIdle();
     }
 }
