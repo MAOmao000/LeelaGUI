@@ -13,8 +13,6 @@ The main features added are as follows.
   - Communication with the KataGo GTP engine via the GTP interface  
 
 ## Specification changes when using the Leela engine
-
-The following changes were made.  
 - Changes to the New Game dialog  
   Countdown time (Byo yomi time) can be specified in the New Game dialog.  
 - Changes to the Game Score dialog  
