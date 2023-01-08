@@ -19,26 +19,26 @@ The main features added are as follows.
 ## Specification changes when using the Leela engine
 
 The following changes were made.
-- Changes to the New Game dialog  
+- Changes to the New Game dialog   
   Countdown time (Byo yomi time) can be specified in the New Game dialog.
-- Changes to the Game Score dialog  
+- Changes to the Game Score dialog   
   If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
-- Change the coordinate scale of the board  
+- Change the coordinate scale of the board   
   The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
-- Changes to the Settings dialog
--- Added "japanese" and "KataGo" checkboxes in Settings Dialog. Restart the program to reflect the result.
--- Added "Engine select" checkboxes in Settings Dialog. Restart the program to reflect the result.
-- Change installation destination  
+- Changes to the Settings dialog   
+  -- Added "japanese" and "KataGo" checkboxes in Settings Dialog. Restart the program to reflect the result.
+  -- Added "Engine select" checkboxes in Settings Dialog. Restart the program to reflect the result.
+- Change installation destination   
   When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
 
 ## Additional features when KataGo engine is selected
-- Changes to the New Game dialog  
+- Changes to the New Game dialog   
   By selecting Specify a number in Engine max level, the number of visits per move can be specified as a fine number from 1.
-- Changes to the Game Score dialog  
+- Changes to the Game Score dialog   
   Shows the average thinking time and average number of visits per move for KataGo during the current game.
-- Changes to the Settings dialog  
+- Changes to the Settings dialog   
   Default rules allow selection of Chinese and Japanese.
-- Initial configuration file  
+- Initial configuration file   
   KataGo configuration definition information can be changed in the initial configuration file (.ini file).
 
 ## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file when using KataGo engine
