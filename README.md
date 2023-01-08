@@ -19,32 +19,31 @@ The main features added are as follows.
 ## Specification changes when using the Leela engine
 
 The following changes were made.
-- Changes to the New Game dialog
+- Changes to the New Game dialog  
   Countdown time (Byo yomi time) can be specified in the New Game dialog.
-- Changes to the Game Score dialog
+- Changes to the Game Score dialog  
   If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
-- Change the coordinate scale of the board
+- Change the coordinate scale of the board  
   The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
 - Changes to the Settings dialog
 -- Added "japanese" and "KataGo" checkboxes in Settings Dialog. Restart the program to reflect the result.
 -- Added "Engine select" checkboxes in Settings Dialog. Restart the program to reflect the result.
-- Change installation destination
+- Change installation destination  
   When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
 
 ## Additional features when KataGo engine is selected
-- Changes to the New Game dialog
+- Changes to the New Game dialog  
   By selecting Specify a number in Engine max level, the number of visits per move can be specified as a fine number from 1.
-- Changes to the Game Score dialog
+- Changes to the Game Score dialog  
   Shows the average thinking time and average number of visits per move for KataGo during the current game.
-- Changes to the Settings dialog
+- Changes to the Settings dialog  
   Default rules allow selection of Chinese and Japanese.
-- Initial configuration file
+- Initial configuration file  
   KataGo configuration definition information can be changed in the initial configuration file (.ini file).
 
 ## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file when using KataGo engine
 
 Initial configuration file (.ini file) has been optional since v2.0.0.
-
 
 ```
 katago_OpenCL.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "numAnalysisThreads=1,numSearchThreadsPerAnalysisThread=8"
@@ -74,14 +73,22 @@ cmake .. -DUSE_GPU=1 -DUSE_THREAD=0 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DO
 cmake --build .
 ```
 - The arguments are as follows.
-	+ -DUSE_GPU=0(or1):Specify if OpenCL (GPU) is used (optional)
-	+ -DUSE_THREAD=0(or1):Specify if communicating with KataGo via threaded interface (optional)
-	+ -DUSE_WLCOPY=0(or1):Specify if clipboard copy is done by wl-copy command (optional)
-	+ -DBOOST_ROOT=xxx:Specify the folder where boost will be installed (optional)
-	+ -DOpenCL_ROOT=xxx:Specify the folder where OpenCL will be installed (optional)
-	+ -DOPENBLAS_ROOT=xxx:Specify the folder where OpenBLAS will be installed (optional)
-	+ -DwxWidgets_ROOT_DIR=xxx:Specifies the folder where wxWidgets is installed (Windows option)
-	+ -DwxWidgets_CONFIGURATION=xxx:Configuration to use (e.g., msw, mswd, mswu, mswunivud, etc.) (Windows option)
+	+ -DUSE_GPU=0(or1)  
+	Specify if OpenCL (GPU) is used (optional)
+	+ -DUSE_THREAD=0(or1)  
+	Specify if communicating with KataGo via threaded interface (optional)
+	+ -DUSE_WLCOPY=0(or1)  
+	Specify if clipboard copy is done by wl-copy command (optional)
+	+ -DBOOST_ROOT=xxx  
+	Specify the folder where boost will be installed (optional)
+	+ -DOpenCL_ROOT=xxx  
+	Specify the folder where OpenCL will be installed (optional)
+	+ -DOPENBLAS_ROOT=xxx  
+	Specify the folder where OpenBLAS will be installed (optional)
+	+ -DwxWidgets_ROOT_DIR=xxx  
+	Specifies the folder where wxWidgets is installed (Windows option)
+	+ -DwxWidgets_CONFIGURATION=xxx  
+	Configuration to use (e.g., msw, mswd, mswu, mswunivud, etc.) (Windows option)
 
 The following is the readme for the original LeelaGUI.
 
