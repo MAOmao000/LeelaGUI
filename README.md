@@ -8,30 +8,44 @@ https://sjeng.org/leela.html
 
 The main features added are as follows.
 
-- Japanese language support based on I18N ("internationalization").
+- Japanese language support based on I18N ("internationalization")   
   Specifically, we provide a Japanese catalog file and some literal modifications on the source.
   Note: i18n is a number abbreviation, its "18" being due to the 18 letters in nternationalizatio between the leading i and the ending n in internationalization.
 
-- Incorporating the KataGo Engine:
-  Equipped with KataGo analysis engine.
+- Communication with KataGo engine
+  - Communication with KataGo Analysis engine via query interface
+  - Communication with the KataGo GTP engine via the GTP interface
 
-## Specification changes when using the leela engine
+## Specification changes when using the Leela engine
 
 The following changes were made.
-- If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
-- Added "japanese" and "KataGo" checkboxes in Settings Dialog.
-- The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
-- When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
-- New game dialog allows the time to byo yomi time in addition to the time for game.
-- Arbitrary values can now also be specified for engine max level in the New game dialog.
+- Changes to the New Game dialog
+  Countdown time (Byo yomi time) can be specified in the New Game dialog.
+- Changes to the Game Score dialog
+  If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.
+- Change the coordinate scale of the board
+  The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.
+- Changes to the Settings dialog
+-- Added "japanese" and "KataGo" checkboxes in Settings Dialog. Restart the program to reflect the result.
+-- Added "Engine select" checkboxes in Settings Dialog. Restart the program to reflect the result.
+- Change installation destination
+  When installed on Windows with "Install for all users" specified, the default installation destination was "C:\Program Files (x86)", even for 64-bit executables, but this has been changed to "C:\Program Files".
 
-## Differences from the original LeelaGUI when started with the KataGo engine
-
-- In the folder containing the LeelaGUI executable, you must create a "LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file containing the KataGo definition information.
-- Except for the Chinese rule, the specified value of Komi should be noted. In the case of handicap games, setting KataGo's Baduk rule to anything other than Chinese rule does not affect the game itself, but the score displayed in the score displayed in the Score Game dialog is always:
-	- Difference of areas in the current board + komi + number of handicap stones (or - komi - number of handicap stones) 
+## Additional features when KataGo engine is selected
+- Changes to the New Game dialog
+  By selecting Specify a number in Engine max level, the number of visits per move can be specified as a fine number from 1.
+- Changes to the Game Score dialog
+  Shows the average thinking time and average number of visits per move for KataGo during the current game.
+- Changes to the Settings dialog
+  Default rules allow selection of Chinese and Japanese.
+- Initial configuration file
+  KataGo configuration definition information can be changed in the initial configuration file (.ini file).
 
 ## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file when using KataGo engine
+
+Initial configuration file (.ini file) has been optional since v2.0.0.
+
+
 ```
 katago_OpenCL.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "numAnalysisThreads=1,numSearchThreadsPerAnalysisThread=8"
 
@@ -48,15 +62,6 @@ katago_OpenCL.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11
   "maxTimeAnalysis":3600         # Maximum KataGo search time (seconds) at analyze (default:3600)
 }
 ```
-The second and subsequent lines are optional.
-- If omitted, the default values are as follows.
-	+ "rules":"japanese"
-	+ "whiteHandicapBonus":(Not specified)
-	+ "analysisPVLen":15
-	+ "reportDuringSearchEvery":2.0
-	+ "wideRootNoise":(Not specified)
-	+ "maxVisitsAnalysis":1000000
-	+ "maxTimeAnalysis":3600
 
 ## Build from source code with cmake
 wxWidgets-3.2 or later requires cmake 3.24 or later.
@@ -65,21 +70,18 @@ git clone https://github.com/MAOmao000/LeelaGUI.git
 cd LeelaGUI
 mkdir build
 cd build
-cmake .. -DUSE_GPU=1 -DUSE_THREAD=1 -DUSE_WLCOPY=1 -DPERFORMANCE=1 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.1 -DwxWidgets_CONFIG_EXECUTABLE=/path/to/wx-config
+cmake .. -DUSE_GPU=1 -DUSE_THREAD=0 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DwxWidgets_CONFIGURATION=mswu
 cmake --build .
 ```
 - The arguments are as follows.
-	+ -DUSE_GPU=1:Specify if OpenCL (GPU) is used (optional)
-	+ -DUSE_THREAD=1:Specify if communicating with KataGo via threaded interface (optional)
-	+ -DUSE_WLCOPY=1:Specify if clipboard copy is done by wlcopy command (optional)
-	+ -DPERFORMANCE=1:Output average thinking time per move and average number of attempts per game to LeelaGUIPerf.log (optional)
+	+ -DUSE_GPU=0(or1):Specify if OpenCL (GPU) is used (optional)
+	+ -DUSE_THREAD=0(or1):Specify if communicating with KataGo via threaded interface (optional)
+	+ -DUSE_WLCOPY=0(or1):Specify if clipboard copy is done by wl-copy command (optional)
 	+ -DBOOST_ROOT=xxx:Specify the folder where boost will be installed (optional)
 	+ -DOpenCL_ROOT=xxx:Specify the folder where OpenCL will be installed (optional)
 	+ -DOPENBLAS_ROOT=xxx:Specify the folder where OpenBLAS will be installed (optional)
-	+ -DwxWidgets_ROOT_DIR=Specifies the folder where wxWidgets is installed (Windows option)
-	+ -DwxWidgets_CONFIG_EXECUTABLE=xxx:Specify the path to the script named wx-config (Linux option)
-
-You can also build with Visual Studio using LeelaGUI.sln (information such as paths must be modified for each environment).
+	+ -DwxWidgets_ROOT_DIR=xxx:Specifies the folder where wxWidgets is installed (Windows option)
+	+ -DwxWidgets_CONFIGURATION=xxx:Configuration to use (e.g., msw, mswd, mswu, mswunivud, etc.) (Windows option)
 
 The following is the readme for the original LeelaGUI.
 
