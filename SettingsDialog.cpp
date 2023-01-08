@@ -50,6 +50,7 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
 #endif
 #ifdef USE_THREAD
     if (engine_type == 2) {
+        engine_type = 1;
 #ifdef USE_GPU
         wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)1);
 #else
@@ -71,20 +72,37 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
 
     wxString str1, str2, str3;
 #ifdef USE_GPU
-    wxConfig::Get()->Read(wxT("EnginePathGPU"), &str1);
-    m_filePickerEngine->SetPath(str1);
-    wxConfig::Get()->Read(wxT("ConfigPathGPU"), &str2);
-    m_filePickerConfigration->SetPath(str2);
-    wxConfig::Get()->Read(wxT("ModelPathGPU"), &str3);
-    m_filePickerModel->SetPath(str3);
+    if (engine_type == 2) {
+        wxConfig::Get()->Read(wxT("GTPEnginePathGPU"), &str1);
+        wxConfig::Get()->Read(wxT("GTPConfigPathGPU"), &str2);
+        wxConfig::Get()->Read(wxT("GTPModelPathGPU"), &str3);
+    } else if (engine_type == 1) {
+        wxConfig::Get()->Read(wxT("AnalysisEnginePathGPU"), &str1);
+        wxConfig::Get()->Read(wxT("AnalysisConfigPathGPU"), &str2);
+        wxConfig::Get()->Read(wxT("AnalysisModelPathGPU"), &str3);
+    } else {
+        str1 = "";
+        str2 = "";
+        str3 = "";
+    }
 #else
-    wxConfig::Get()->Read(wxT("EnginePathCPU"), &str1);
-    m_filePickerEngine->SetPath(str1);
-    wxConfig::Get()->Read(wxT("ConfigPathCPU"), &str2);
-    m_filePickerConfigration->SetPath(str2);
-    wxConfig::Get()->Read(wxT("ModelPathCPU"), &str3);
-    m_filePickerModel->SetPath(str3);
+    if (engine_type == 2) {
+        wxConfig::Get()->Read(wxT("GTPEnginePathCPU"), &str1);
+        wxConfig::Get()->Read(wxT("GTPConfigPathCPU"), &str2);
+        wxConfig::Get()->Read(wxT("GTPModelPathCPU"), &str3);
+    } else if (engine_type == 1) {
+        wxConfig::Get()->Read(wxT("AnalysisEnginePathCPU"), &str1);
+        wxConfig::Get()->Read(wxT("AnalysisConfigPathCPU"), &str2);
+        wxConfig::Get()->Read(wxT("AnalysisModelPathCPU"), &str3);
+    } else {
+        str1 = "";
+        str2 = "";
+        str3 = "";
+    }
 #endif
+    m_filePickerEngine->SetPath(str1);
+    m_filePickerConfigration->SetPath(str2);
+    m_filePickerModel->SetPath(str3);
 
 #ifdef __WXGTK__
     m_checkBoxDPIScaling->Disable();
@@ -132,26 +150,38 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
     int engine_type = m_radioBoxEngineType->GetSelection();
     wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)engine_type);
 
-    wxString path1 = m_filePickerEngine->GetPath();
-    wxConfig::Get()->Write(wxT("EnginePathGPU"), path1);
-
-    wxString path2 = m_filePickerConfigration->GetPath();
-    wxConfig::Get()->Write(wxT("ConfigPathGPU"), path2);
-
-    wxString path3 = m_filePickerModel->GetPath();
-    wxConfig::Get()->Write(wxT("ModelPathGPU"), path3);
+    if (engine_type != 0) {
+        wxString path1 = m_filePickerEngine->GetPath();
+        wxString path2 = m_filePickerConfigration->GetPath();
+        wxString path3 = m_filePickerModel->GetPath();
+        if (engine_type == 2) {
+            wxConfig::Get()->Write(wxT("GTPEnginePathGPU"), path1);
+            wxConfig::Get()->Write(wxT("GTPConfigPathGPU"), path2);
+            wxConfig::Get()->Write(wxT("GTPModelPathGPU"), path3);
+        } else if (engine_type == 1) {
+            wxConfig::Get()->Write(wxT("AnalysisEnginePathGPU"), path1);
+            wxConfig::Get()->Write(wxT("AnalysisConfigPathGPU"), path2);
+            wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), path3);
+        }
+    }
 #else
     int engine_type = m_radioBoxEngineType->GetSelection();
     wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)engine_type);
 
-    wxString path1 = m_filePickerEngine->GetPath();
-    wxConfig::Get()->Write(wxT("EnginePathCPU"), path1);
-
-    wxString path2 = m_filePickerConfigration->GetPath();
-    wxConfig::Get()->Write(wxT("ConfigPathCPU"), path2);
-
-    wxString path3 = m_filePickerModel->GetPath();
-    wxConfig::Get()->Write(wxT("ModelPathCPU"), path3);
+    if (engine_type != 0) {
+        wxString path1 = m_filePickerEngine->GetPath();
+        wxString path2 = m_filePickerConfigration->GetPath();
+        wxString path3 = m_filePickerModel->GetPath();
+        if (engine_type == 2) {
+            wxConfig::Get()->Write(wxT("GTPEnginePathCPU"), path1);
+            wxConfig::Get()->Write(wxT("GTPConfigPathCPU"), path2);
+            wxConfig::Get()->Write(wxT("GTPModelPathCPU"), path3);
+        } else if (engine_type == 1) {
+            wxConfig::Get()->Write(wxT("AnalysisEnginePathCPU"), path1);
+            wxConfig::Get()->Write(wxT("AnalysisConfigPathCPU"), path2);
+            wxConfig::Get()->Write(wxT("AnalysisModelPathCPU"), path3);
+        }
+    }
 #endif
 
     event.Skip();
@@ -164,12 +194,27 @@ void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
 #else
     wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)engine_type);
 #endif
-    m_filePickerConfigration->SetPath("");
     if (engine_type == 0) {
+        m_filePickerEngine->SetPath("");
+        m_filePickerConfigration->SetPath("");
+        m_filePickerModel->SetPath("");
         m_filePickerEngine->Disable();
         m_filePickerConfigration->Disable();
         m_filePickerModel->Disable();
     } else {
+        wxString str1, str2, str3;
+        if (engine_type == 1) {
+            wxConfig::Get()->Read(wxT("AnalysisEnginePathCPU"), &str1);
+            wxConfig::Get()->Read(wxT("AnalysisConfigPathCPU"), &str2);
+            wxConfig::Get()->Read(wxT("AnalysisModelPathCPU"), &str3);
+        } else if (engine_type == 2) {
+            wxConfig::Get()->Read(wxT("GTPEnginePathCPU"), &str1);
+            wxConfig::Get()->Read(wxT("GTPConfigPathCPU"), &str2);
+            wxConfig::Get()->Read(wxT("GTPModelPathCPU"), &str3);
+        }
+        m_filePickerEngine->SetPath(str1);
+        m_filePickerConfigration->SetPath(str2);
+        m_filePickerModel->SetPath(str3);
         m_filePickerEngine->Enable();
         m_filePickerConfigration->Enable();
         m_filePickerModel->Enable();

@@ -369,77 +369,137 @@ void MainFrame::doInit() {
         }
     } else {
 #ifdef USE_GPU
-        wxConfig::Get()->Read(wxT("EnginePathGPU"), &engine_path);
-        wxConfig::Get()->Read(wxT("ConfigPathGPU"), &config_path);
-        wxConfig::Get()->Read(wxT("ModelPathGPU"), &model_path);
+        if (cfg_engine_type == GTP::ANALYSIS) {
+            wxConfig::Get()->Read(wxT("AnalysisEnginePathGPU"), &engine_path);
+            wxConfig::Get()->Read(wxT("AnalysisConfigPathGPU"), &config_path);
+            wxConfig::Get()->Read(wxT("AnalysisModelPathGPU"), &model_path);
+        } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+            wxConfig::Get()->Read(wxT("GTPEnginePathGPU"), &engine_path);
+            wxConfig::Get()->Read(wxT("GTPConfigPathGPU"), &config_path);
+            wxConfig::Get()->Read(wxT("GTPModelPathGPU"), &model_path);
+        }
 #else
-        wxConfig::Get()->Read(wxT("EnginePathCPU"), &engine_path);
-        wxConfig::Get()->Read(wxT("ConfigPathCPU"), &config_path);
-        wxConfig::Get()->Read(wxT("ModelPathCPU"), &model_path);
+        if (cfg_engine_type == GTP::ANALYSIS) {
+            wxConfig::Get()->Read(wxT("AnalysisEnginePathCPU"), &engine_path);
+            wxConfig::Get()->Read(wxT("AnalysisConfigPathCPU"), &config_path);
+            wxConfig::Get()->Read(wxT("AnalysisModelPathCPU"), &model_path);
+        } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+            wxConfig::Get()->Read(wxT("GTPEnginePathCPU"), &engine_path);
+            wxConfig::Get()->Read(wxT("GTPConfigPathCPU"), &config_path);
+            wxConfig::Get()->Read(wxT("GTPModelPathCPU"), &model_path);
+        }
 #endif
 
 #ifdef WIN32
 #ifdef USE_GPU
         if (!engine_path.size()) {
             engine_path = wxT("katago_OpenCL.exe");
-            wxConfig::Get()->Write(wxT("EnginePathGPU"), engine_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisEnginePathGPU"), engine_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPEnginePathGPU"), engine_path);
+            }
         }
         if (!model_path.size()) {
             model_path = wxT("kata1-b40c256-s11840935168-d2898845681.bin.gz");
-            wxConfig::Get()->Write(wxT("ModelPathGPU"), model_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPModelPathGPU"), model_path);
+            }
         }
 #else
         if (!engine_path.size()) {
             engine_path = wxT("katago.exe");
-            wxConfig::Get()->Write(wxT("EnginePathCPU"), engine_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisEnginePathCPU"), engine_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPEnginePathCPU"), engine_path);
+            }
         }
         if (!model_path.size()) {
             model_path = wxT("g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
-            wxConfig::Get()->Write(wxT("ModelPathCPU"), model_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisModelPathCPU"), model_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPModelPathCPU"), model_path);
+            }
         }
 #endif
         if (!config_path.size()) {
             if (cfg_engine_type == GTP::ANALYSIS) {
                 config_path = wxT("analysis_example.cfg");
-            } else {
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
                 config_path = wxT("gtp_example.cfg");
             }
 #ifdef USE_GPU
-            wxConfig::Get()->Write(wxT("ConfigPathGPU"), config_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisConfigPathGPU"), config_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPConfigPathGPU"), config_path);
+            }
 #else
-            wxConfig::Get()->Write(wxT("ConfigPathCPU"), config_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisConfigPathCPU"), config_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPConfigPathCPU"), config_path);
+            }
 #endif
         }
 #else
 #ifdef USE_GPU
         if (!engine_path.size()) {
             engine_path = wxT("/usr/games/katago_OpenCL");
-            wxConfig::Get()->Write(wxT("EnginePathGPU"), engine_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisEnginePathGPU"), engine_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPEnginePathGPU"), engine_path);
+            }
         }
         if (!model_path.size()) {
             model_path = wxT("/usr/games/kata1-b40c256-s11840935168-d2898845681.bin.gz");
-            wxConfig::Get()->Write(wxT("ModelPathGPU"), model_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPModelPathGPU"), model_path);
+            }
         }
 #else
         if (!engine_path.size()) {
             engine_path = wxT("/usr/games/katago");
-            wxConfig::Get()->Write(wxT("EnginePathCPU"), engine_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisEnginePathCPU"), engine_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPEnginePathCPU"), engine_path);
+            }
         }
         if (!model_path.size()) {
             model_path = wxT("/usr/games/g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
-            wxConfig::Get()->Write(wxT("ModelPathCPU"), model_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisModelPathCPU"), model_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPModelPathCPU"), model_path);
+            }
         }
 #endif
         if (!config_path.size()) {
             if (cfg_engine_type == GTP::ANALYSIS) {
                 config_path = wxT("/usr/games/analysis_example.cfg");
-            } else {
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
                 config_path = wxT("/usr/games/gtp_example.cfg");
             }
 #ifdef USE_GPU
-            wxConfig::Get()->Write(wxT("ConfigPathGPU"), config_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisConfigPathGPU"), config_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPConfigPathGPU"), config_path);
+            }
 #else
-            wxConfig::Get()->Write(wxT("ConfigPathCPU"), config_path);
+            if (cfg_engine_type == GTP::ANALYSIS) {
+                wxConfig::Get()->Write(wxT("AnalysisConfigPathCPU"), config_path);
+            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                wxConfig::Get()->Write(wxT("GTPConfigPathCPU"), config_path);
+            }
 #endif
         }
 #endif
@@ -1421,7 +1481,13 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         if (m_scoreHistogramWindow) {
             m_scoreHistogramWindow->ClearHistogram();
         }
-        m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100, mydialog.getByoControl() * 100, 1, 0);
+        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+            m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100,
+                                    mydialog.getByoControl() * 100, 1, 0);
+        } else {
+            m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100,
+                                    (mydialog.getByoControl() + 1) * 100, 1, 0);
+        }
         m_StateStack.clear();
         m_visitLimit = mydialog.getSimulations();
         m_playerColor = mydialog.getPlayerColor();
