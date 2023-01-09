@@ -308,7 +308,7 @@ BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_INIT_DIALOG( TNewGameDialog::_wxFB_doInit )
 	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doRadioBox )
 	EVT_SPINCTRL( ID_HANDICAPSPIN, TNewGameDialog::_wxFB_doHandicapUpdate )
-	EVT_UPDATE_UI( wxID_ANY, TNewGameDialog::_wxFB_doLevel )
+	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doLevel )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel1 )
 END_EVENT_TABLE()
@@ -689,7 +689,7 @@ TAnalysisWindow::~TAnalysisWindow()
 
 BEGIN_EVENT_TABLE( TSettingsDialog, wxDialog )
 	EVT_INIT_DIALOG( TSettingsDialog::_wxFB_doInit )
-	EVT_UPDATE_UI( wxID_ANY, TSettingsDialog::_wxFB_doChangeEngine )
+	EVT_RADIOBOX( wxID_ANY, TSettingsDialog::_wxFB_doChangeEngine )
 	EVT_BUTTON( wxID_OK, TSettingsDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TSettingsDialog::_wxFB_doCancel )
 END_EVENT_TABLE()
@@ -752,7 +752,6 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 #else
 	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*)|*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
 #endif
-
 	sbSizer10->Add( m_filePickerEngine, 0, wxALL|wxEXPAND, 5 );
 
 

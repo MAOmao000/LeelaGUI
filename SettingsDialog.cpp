@@ -187,7 +187,7 @@ void SettingsDialog::doOK(wxCommandEvent& event) {
     event.Skip();
 }
 
-void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
+void SettingsDialog::doChangeEngine(wxCommandEvent& WXUNUSED(event)) {
     int engine_type = m_radioBoxEngineType->GetSelection();
 #ifdef USE_GPU
     wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)engine_type);
@@ -231,5 +231,4 @@ void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
         m_filePickerConfigration->Enable();
         m_filePickerModel->Enable();
     }
-    event.Skip();
 }

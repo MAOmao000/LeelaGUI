@@ -73,14 +73,14 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     checkHandicapRange();
 }
 
-void NewGameDialog::doLevel( wxUpdateUIEvent& event ) {
+void NewGameDialog::doLevel( wxCommandEvent& WXUNUSED(event) ) {
     int simuls = m_radioBoxLevel->GetSelection();
     if (simuls != 7) {
         m_spinCtrlLevel->Enable(false);
     } else {
         m_spinCtrlLevel->Enable(true);
     }
-    event.Skip();
+    //event.Skip();
 }
 
 void NewGameDialog::doCancel( wxCommandEvent& event ) {
@@ -210,7 +210,7 @@ bool NewGameDialog::getNetsEnabled() {
     return m_checkNeuralNet->GetValue();
 }
 
-void NewGameDialog::doRadioBox(wxCommandEvent& event) {
+void NewGameDialog::doRadioBox(wxCommandEvent& WXUNUSED(event)) {
     checkNetsEnabled();
     checkHandicapRange();
 }

@@ -209,7 +209,7 @@ class TNewGameDialog : public wxDialog
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
 		void _wxFB_doRadioBox( wxCommandEvent& event ){ doRadioBox( event ); }
 		void _wxFB_doHandicapUpdate( wxSpinEvent& event ){ doHandicapUpdate( event ); }
-		void _wxFB_doLevel( wxUpdateUIEvent& event ){ doLevel( event ); }
+		void _wxFB_doLevel( wxCommandEvent& event ){ doLevel( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 		void _wxFB_doCancel1( wxCommandEvent& event ){ doCancel1( event ); }
 
@@ -241,7 +241,7 @@ class TNewGameDialog : public wxDialog
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void doRadioBox( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doHandicapUpdate( wxSpinEvent& event ) { event.Skip(); }
-		virtual void doLevel( wxUpdateUIEvent& event ) { event.Skip(); }
+		virtual void doLevel( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel1( wxCommandEvent& event ) { event.Skip(); }
 
@@ -422,7 +422,7 @@ class TSettingsDialog : public wxDialog
 
 		// Private event handlers
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
-		void _wxFB_doChangeEngine( wxUpdateUIEvent& event ){ doChangeEngine( event ); }
+		void _wxFB_doChangeEngine( wxCommandEvent& event ){ doChangeEngine( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 		void _wxFB_doCancel( wxCommandEvent& event ){ doCancel( event ); }
 
@@ -457,7 +457,7 @@ class TSettingsDialog : public wxDialog
 
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
-		virtual void doChangeEngine( wxUpdateUIEvent& event ) { event.Skip(); }
+		virtual void doChangeEngine( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel( wxCommandEvent& event ) { event.Skip(); }
 

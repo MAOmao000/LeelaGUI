@@ -1078,7 +1078,7 @@ void MainFrame::startKataGo() {
                 m_katagoStatus = KATAGO_GTP_ANALYSIS;
             } else {
                 m_StateEngine->start_clock(color);
-                m_gtp_send_cmd = wxString::Format("time_settings 0 %i 1\n", time_for_move);
+                m_gtp_send_cmd = wxString::Format("time_settings 0 %i 1\n", time_for_move + 1);
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                 m_runflag = true;
                 m_katagoStatus = KATAGO_GTP_WAIT;

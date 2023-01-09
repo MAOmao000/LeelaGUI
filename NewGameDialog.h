@@ -19,7 +19,7 @@ protected:
     virtual void doInit( wxInitDialogEvent& event );
     virtual void doHandicapUpdate( wxSpinEvent& event );
     virtual void doRadioBox( wxCommandEvent& event );
-    virtual void doLevel( wxUpdateUIEvent& event );
+    virtual void doLevel( wxCommandEvent& event );
     
 public:
     /** Constructor */
