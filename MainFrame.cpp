@@ -1037,7 +1037,13 @@ void MainFrame::startKataGo() {
                     } else {
                         m_send_json["maxVisits"] = m_visitLimit;
                     }
-                    m_send_json["overrideSettings"]["maxTime"] = time_for_move - 1;
+                    if (time_for_move > 3) {
+                        m_send_json["overrideSettings"]["maxTime"] = time_for_move - 3;
+                    } else if (time_for_move > 2) {
+                        m_send_json["overrideSettings"]["maxTime"] = time_for_move - 2;
+                    } else if (time_for_move > 1) {
+                        m_send_json["overrideSettings"]["maxTime"] = time_for_move - 1;
+                    }
                     m_send_json.erase("reportDuringSearchEvery");
                     if (m_panelBoard->getShowOwner()) {
                         m_send_json["includeOwnership"] = true;
