@@ -203,6 +203,17 @@ void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
         m_filePickerModel->Disable();
     } else {
         wxString str1, str2, str3;
+#ifdef USE_GPU
+        if (engine_type == 1) {
+            wxConfig::Get()->Read(wxT("AnalysisEnginePathGPU"), &str1);
+            wxConfig::Get()->Read(wxT("AnalysisConfigPathGPU"), &str2);
+            wxConfig::Get()->Read(wxT("AnalysisModelPathGPU"), &str3);
+        } else if (engine_type == 2) {
+            wxConfig::Get()->Read(wxT("GTPEnginePathGPU"), &str1);
+            wxConfig::Get()->Read(wxT("GTPConfigPathGPU"), &str2);
+            wxConfig::Get()->Read(wxT("GTPModelPathGPU"), &str3);
+        }
+#else
         if (engine_type == 1) {
             wxConfig::Get()->Read(wxT("AnalysisEnginePathCPU"), &str1);
             wxConfig::Get()->Read(wxT("AnalysisConfigPathCPU"), &str2);
@@ -212,6 +223,7 @@ void SettingsDialog::doChangeEngine(wxUpdateUIEvent& event) {
             wxConfig::Get()->Read(wxT("GTPConfigPathCPU"), &str2);
             wxConfig::Get()->Read(wxT("GTPModelPathCPU"), &str3);
         }
+#endif
         m_filePickerEngine->SetPath(str1);
         m_filePickerConfigration->SetPath(str2);
         m_filePickerModel->SetPath(str3);
