@@ -347,6 +347,7 @@ Section "LeelaI18N" leela
   File "bin\gtp_example.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "bin\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
+  File "bin\b18c384nbt-uec.bin.gz"
   File "license.rtf"
 
   ;create desktop shortcut
@@ -519,6 +520,7 @@ Section "Uninstall"
   Delete "$INSTDIR\gtp_example.cfg"
   Delete "$INSTDIR\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   Delete "$INSTDIR\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
+  Delete "$INSTDIR\b18c384nbt-uec.bin.gz"
   Delete "$INSTDIR\Leela Homepage.url"
   Delete "$INSTDIR\license.rtf"
   Delete "$INSTDIR\Uninstall.exe"

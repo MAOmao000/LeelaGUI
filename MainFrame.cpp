@@ -401,7 +401,7 @@ void MainFrame::doInit() {
             }
         }
         if (!model_path.size()) {
-            model_path = wxT("kata1-b40c256-s11840935168-d2898845681.bin.gz");
+            model_path = wxT("b18c384nbt-uec.bin.gz");
             if (cfg_engine_type == GTP::ANALYSIS) {
                 wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
@@ -457,7 +457,7 @@ void MainFrame::doInit() {
             }
         }
         if (!model_path.size()) {
-            model_path = wxT("/usr/games/kata1-b40c256-s11840935168-d2898845681.bin.gz");
+            model_path = wxT("/usr/games/b18c384nbt-uec.bin.gz");
             if (cfg_engine_type == GTP::ANALYSIS) {
                 wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
