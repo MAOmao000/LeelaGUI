@@ -218,8 +218,10 @@ class TNewGameDialog : public wxDialog
 		enum
 		{
 			ID_NEWGAME = 1000,
+			ID_BOARDSIZE,
 			ID_KOMISPIN,
-			ID_HANDICAPSPIN
+			ID_HANDICAPSPIN,
+			ID_LEVEL
 		};
 
 		wxRadioBox* m_radioBoxBoardSize;
@@ -434,6 +436,7 @@ class TSettingsDialog : public wxDialog
 			ID_PONDERTOGGLE,
 			ID_RESIGNTOGGLE,
 			ID_NETWORKTOGGLE,
+			ID_ENGINETYPE,
 			ID_SOUNDSWITCH,
 			ID_DPISCALING,
 			ID_JAPANESE

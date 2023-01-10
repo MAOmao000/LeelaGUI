@@ -306,9 +306,9 @@ TMainFrame::~TMainFrame()
 
 BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_INIT_DIALOG( TNewGameDialog::_wxFB_doInit )
-	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doRadioBox )
+	EVT_RADIOBOX( ID_BOARDSIZE, TNewGameDialog::_wxFB_doRadioBox )
 	EVT_SPINCTRL( ID_HANDICAPSPIN, TNewGameDialog::_wxFB_doHandicapUpdate )
-	EVT_RADIOBOX( wxID_ANY, TNewGameDialog::_wxFB_doLevel )
+	EVT_RADIOBOX( ID_LEVEL, TNewGameDialog::_wxFB_doLevel )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel1 )
 END_EVENT_TABLE()
@@ -331,7 +331,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 
 	wxString m_radioBoxBoardSizeChoices[] = { _("7 x 7"), _("9 x 9"), _("13 x 13"), _("17 x 17"), _("19 x 19"), _("25 x 25") };
 	int m_radioBoxBoardSizeNChoices = sizeof( m_radioBoxBoardSizeChoices ) / sizeof( wxString );
-	m_radioBoxBoardSize = new wxRadioBox( this, wxID_ANY, _("Board size"), wxDefaultPosition, wxDefaultSize, m_radioBoxBoardSizeNChoices, m_radioBoxBoardSizeChoices, 3, wxRA_SPECIFY_ROWS );
+	m_radioBoxBoardSize = new wxRadioBox( this, ID_BOARDSIZE, _("Board size"), wxDefaultPosition, wxDefaultSize, m_radioBoxBoardSizeNChoices, m_radioBoxBoardSizeChoices, 3, wxRA_SPECIFY_ROWS );
 	m_radioBoxBoardSize->SetSelection( 4 );
 	bSizer12->Add( m_radioBoxBoardSize, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
@@ -400,7 +400,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 
 	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Ponder/Time priority"), _("Specify a number") };
 	int m_radioBoxLevelNChoices = sizeof( m_radioBoxLevelChoices ) / sizeof( wxString );
-	m_radioBoxLevel = new wxRadioBox( this, wxID_ANY, _("Engine max level"), wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
+	m_radioBoxLevel = new wxRadioBox( this, ID_LEVEL, _("Engine max level"), wxDefaultPosition, wxDefaultSize, m_radioBoxLevelNChoices, m_radioBoxLevelChoices, 1, wxRA_SPECIFY_COLS );
 	m_radioBoxLevel->SetSelection( 6 );
 	bSizer10->Add( m_radioBoxLevel, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
@@ -689,7 +689,7 @@ TAnalysisWindow::~TAnalysisWindow()
 
 BEGIN_EVENT_TABLE( TSettingsDialog, wxDialog )
 	EVT_INIT_DIALOG( TSettingsDialog::_wxFB_doInit )
-	EVT_RADIOBOX( wxID_ANY, TSettingsDialog::_wxFB_doChangeEngine )
+	EVT_RADIOBOX( ID_ENGINETYPE, TSettingsDialog::_wxFB_doChangeEngine )
 	EVT_BUTTON( wxID_OK, TSettingsDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TSettingsDialog::_wxFB_doCancel )
 END_EVENT_TABLE()
@@ -740,7 +740,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
 	wxString m_radioBoxEngineTypeChoices[] = { _("Leela or ini File"), _("KataGo Analysis"), _("KataGo GTP") };
 	int m_radioBoxEngineTypeNChoices = sizeof( m_radioBoxEngineTypeChoices ) / sizeof( wxString );
-	m_radioBoxEngineType = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Engine Select (needs restart)"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineTypeNChoices, m_radioBoxEngineTypeChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxEngineType = new wxRadioBox( sbSizer7->GetStaticBox(), ID_ENGINETYPE, _("Engine Select (needs restart)"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineTypeNChoices, m_radioBoxEngineTypeChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBoxEngineType->SetSelection( 1 );
 	bSizer22->Add( m_radioBoxEngineType, 0, wxALL|wxEXPAND, 5 );
 

@@ -80,7 +80,6 @@ void NewGameDialog::doLevel( wxCommandEvent& WXUNUSED(event) ) {
     } else {
         m_spinCtrlLevel->Enable(true);
     }
-    //event.Skip();
 }
 
 void NewGameDialog::doCancel( wxCommandEvent& event ) {

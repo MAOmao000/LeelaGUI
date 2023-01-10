@@ -1026,7 +1026,7 @@
                                                 <property name="font"></property>
                                                 <property name="gripper">0</property>
                                                 <property name="hidden">0</property>
-                                                <property name="id">wxID_ANY</property>
+                                                <property name="id">ID_BOARDSIZE</property>
                                                 <property name="label">Board size</property>
                                                 <property name="majorDimension">3</property>
                                                 <property name="max_size"></property>
@@ -1660,7 +1660,7 @@
                                         <property name="font"></property>
                                         <property name="gripper">0</property>
                                         <property name="hidden">0</property>
-                                        <property name="id">wxID_ANY</property>
+                                        <property name="id">ID_LEVEL</property>
                                         <property name="label">Engine max level</property>
                                         <property name="majorDimension">1</property>
                                         <property name="max_size"></property>
@@ -3855,7 +3855,7 @@
                                                     <property name="font"></property>
                                                     <property name="gripper">0</property>
                                                     <property name="hidden">0</property>
-                                                    <property name="id">wxID_ANY</property>
+                                                    <property name="id">ID_ENGINETYPE</property>
                                                     <property name="label">Engine Select (needs restart)</property>
                                                     <property name="majorDimension">1</property>
                                                     <property name="max_size"></property>
