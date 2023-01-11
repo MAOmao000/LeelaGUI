@@ -60,9 +60,10 @@ git clone https://github.com/MAOmao000/LeelaGUI.git
 cd LeelaGUI
 mkdir build
 cd build
-cmake .. -DUSE_GPU=1 -DUSE_THREAD=0 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DwxWidgets_CONFIGURATION=mswu
+cmake .. -DUSE_GPU=1 -DUSE_THREAD=0 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DwxWidgets_CONFIGURATION=mswu -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
 cmake --build .
 ```
+  
 - The arguments are as follows.  
 	+ -DUSE_GPU=0(or1)  
 	Specify if OpenCL (GPU) is used (optional)  
@@ -80,6 +81,10 @@ cmake --build .
 	Specifies the folder where wxWidgets is installed (Windows option)  
 	+ -DwxWidgets_CONFIGURATION=xxx  
 	Configuration to use (e.g., msw, mswd, mswu, mswunivud, etc.) (Windows option)  
+	+ -DCMAKE_C_COMPILER=/usr/bin/clang  
+	C language compiler is clang (Required for Linux)  
+	+ -DCMAKE_CXX_COMPILER=/usr/bin/clang++  
+	C++ language compiler is clang++ (Required for Linux)  
 
 The following is the readme for the original LeelaGUI.  
 
