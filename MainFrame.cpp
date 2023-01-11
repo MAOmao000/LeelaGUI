@@ -2322,7 +2322,7 @@ void MainFrame::doRealForward(int count, bool force) {
             return;
         }
         if (m_post_doRealForward) {
-            m_post_doRealForward = false;
+            m_post_doRealForward = 0;
             wasRunning = true;
         }
         if (cfg_engine_type == GTP::GTP_INTERFACE && !force) {
@@ -4014,7 +4014,7 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
         } else if (m_gtp_send_cmd.find("undo\n") != std::string::npos &&
             (kataRes.substr(0,1) == "=" || kataRes.substr(0,1) == "?")) {
             m_undo_count++;
-            if (m_undo_count >= m_undo_num) {
+            if (m_undo_count >= m_undo_num || kataRes.substr(0,1) == "?") {
                 postIdle();
                 m_panelBoard->unlockState();
                 doRealUndo(m_undo_num, true);
@@ -4038,6 +4038,7 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
                         m_gtp_send_cmd = "play b " +
                             m_StateEngine->move_to_text(m_StateEngine->get_last_move());
                     }
+                    m_gtp_send_cmd += wxString("\n");
                     m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                 } else {
                     m_StateEngine.reset();
