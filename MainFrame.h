@@ -246,6 +246,7 @@ class MainFrame : public TMainFrame {
 	SubProcess* m_process{nullptr};
 	wxTimer m_timerIdleWakeUp;
 #endif
+	long m_pid;
 
 	public:
 	static void setLocale(bool japanese) {

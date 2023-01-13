@@ -581,8 +581,8 @@ void MainFrame::doInit() {
             // Start KataGo's analysis engine.
             // Case of non use thread engine, receive query response in SubProcess class.
             m_process = new SubProcess(this);
-            long pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, m_process);
-            if ( !pid ) {
+            m_pid = wxExecute(m_ini_line[0], wxEXEC_ASYNC, m_process);
+            if ( !m_pid ) {
                 wxLogDebug(_("Failed to launch the command."));
                 m_process = nullptr;
                 cfg_use_engine = GTP::ORIGINE_ENGINE;
@@ -3021,7 +3021,32 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
 
 #else
 void MainFrame::OnAsyncTermination(SubProcess *process) {
-    ::wxMessageBox(_("KataGo terminated abnormally."), _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+    m_timerIdleWakeUp.Stop();
+    m_in = nullptr;
+    m_err = nullptr;
+    m_out = nullptr;
+    if (m_katagoStatus == KATAGO_STARTING) {
+        cfg_use_engine = GTP::ORIGINE_ENGINE;
+        cfg_engine_type = GTP::NONE;
+        wxString errStr;
+        errStr.Printf(_("A startup error was returned from KataGo engine: %s\n"
+                        "Start with the Leela engine?"), "");
+        int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+        if (answer != wxYES) {
+            Close();
+        } else {
+            m_japanese_rule = false;
+            m_japanese_rule_init = false;
+            m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
+            m_katagoStatus = KATAGO_STOPED;
+            setStartMenus();
+            wxCommandEvent evt;
+            doNewRatedGame(evt);
+        }
+    } else {
+        m_katagoStatus = KATAGO_IDLE;
+        ::wxMessageBox(_("KataGo terminated abnormally."), _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+    }
 }
 
 void MainFrame::OnProcessTerminated(SubProcess *process) {
@@ -3029,6 +3054,35 @@ void MainFrame::OnProcessTerminated(SubProcess *process) {
 }
 
 void MainFrame::OnIdleTimer(wxTimerEvent& WXUNUSED(event)) {
+    if ( !m_process->Exists(m_pid) ) {
+        m_timerIdleWakeUp.Stop();
+        m_in = nullptr;
+        m_err = nullptr;
+        m_out = nullptr;
+        if (m_katagoStatus == KATAGO_STARTING) {
+            cfg_use_engine = GTP::ORIGINE_ENGINE;
+            cfg_engine_type = GTP::NONE;
+            wxString errStr;
+            errStr.Printf(_("A startup error was returned from KataGo engine: %s\n"
+                            "Start with the Leela engine?"), "");
+            int answer = ::wxMessageBox(errStr, _("Leela"), wxYES_NO | wxICON_EXCLAMATION, this);
+            if (answer != wxYES) {
+                Close();
+            } else {
+                m_japanese_rule = false;
+                m_japanese_rule_init = false;
+                m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
+                m_katagoStatus = KATAGO_STOPED;
+                setStartMenus();
+                wxCommandEvent evt;
+                doNewRatedGame(evt);
+            }
+        } else {
+            m_katagoStatus = KATAGO_IDLE;
+            ::wxMessageBox(_("KataGo terminated abnormally."), _("Leela"), wxOK | wxICON_EXCLAMATION, this);
+        }
+        return;
+    }
     if ( !m_runflag ) {
         try {
             if ( m_katagoStatus == GAME_FIRST_QUERY_WAIT ) {
