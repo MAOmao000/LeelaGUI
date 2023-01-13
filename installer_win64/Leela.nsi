@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "2.0.0"
+!define VERSION   "2.0.1"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -344,6 +344,7 @@ Section "LeelaI18N" leela
   File "bin\VCRUNTIME140.dll"
   File "bin\VCRUNTIME140_1.dll"
   File "bin\katago.exe"
+  File "bin\katago_avx2.exe"
   #File "bin\LeelaGUI.ini"
   File "bin\analysis_example.cfg"
   File "bin\gtp_example.cfg"
@@ -516,6 +517,7 @@ Section "Uninstall"
   Delete "$INSTDIR\VCRUNTIME140.dll"
   Delete "$INSTDIR\VCRUNTIME140_1.dll"
   Delete "$INSTDIR\katago.exe"
+  Delete "$INSTDIR\katago_avx2.exe"
   Delete "$INSTDIR\katago_OpenCL.exe"
   Delete "$INSTDIR\LeelaGUI.ini"
   Delete "$INSTDIR\LeelaGUI_OpenCL.ini"
