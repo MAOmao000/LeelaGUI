@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "2.0.0"
+!define VERSION   "2.0.1"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
