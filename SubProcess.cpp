@@ -7,6 +7,10 @@ SubProcess::SubProcess(MainFrame *parent) : wxProcess(parent) {
     Redirect();
 }
 
+SubProcess::~SubProcess() {
+
+}
+
 bool SubProcess::HasInput() {
     bool hasInput = false;
     try {
@@ -44,10 +48,9 @@ void SubProcess::OnTerminate(int pid, int status) {
     while ( HasInput() )
         ;
 
-    m_parent->OnProcessTerminated(this);
-
     wxLogStatus(m_parent, "Process %u terminated with exit code %d.", pid, status);
 
-    m_parent->OnAsyncTermination(this);
+    auto event = new wxCommandEvent(wxEVT_TERMINATED_KATAGO);
+    wxQueueEvent(m_parent->GetEventHandler(), event);
 }
 #endif

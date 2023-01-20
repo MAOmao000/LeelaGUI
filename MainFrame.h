@@ -31,6 +31,7 @@ wxDECLARE_EVENT(wxEVT_EVALUATION_UPDATE, wxCommandEvent);
 wxDECLARE_EVENT(wxEVT_SET_MOVENUM, wxCommandEvent);
 #ifndef USE_THREAD
 wxDECLARE_EVENT(wxEVT_RECIEVE_KATAGO, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_TERMINATED_KATAGO, wxCommandEvent);
 #endif
 
 static wxLocale m_locale;
@@ -43,10 +44,6 @@ class MainFrame : public TMainFrame {
 		void loadSGF(const wxString & filename, int movenum = 999);
 		virtual void doNewRatedGame(wxCommandEvent& event) override;
 		void doInit();
-#ifndef USE_THREAD
-		void OnAsyncTermination(SubProcess *process);
-		void OnProcessTerminated(SubProcess *process);
-#endif
 	static constexpr int DEFAULT_MAX_VISITS_ANALYSIS = 1000000;
 	static constexpr int DEFAULT_MAX_TIME_ANALYSIS = 3600;
 
@@ -108,11 +105,11 @@ class MainFrame : public TMainFrame {
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
 	void setStartMenus(bool enable = true);
-	void MainFrameEnd();
 #ifdef USE_THREAD
 	std::string GTPSend(const wxString& s, const int& sleep_ms = 50);
 #else
 	virtual void doRecieveKataGo(wxCommandEvent& event);
+	virtual void doTerminatedKataGo(wxCommandEvent& event);
 	void OnIdleTimer(wxTimerEvent& event);
 	void OnIdle(wxIdleEvent& event);
 	void startKataGo();
@@ -146,6 +143,7 @@ class MainFrame : public TMainFrame {
 		KATAGO_STARTING_WAIT,
 		ANALYSIS_RESPONSE_WAIT,
 		KATAGO_IDLE,
+		KATAGO_STOPING,
 		KATAGO_STOPED,
 		ANALYSIS_QUERY_WAIT,
 		GAME_FIRST_QUERY_WAIT,
@@ -167,6 +165,7 @@ class MainFrame : public TMainFrame {
 	bool m_ponderEnabled;
 	bool m_passEnabled;
 	bool m_japaneseEnabled;
+	wxSound m_tock;
 	bool m_ratedGame;
 	bool m_analyzing;
 	bool m_pondering;
@@ -222,10 +221,8 @@ class MainFrame : public TMainFrame {
 	nlohmann::json m_send_json;
 	int  m_katagoStatus;
 	bool m_runflag;
-	//bool m_wasRunning;
 	bool m_isDuringSearch;
 	bool m_update_score;
-	bool m_post_destructor;
 	bool m_post_doExit;
 	bool m_post_doNewMove;
 	bool m_post_doSettingsDialog;
@@ -246,7 +243,6 @@ class MainFrame : public TMainFrame {
 	SubProcess* m_process{nullptr};
 	wxTimer m_timerIdleWakeUp;
 #endif
-	long m_pid;
 
 	public:
 	static void setLocale(bool japanese) {
@@ -267,6 +263,7 @@ class MainFrame : public TMainFrame {
 class SubProcess : public wxProcess {
 public:
 	SubProcess(MainFrame *parent);
+	~SubProcess();
 	virtual void OnTerminate(int pid, int status) wxOVERRIDE;
 	bool HasInput();
 protected:
