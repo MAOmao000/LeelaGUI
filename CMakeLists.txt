@@ -187,6 +187,7 @@ else()
     -mtune=generic
     -Wno-unused-parameter
     -Wno-unused-variable
+    -Wno-unknown-pragmas
   )
   
   target_compile_definitions(leelagui PUBLIC
