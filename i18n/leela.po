@@ -18,358 +18,366 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: AboutDialog.cpp:14 GUI.cpp:461
+#: AboutDialog.cpp:14
 msgid "Leela version "
 msgstr "Leela バージョン "
 
-#: AnalysisWindow.cpp:113 EngineThread.cpp:322 GUI.cpp:644 engine\UCTSearch.cpp:203
+#: AnalysisWindow.cpp:116 EngineThread.cpp:247 GUI.cpp:652
+#: MainFrame.cpp:3229 MainFrame.cpp:3687 engine\UCTSearch.cpp:203
 msgid "Move"
 msgstr "着手"
 
-#: AnalysisWindow.cpp:117 AnalysisWindow.cpp:188 AnalysisWindow.cpp:227
-#: EngineThread.cpp:341
-#: GUI.cpp:649 GUI.cpp:655 engine\UCTSearch.cpp:225
+#: AnalysisWindow.cpp:120 AnalysisWindow.cpp:205 AnalysisWindow.cpp:248
+#: AnalysisWindow.cpp:283 EngineThread.cpp:266 GUI.cpp:657
+#: MainFrame.cpp:3248 MainFrame.cpp:3692 engine\UCTSearch.cpp:225
 msgid "PV"
 msgstr "予想手順"
 
-#: AnalysisWindow.cpp:129 GUI.cpp:647 engine\UCTSearch.cpp:208
+#: AnalysisWindow.cpp:132 EngineThread.cpp:252 GUI.cpp:655
+#: MainFrame.cpp:3234 MainFrame.cpp:3237 MainFrame.cpp:3690
+#: engine\UCTSearch.cpp:208
 msgid "Win%"
 msgstr "勝率%"
 
-#: AnalysisWindow.cpp:157
+#: AnalysisWindow.cpp:174
 msgid "Analysis - Score Estimate "
 msgstr "検討 - 地合見積り"
 
-#: AnalysisWindow.cpp:213
+#: AnalysisWindow.cpp:230
 msgid "Copy PV"
 msgstr "探索手順コピー"
 
-#: AnalysisWindow.cpp:214
+#: AnalysisWindow.cpp:231
 msgid "Copy entire line"
 msgstr "行全体をコピー"
 
-#: AnalysisWindow.cpp:216
+#: AnalysisWindow.cpp:233
 msgid "Deselect line"
 msgstr "行選択を解除"
 
-#: App.cpp:83 MainFrame.cpp:194 MainFrame.cpp:199 MainFrame.cpp:231
-#: MainFrame.cpp:241 MainFrame.cpp:627 MainFrame.cpp:1363 GUI.h:194
+#: App.cpp:105 EngineThread.cpp:105 EngineThread.cpp:341
+#: EngineThread.cpp:436 EngineThread.cpp:592 GUI.h:194
+#: MainFrame.cpp:167 MainFrame.cpp:172 MainFrame.cpp:206
+#: MainFrame.cpp:217 MainFrame.cpp:565 MainFrame.cpp:622
+#: MainFrame.cpp:673 MainFrame.cpp:767 MainFrame.cpp:1375
+#: MainFrame.cpp:2282 MainFrame.cpp:3065 MainFrame.cpp:3297
+#: MainFrame.cpp:3395 MainFrame.cpp:3453 MainFrame.cpp:3849
+#: MainFrame.cpp:4024 MainFrame.cpp:4145 MainFrame.cpp:4202
 msgid "Leela"
 msgstr ""
 
-#: EngineThread.cpp:189 EngineThread.cpp:352 EngineThread.cpp:354 EngineThread.cpp:462 EngineThread.cpp:464
+#: MainFrame.cpp:3255 MainFrame.cpp:3258 MainFrame.cpp:3697
 #, c-format
 msgid "Win rate:%3.1f%% Score:%.1f"
 msgstr "勝率:%3.1f%% %.1f目差"
 
-#: EngineThread.cpp:xxx
+#: EngineThread.cpp:273 EngineThread.cpp:276 EngineThread.cpp:574
+#: EngineThread.cpp:577 MainFrame.cpp:3464 MainFrame.cpp:3467 MainFrame.cpp:4011
 #, c-format
 msgid "Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"
 msgstr "勝率:%3.1f%% %.1f目差 %d[ms] %d回"
 
-#: EngineThread.cpp:323 GUI.cpp:645 engine\UCTSearch.cpp:204
+#: EngineThread.cpp:248 GUI.cpp:653 MainFrame.cpp:3230 MainFrame.cpp:3688
+#: engine\UCTSearch.cpp:204
 msgid "Effort%"
 msgstr "探索比率%"
 
-#: EngineThread.cpp:325 GUI.cpp:646 engine\UCTSearch.cpp:206
+#: EngineThread.cpp:250 GUI.cpp:654 MainFrame.cpp:3232 MainFrame.cpp:3689
+#: engine\UCTSearch.cpp:206
 msgid "Simulations"
 msgstr "試行回数"
 
-#: EngineThread.cpp:328 EngineThread.cpp:331
-#: TScorePanel.cpp 176
+#: EngineThread.cpp:253 EngineThread.cpp:256 MainFrame.cpp:3235
+#: MainFrame.cpp:3238 MainFrame.cpp:3691 TScorePanel.cpp 176
 msgid "Score"
 msgstr "目数"
 
-#: EngineThread.cpp:352 EngineThread.cpp:354
+#: EngineThread.cpp:273 EngineThread.cpp:276 MainFrame.cpp:3255
+#: MainFrame.cpp:3258 MainFrame.cpp:3697
 msgid "Under analysis... "
 msgstr "検討中... "
 
-#: EngineThread.cpp:1669
-#, c-format
-msgid " Time:%d[ms] Visits:%d"
-msgstr " %d[ms] %d回"
-
-#: GUI.cpp:98
+#: GUI.cpp:92
 msgid "&New Game..."
 msgstr "新規対局...(&N)"
 
-#: GUI.cpp:98 GUI.cpp:263
+#: GUI.cpp:92 GUI.cpp:257
 msgid "Start a new game"
 msgstr "新規対局開始"
 
-#: GUI.cpp:102
+#: GUI.cpp:96
 msgid "New &Rated Game"
 msgstr "新規レート対局(&R)"
 
-#: GUI.cpp:102
+#: GUI.cpp:96
 msgid "Starts a new rated game"
 msgstr "新規レート対局開始"
 
-#: GUI.cpp:106
+#: GUI.cpp:100
 msgid "Set Rated &Board Size..."
 msgstr "レート対局碁盤サイズ設定...(&B)"
 
-#: GUI.cpp:106
+#: GUI.cpp:100
 msgid "Change the board size for rated games"
 msgstr "レート対局碁盤サイズ変更"
 
-#: GUI.cpp:112
+#: GUI.cpp:106
 msgid "&Open Game..."
 msgstr "開く...(&O)"
 
-#: GUI.cpp:112
+#: GUI.cpp:106
 msgid "Opens a game from disk"
 msgstr "ディスクからSGFを開く"
 
-#: GUI.cpp:116
+#: GUI.cpp:110
 msgid "&Save Game..."
 msgstr "保存...(&S)"
 
-#: GUI.cpp:116
+#: GUI.cpp:110
 msgid "Save a game to disk"
 msgstr "ディスクにSGFを保存"
 
-#: GUI.cpp:122
+#: GUI.cpp:116
 msgid "Copy SGF"
 msgstr "SGFコピー"
 
-#: GUI.cpp:122
+#: GUI.cpp:116
 msgid "Copy SGF to clipboard"
 msgstr "クリップボードにSGFコピー"
 
-#: GUI.cpp:126
+#: GUI.cpp:120
 msgid "Paste SGF"
 msgstr "SGF貼り付け"
 
-#: GUI.cpp:126
+#: GUI.cpp:120
 msgid "Paste SGF from clipboard"
 msgstr "クリップボードからSGF貼り付け"
 
-#: GUI.cpp:132
+#: GUI.cpp:126
 msgid "E&xit"
 msgstr "終了(&x)"
 
-#: GUI.cpp:132 GUI.cpp:303
+#: GUI.cpp:126 GUI.cpp:297
 msgid "Exit the program"
 msgstr "プログラムを終了"
 
-#: GUI.cpp:135
+#: GUI.cpp:129
 msgid "&File"
 msgstr "ファイル(&F)"
 
-#: GUI.cpp:139
+#: GUI.cpp:133
 msgid "&Undo"
 msgstr "1手戻る(&U)"
 
-#: GUI.cpp:143
+#: GUI.cpp:137
 msgid "&Forward"
 msgstr "1手進む(&F)"
 
-#: GUI.cpp:149
+#: GUI.cpp:143
 msgid "Go &Back 10 Moves"
 msgstr "10手戻る(&B)"
 
-#: GUI.cpp:149
+#: GUI.cpp:143
 msgid "Undo 10 moves"
 msgstr "10手戻る"
 
-#: GUI.cpp:153
+#: GUI.cpp:147
 msgid "Go For&ward 10 Moves"
 msgstr "10手進む(&w)"
 
-#: GUI.cpp:153
+#: GUI.cpp:147
 msgid "Forward 10 moves"
 msgstr "10手進む"
 
-#: GUI.cpp:159
+#: GUI.cpp:153
 msgid "Force &Computer Move"
 msgstr "コンピュータに着手催促(&C)"
 
-#: GUI.cpp:159
+#: GUI.cpp:153
 msgid "Force the computer to move now"
 msgstr "コンピュータに着手催促"
 
-#: GUI.cpp:165
+#: GUI.cpp:159
 msgid "&Pass"
 msgstr "パス(&P)"
 
-#: GUI.cpp:169
+#: GUI.cpp:163
 msgid "&Resign"
 msgstr "投了(&R)"
 
-#: GUI.cpp:169 GUI.cpp:299
+#: GUI.cpp:163 GUI.cpp:293
 msgid "Resign the game"
 msgstr "投了する"
 
-#: GUI.cpp:175
+#: GUI.cpp:169
 msgid "&Score Game"
 msgstr "勝敗・目数(&S)"
 
-#: GUI.cpp:175
+#: GUI.cpp:169
 msgid "Score the position"
 msgstr "勝敗・目数"
 
-#: GUI.cpp:178
+#: GUI.cpp:172
 msgid "&Game"
 msgstr "対局(&G)"
 
-#: GUI.cpp:182
+#: GUI.cpp:176
 msgid "Start/Stop &Analysis"
 msgstr "検討開始・停止(&A)"
 
-#: GUI.cpp:182
+#: GUI.cpp:176
 msgid "Start analyzing"
 msgstr "検討開始"
 
-#: GUI.cpp:188
+#: GUI.cpp:182
 msgid "&Store Position (Push)"
 msgstr "局面保存(Push)(&S)"
 
-#: GUI.cpp:188
+#: GUI.cpp:182
 msgid "Store this position on the stack"
 msgstr "局面をスタック"
 
-#: GUI.cpp:192
+#: GUI.cpp:186
 msgid "&Forget Position (Pop)"
 msgstr "局面破棄(Pop)(&F)"
 
-#: GUI.cpp:192 GUI.cpp:287
+#: GUI.cpp:186 GUI.cpp:281
 msgid "Remove the top position from the stack"
 msgstr "スタック局面を破棄"
 
-#: GUI.cpp:197
+#: GUI.cpp:191
 msgid "R&evert to Stored"
 msgstr "局面復元(&e)"
 
-#: GUI.cpp:197
+#: GUI.cpp:191
 msgid "Revert board position to the top of the stack"
 msgstr "保存位置に戻す"
 
-#: GUI.cpp:203
+#: GUI.cpp:197
 msgid "Analysis &Window"
 msgstr "検討ウィンドウ(&W)"
 
-#: GUI.cpp:207
+#: GUI.cpp:201
 msgid "Show &Histogram"
 msgstr "グラフ表示(&H)"
 
-#: GUI.cpp:210
+#: GUI.cpp:204
 msgid "&Analyze"
 msgstr "検討(&A)"
 
-#: GUI.cpp:214
+#: GUI.cpp:208
 msgid "Show Network &Probabilities"
 msgstr "候補手確率表示(&P)"
 
-#: GUI.cpp:214
+#: GUI.cpp:208
 msgid "Show the likelihood of each move being played by a professional player"
 msgstr "各着手がプロの棋士によって指される可能性を示す"
 
-#: GUI.cpp:218
+#: GUI.cpp:212
 msgid "Show &Best Moves"
 msgstr "最善手表示(&B)"
 
-#: GUI.cpp:218
+#: GUI.cpp:212
 msgid "Color the best moves on the board"
 msgstr "最善手"
 
-#: GUI.cpp:222
+#: GUI.cpp:216
 msgid "Show &Territory"
 msgstr "地合表示(&T)"
 
-#: GUI.cpp:222
+#: GUI.cpp:216
 msgid "Show Territory"
 msgstr "地合表示"
 
-#: GUI.cpp:226
+#: GUI.cpp:220
 msgid "Show &Moyo"
 msgstr "模様表示(&M)"
 
-#: GUI.cpp:226
+#: GUI.cpp:220
 msgid "Show Moyo"
 msgstr "模様表示"
 
-#: GUI.cpp:232
+#: GUI.cpp:226
 msgid "S&ettings..."
 msgstr "設定...(&e)"
 
-#: GUI.cpp:238
+#: GUI.cpp:232
 msgid "&Adjust Clocks..."
 msgstr "持ち時間調整...(&A)"
 
-#: GUI.cpp:241
+#: GUI.cpp:235
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: GUI.cpp:245
+#: GUI.cpp:239
 msgid "&Go Rules"
 msgstr "囲碁のルール(&G)"
 
-#: GUI.cpp:245
+#: GUI.cpp:239
 msgid "Explanation of the rules of Go"
 msgstr "囲碁のルールの説明"
 
-#: GUI.cpp:249
+#: GUI.cpp:243
 msgid "Leela Homepage"
 msgstr "Leelaホームページ"
 
-#: GUI.cpp:255
+#: GUI.cpp:249
 msgid "&About..."
 msgstr "Leelaについて...(&A)"
 
-#: GUI.cpp:255
+#: GUI.cpp:249
 msgid "Information about the program"
 msgstr "Leelaについての情報"
 
-#: GUI.cpp:258
+#: GUI.cpp:252
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: GUI.cpp:263 GUI.cpp:321 GUI.h:248
+#: GUI.cpp:257 GUI.h:253
 msgid "New Game"
 msgstr "新規対局"
 
-#: GUI.cpp:265
+#: GUI.cpp:259
 msgid "New Rated Game"
 msgstr "新規レート対局"
 
-#: GUI.cpp:265
+#: GUI.cpp:259
 msgid "Start a new rated game"
 msgstr "新規レート対局開始"
 
-#: GUI.cpp:267
+#: GUI.cpp:261
 msgid "Load Game"
 msgstr "対局結果読み込み"
 
-#: GUI.cpp:267
+#: GUI.cpp:261
 msgid "Load a game"
 msgstr "対局結果を読み込む"
 
-#: GUI.cpp:269
+#: GUI.cpp:263
 msgid "Save"
 msgstr "対局結果保存"
 
-#: GUI.cpp:269
+#: GUI.cpp:263
 msgid "Save the game"
 msgstr "対局結果を保存する"
 
-#: GUI.cpp:273
+#: GUI.cpp:267
 msgid "Go back 10 moves"
 msgstr "10手戻る"
 
-#: GUI.cpp:275
+#: GUI.cpp:269
 msgid "Undo"
 msgstr "1手戻る"
 
-#: GUI.cpp:275
+#: GUI.cpp:269
 msgid "Take back one move"
 msgstr "1手戻る"
 
-#: GUI.cpp:277
+#: GUI.cpp:271
 msgid "Forward"
 msgstr "1手進む"
 
-#: GUI.cpp:277
+#: GUI.cpp:271
 msgid "Go forward one move"
 msgstr "1手進む"
 
@@ -381,665 +389,730 @@ msgstr "10手進む"
 msgid "Go forward 10 moves"
 msgstr "10手進む"
 
-#: GUI.cpp:283
+#: GUI.cpp:277
 msgid "Force computer move"
 msgstr "コンピュータに着手催促"
 
-#: GUI.cpp:285
+#: GUI.cpp:279
 msgid "Store Position"
 msgstr "局面保存"
 
-#: GUI.cpp:285
+#: GUI.cpp:279
 msgid "Remember this position on the stack"
 msgstr "スタック局面を憶える"
 
-#: GUI.cpp:287
+#: GUI.cpp:281
 msgid "Remove Position"
 msgstr "局面破棄"
 
-#: GUI.cpp:289
+#: GUI.cpp:283
 msgid "Revert to mainline"
 msgstr "局面復元"
 
-#: GUI.cpp:289
+#: GUI.cpp:283
 msgid "Revert to stored position"
 msgstr "保存位置に戻す"
 
-#: GUI.cpp:291 GUI.cpp:295 GUI.cpp:297 GUI.cpp:299
+#: GUI.cpp:285 GUI.cpp:289 GUI.cpp:291 GUI.cpp:293
 msgid "tool"
 msgstr "ツール"
 
-#: GUI.cpp:291
+#: GUI.cpp:285
 msgid "Start/Stop analysis"
 msgstr "検討開始・停止"
 
-#: GUI.cpp:295 MainFrame.cpp:572
+#: GUI.cpp:289 MainFrame.cpp:1311
 msgid "Pass"
 msgstr "パス"
 
-#: GUI.cpp:297
+#: GUI.cpp:291
 msgid "Score the game"
 msgstr "勝敗・目数"
 
-#: GUI.cpp:303
+#: GUI.cpp:297
 msgid "Exit"
 msgstr "終了"
 
-#: GUI.cpp:337
+#: GUI.cpp:332
 msgid "7 x 7"
 msgstr ""
 
-#: GUI.cpp:337 GUI.cpp:574
+#: GUI.cpp:332 GUI.cpp:582
 msgid "9 x 9"
 msgstr ""
 
-#: GUI.cpp:337
+#: GUI.cpp:332
 msgid "13 x 13"
 msgstr ""
 
-#: GUI.cpp:337
+#: GUI.cpp:332
 msgid "17 x 17"
 msgstr ""
 
-#: GUI.cpp:337 GUI.cpp:578
+#: GUI.cpp:332 GUI.cpp:587
 msgid "19 x 19"
 msgstr ""
 
-#: GUI.cpp:337
+#: GUI.cpp:332
 msgid "25 x 25"
 msgstr ""
 
-#: GUI.cpp:339
+#: GUI.cpp:334
 msgid "Board size"
 msgstr "碁盤サイズ"
 
-#: GUI.cpp:348
+#: GUI.cpp:342
 msgid "Komi (+0.5)"
 msgstr "コミ (+0.5)"
 
-#: GUI.cpp:353
-msgid "Komi"
-msgstr "コミ"
-
-#: GUI.cpp:361 GUI.cpp:366
+#: GUI.cpp:351 GUI.cpp:356
 msgid "Handicap"
 msgstr "置き石"
 
-#: GUI.cpp:374
+#: GUI.cpp:364
 msgid "Time for game"
 msgstr "持ち時間"
 
-#: GUI.cpp:379
+#: GUI.cpp:369
 msgid "Minutes"
 msgstr "分"
 
-#: GUI.cpp:374
+#: GUI.cpp:377
 msgid "Byo time"
 msgstr "秒読み時間"
 
-#: GUI.cpp:379
+#: GUI.cpp:382
 msgid "Seconds"
 msgstr "秒"
 
-#: GUI.cpp:392
+#: GUI.cpp:395
 msgid "Black"
 msgstr "黒"
 
-#: GUI.cpp:392
+#: GUI.cpp:395
 msgid "White"
 msgstr "白"
 
-#: GUI.cpp:394
+#: GUI.cpp:397
 msgid "Your color"
 msgstr "手番"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "100 simulations"
 msgstr "100回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "500 simulations"
 msgstr "500回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "1000 simulations"
 msgstr "1,000回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "5000 simulations"
 msgstr "5,000回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "10000 simulations"
 msgstr "10,000回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "20000 simulations"
 msgstr "20,000回試行"
 
-#: GUI.cpp:398
+#: GUI.cpp:401
 msgid "Ponder/Time priority"
 msgstr "熟考/時間優先"
 
-#: GUI.cpp:399
+#: GUI.cpp:401
 msgid "Specify a number"
 msgstr "数値指定"
 
-#: GUI.cpp:400
+#: GUI.cpp:403
 msgid "Engine max level"
 msgstr "エンジン最大レベル"
 
-#: GUI.cpp:405
+#: GUI.cpp:411
 msgid "Engine settings (19 x 19)"
 msgstr "エンジン設定(19 x 19)"
 
-#: GUI.cpp:407
+#: GUI.cpp:413
 msgid "Use Neural Network"
 msgstr "ニューラルネットワークを使う"
 
-#: GUI.cpp:433 GUI.cpp:482 GUI.cpp:545 GUI.cpp:760
+#: GUI.cpp:432 GUI.cpp:489 GUI.cpp:545 GUI.cpp:812
 msgid "OK"
 msgstr ""
 
-#: GUI.cpp:436 GUI.cpp:548 GUI.cpp:763
+#: GUI.cpp:439 GUI.cpp:552 GUI.cpp:819
 msgid "Cancel"
 msgstr "取消"
 
-#: GUI.cpp:454 GUI.h:279
+#: GUI.h:285
 msgid "About"
 msgstr "Leelaについて"
 
-#: GUI.cpp:467
+#: GUI.cpp:468
+msgid "Leela version 0.9.1"
+msgstr ""
+
+#: GUI.cpp:474
 msgid "OpenCL/BLAS Engine goes here and can be a very long string"
 msgstr "OpenCL/BLASエンジンは長時間かかります"
 
-#: GUI.cpp:471
+#: GUI.cpp:478
 msgid "Copyright (C) 2007-2017 Gian-Carlo Pascutto"
 msgstr ""
 
-#: GUI.cpp:475
+#: GUI.cpp:482
 msgid "gcp@sjeng.org"
 msgstr ""
 
-#: GUI.cpp:479
+#: GUI.cpp:486
 msgid "https://sjeng.org/leela"
 msgstr ""
 
-#: GUI.cpp:501 GUI.h:315
+#: GUI.h:321
 msgid "Adjust clocks"
 msgstr "持ち時間調整"
 
-#: GUI.cpp:509
+#: GUI.cpp:516
 msgid "Black clock (minutes:seconds)"
 msgstr "黒時間(分:秒)"
 
-#: GUI.cpp:521
+#: GUI.cpp:528
 msgid "White clock (minutes:seconds)"
 msgstr "白時間(分:秒)"
 
-#: GUI.cpp:567 GUI.h:350
+#: GUI.h:357
 msgid "Select board size"
 msgstr "碁盤サイズ選択"
 
-#: GUI.cpp:591 GUI.h:367
+#: GUI.h:375
 msgid "Calculation in progress"
 msgstr "計算"
 
-#: GUI.cpp:598
+#: GUI.cpp:607
 msgid "Calculating, please hold..."
 msgstr "計算中、お待ちください..."
 
-#: GUI.cpp:619 GUI.h:402
+#: GUI.h:411
 msgid "Analysis"
 msgstr "検討"
 
-#: GUI.cpp:648 engine\UCTSearch.cpp:223
+#: GUI.cpp:656 engine\UCTSearch.cpp:223
 msgid "Net Prob%"
 msgstr "Net確率%"
 
-#: GUI.cpp:687 GUI.h:454
+#: GUI.h:470
 msgid "Settings"
 msgstr "設定"
 
-#: GUI.cpp:699
+#: GUI.cpp:709
 msgid "Engine Settings"
 msgstr "エンジン設定"
 
-#: GUI.cpp:704
+#: GUI.cpp:714
 msgid "Allow Passes"
 msgstr "パスを許可"
 
-#: GUI.cpp:708
+#: GUI.cpp:718
 msgid "Pondering"
 msgstr "相手手番中も先読みする"
 
-#: GUI.cpp:712
+#: GUI.cpp:721
 msgid "Resignations"
 msgstr "投了を許可"
 
-#: GUI.cpp:716
+#: GUI.cpp:725
 msgid "Neural Networks"
 msgstr "ニューラルネットワーク"
 
-#: GUI.cpp:727
-msgid "Engine Select (needs restart)"
-msgstr "エンジンの選択(要再起動)"
-
-#: GUI.cpp:727
-msgid "Leela or ini File"
-msgstr "Leela または ini ファイル"
-
-#: GUI.cpp:727
-msgid "KataGo Analysis"
-msgstr "KataGo 分析エンジン"
-
-#: GUI.cpp:727
-msgid "KataGo GTP"
-msgstr "KataGo GTPエンジン"
-
-#: GUI.cpp:727
-msgid "Engine"
-msgstr "KataGoエンジン実行ファイル"
-
-#: GUI.cpp:727
-msgid "Configration"
-msgstr "KataGoエンジン構成定義ファイル"
-
-#: GUI.cpp:727
-msgid "Model"
-msgstr "KataGoエンジンモデル格納ファイル"
-
-#: GUI.cpp:727
-#msgid "Engine"
-#msgstr "エンジン実行ファイル"
-
-#: GUI.cpp:737
+#: GUI.cpp:735
 msgid "Chinese"
 msgstr "中国ルール"
 
-#: GUI.cpp:737
+#: GUI.cpp:735
 msgid "Japanese"
 msgstr "日本ルール"
 
-#: GUI.cpp:739
+#: GUI.cpp:737
 msgid "Default Rule"
 msgstr "デフォルトルール"
 
-#: GUI.cpp:752 GUI.cpp:754 GUI.cpp:764 GUI.cpp:773
+#: GUI.cpp:741
+msgid "Leela or ini File"
+msgstr "Leela または ini ファイル"
+
+#: GUI.cpp:741
+msgid "KataGo Analysis"
+msgstr "KataGo 分析エンジン"
+
+#: GUI.cpp:741
+msgid "KataGo GTP"
+msgstr "KataGo GTPエンジン"
+
+#: GUI.cpp:743
+msgid "Engine Select (needs restart)"
+msgstr "エンジンの選択(要再起動)"
+
+#: GUI.cpp:748
+msgid "Engine"
+msgstr "KataGoエンジン実行ファイル"
+
+#: GUI.cpp:751 GUI.cpp:753 GUI.cpp:763 GUI.cpp:772
 msgid "Select a file"
 msgstr "ファイルを選択"
 
-#: GUI.cpp:752
+#: GUI.cpp:751
 msgid "Engine files (*.exe)|*.exe"
 msgstr "エンジン実行ファイル (*.exe)|*.exe"
 
-#: GUI.cpp:754
+#: GUI.cpp:753
 msgid "Engine files (*)|*"
 msgstr "エンジン実行ファイル (*)|*"
 
-#: GUI.cpp:752
+#: GUI.cpp:761
+msgid "Configration"
+msgstr "KataGoエンジン構成定義ファイル"
+
+#: GUI.cpp:763
 msgid "Configration files (*.cfg)|*.cfg"
 msgstr "エンジン構成定義ファイル (*.cfg)|*.cfg"
 
-#: GUI.cpp:752
+#: GUI.cpp:772
+msgid "Model"
+msgstr "KataGoエンジンモデル格納ファイル"
+
+#: GUI.cpp:772
 msgid "Model files (*.gz)|*.gz"
 msgstr "エンジンモデル格納ファイル (*.gz)|*.gz"
 
-#: GUI.cpp:750
+#: GUI.cpp:785
 msgid "Interface Settings"
 msgstr "インタフェース設定"
 
-#: GUI.cpp:729
+#: GUI.cpp:787
 msgid "Sound"
 msgstr "音"
 
-#: GUI.cpp:707
+#: GUI.cpp:791
 msgid "Allow DPI Scaling (needs restart)"
 msgstr "画面のDPIスケーリングを許可(要再起動)"
 
-#: GUI.cpp:710
+#: GUI.cpp:794
 msgid "Japanese (needs restart)"
 msgstr "日本語表示(要再起動)"
 
-#: GUI.cpp:790 GUI.h:493
+#: GUI.h:510
 msgid "Game Score"
 msgstr "勝敗・目数"
 
-#: GUI.cpp:801
+#: GUI.cpp:855
 msgid "Final Score:"
 msgstr "勝敗・目数:"
 
-#: GUI.cpp:805
+#: GUI.cpp:859
 msgid "Black wins by 0.0"
 msgstr "黒は0.0目で勝ちます"
 
-#: GUI.cpp:809
-msgid "I'm fairly sure I scored this correctly."
-msgstr "正しく採点したとかなり確信しています"
+#: GUI.cpp:863
+msgid ""
+"Average thinking time per one move      : 99999[ms]\n"
+"Average number of visits per one move : 99999   \n"
+"                          "
+msgstr "1手あたりの平均思考時間      : 99999[ms]\n1手あたりの平均思考時間 : 99999   \n                          "
 
-#: GUI.cpp:819
+#: GUI.cpp:873
 msgid "&Accept"
-msgstr "受け入れる(&A)"
+msgstr "了解(&A)"
 
-#: GUI.cpp:823
+#: GUI.cpp:878
 msgid "&Dispute Score"
 msgstr "対局を続ける(&D)"
 
-#: GUI.cpp:846 GUI.h:510
+#: GUI.h:528
 msgid "Win Rate Histogram"
 msgstr "勝率グラフ"
 
-#: MainFrame.cpp:106
-msgid "Failed to launch the command."
-msgstr "コマンドの起動に失敗しました。"
-
-#: MainFrame.cpp:108
-msgid "Failed to connect to child stdout"
-msgstr "子プロセスの標準出力への接続に失敗しました"
-
-#: MainFrame.cpp:150
-msgid "Failed to connect to child stderr"
-msgstr "子プロセスの標準エラー出力への接続に失敗しました"
-
-#: MainFrame.cpp:114
-msgid "Failed to connect to child stdin"
-msgstr "子プロセスの標準入力への接続に失敗しました"
-
-#: MainFrame.cpp:125
-msgid "GTP response error: "
-msgstr "GTP 応答エラー: "
-
-#: MainFrame.cpp:136
-#, c-format
-msgid ""
-"The first line of the ini file is incorrect: %s\n"
-"Start with the Leela engine?"
-msgstr "ini ファイルの 1 行目の記述に誤りがあります: %s\nLeela エンジンで開始しますか？"
-
-#: MainFrame.cpp:136
-#, c-format
-msgid ""
-"There is an error in the configuration of the KataGo engine: %s\n"
-"Start with the Leela engine?"
-msgstr "KataGoエンジンの設定に誤りがあります: %s\nLeela エンジンで開始しますか？"
-
-#: MainFrame.cpp:136
-#, c-format
-msgid ""
-"A startup error was returned from KataGo engine: %s\n"
-"Start with the Leela engine?"
-msgstr "KataGoエンジンから起動エラーが返却されました: %s\nLeela エンジンで開始しますか？"
-
-#: MainFrame.cpp:192
+#: MainFrame.cpp:165
 #, c-format
 msgid "Error initializing OpenCL: %s (error %d)"
 msgstr "エラー OpenCL初期化: %s (エラー %d)"
 
-#: MainFrame.cpp:271
-#, c-format
-msgid "The query definition is incorrect: %s\nStart with the Leela engine?"
-msgstr "クエリ定義に誤りがあります: %s\nLeela エンジンで開始しますか？"
-
-#: MainFrame.cpp:276
-msgid "Query definition error: "
-msgstr "クエリ定義エラー: "
-
-#: MainFrame.cpp:198
+#: MainFrame.cpp:171
 #, c-format
 msgid "Error initializing OpenCL: %s"
 msgstr "エラー OpenCL初期化: %s"
 
-#: MainFrame.cpp:230
+#: MainFrame.cpp:205
 msgid "OpenCL self-test failed. Check your graphics drivers."
 msgstr "OpenCLのセルフテストに失敗しました。グラフィックドライバを確認してください。"
 
-#: MainFrame.cpp:238
+#: MainFrame.cpp:214
 msgid ""
 "The GPU and OpenCL drivers on macOS are often outdated and of poor quality. "
 "Try switching to the regular version if you run into stability issues. If "
 "your GPU is slow, it may even be faster."
 msgstr "macOSのGPUとOpenCLのドライバは、古いものが多く、品質も良くありません。安定性に問題がある場合は、通常バージョンに切り替えてみてください。GPUが遅ければ、もっと速くなるかもしれません。"
 
-#: MainFrame.cpp:378
+#: MainFrame.cpp:539 MainFrame.cpp:597
+msgid "Failed to launch the command."
+msgstr "コマンドの起動に失敗しました。"
+
+#: MainFrame.cpp:541 MainFrame.cpp:600
+msgid "Failed to connect to child stdout"
+msgstr "子プロセスの標準出力への接続に失敗しました"
+
+#: MainFrame.cpp:545 MainFrame.cpp:604
+msgid "Failed to connect to child stderr"
+msgstr "子プロセスの標準エラー出力への接続に失敗しました"
+
+#: MainFrame.cpp:549 MainFrame.cpp:608
+msgid "Failed to connect to child stdin"
+msgstr "子プロセスの標準入力への接続に失敗しました"
+
+#: MainFrame.cpp:559 MainFrame.cpp:616
+#, c-format
+msgid ""
+"The first line of the ini file is incorrect: %s\n"
+"Start with the Leela engine?"
+msgstr "ini ファイルの 1 行目の記述に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:562 MainFrame.cpp:619
+#, c-format
+msgid ""
+"There is an error in the configuration of the KataGo engine: %s\n"
+"Start with the Leela engine?"
+msgstr "KataGoエンジンの設定に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:638 MainFrame.cpp:661 MainFrame.cpp:3133 MainFrame.cpp:3136
+msgid "KataGo starting... "
+msgstr "KataGo起動中... "
+
+#: MainFrame.cpp:671 MainFrame.cpp:3063 MainFrame.cpp:4200
+#, c-format
+msgid ""
+"A startup error was returned from KataGo engine: %s\n"
+"Start with the Leela engine?"
+msgstr "KataGoエンジンから起動エラーが返却されました: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:3143 MainFrame.cpp:4185
+#, c-format
+msgid "Error was returned from KataGo engine: %s"
+msgstr "KataGoエンジンからエラーが返却されました: %s"
+
+#: MainFrame.cpp:764
+#, c-format
+msgid "The query definition is incorrect: %s\nStart with the Leela engine?"
+msgstr "クエリ定義に誤りがあります: %s\nLeela エンジンで開始しますか？"
+
+#: MainFrame.cpp:843
 #, c-format
 msgid "Komi: %d.5; Prisoners white: %d/black: %d"
 msgstr "コミ: %d.5; アゲハマ 黒: %d/白: %d"
 
-#: MainFrame.cpp:412
+#: MainFrame.cpp:853
+msgid "MainFrame exit."
+msgstr "MainFrame 終了"
+
+#: MainFrame.cpp:920 MainFrame.cpp:922
 msgid "Engine thinking..."
 msgstr "エンジン思考中..."
 
-#: MainFrame.cpp:415
+#: MainFrame.cpp:920
+msgid " (KataGo)"
+msgstr ""
+
+#: MainFrame.cpp:922
+msgid " (Leela)"
+msgstr ""
+
+#: MainFrame.cpp:926 MainFrame.cpp:1096
 msgid "Engine already running"
 msgstr "エンジンはすでに稼働しています"
 
-#: MainFrame.cpp:534
+#: MainFrame.cpp:1063
+msgid "Exception at startKataGo: %s %s"
+msgstr "KataGo分析エンジンのクエリ解析中に例外が発生しました"
+
+#: MainFrame.cpp:1068 MainFrame.cpp:1090
+#, c-format
+msgid "Thinking at most %d seconds..."
+msgstr "最大%d秒で思考中..."
+
+#: MainFrame.cpp:1235
 msgid "New move arrived"
 msgstr "新しい着手"
 
-#: MainFrame.cpp:543
-msgid "Illegal move: "
-msgstr "誤った指し手: "
-
-#: MainFrame.cpp:572
+#: MainFrame.cpp:1311
 msgid "Computer passes"
 msgstr "コンピュータはパスします"
 
-#: MainFrame.cpp:593 MainFrame.cpp:608
+#: MainFrame.cpp:1330 MainFrame.cpp:1341
 msgid "Computer to move"
 msgstr "コンピュータの着手"
 
-#: MainFrame.cpp:628 MainFrame.cpp:1364
+#: MainFrame.cpp:1369 MainFrame.cpp:1372 MainFrame.cpp:1627
+#: MainFrame.cpp:1629 MainFrame.cpp:2276 MainFrame.cpp:2279
+msgid "KataGo"
+msgstr ""
+
+#: MainFrame.cpp:1369 MainFrame.cpp:1627 MainFrame.cpp:2276
+msgid "(Analysis)"
+msgstr "(分析)"
+
+#: MainFrame.cpp:2276 MainFrame.cpp:2279 MainFrame.cpp:2282
 msgid " - move "
 msgstr " - 手数 "
 
-#: MainFrame.cpp:658 MainFrame.cpp:679
+#: MainFrame.cpp:1372 MainFrame.cpp:1629 MainFrame.cpp:2279
+msgid "(GTP)"
+msgstr ""
+
+#: MainFrame.cpp:1430 MainFrame.cpp:1478
 msgid "OK clicked"
 msgstr "OKがクリックされました"
 
-#: MainFrame.cpp:780
+#: MainFrame.cpp:1619
 #, c-format
 msgid "Last rank was: %d"
 msgstr "最終ランク: %d"
 
-#: MainFrame.cpp:782 MainFrame.cpp:1209
+#: MainFrame.cpp:1621 MainFrame.cpp:2068
 msgid "Your rank: "
 msgstr "あなたのランク: "
 
-#: MainFrame.cpp:787
+#: MainFrame.cpp:1631
 msgid "Leela - "
 msgstr ""
 
-#: MainFrame.cpp:1099
+#: MainFrame.cpp:1944
 #, c-format
 msgid "Handicap %d Simulations %d"
 msgstr "置き石 %d シミュレーション %d"
 
-#: MainFrame.cpp:1255
+#: MainFrame.cpp:2124
 msgid "BLACK wins by resignation"
 msgstr "白が投了しました"
 
-#: MainFrame.cpp:1258
+#: MainFrame.cpp:2127
 #, c-format
 msgid ""
 "BLACK wins by %.0f - %.1f (komi) - %0.f (handicap)\n"
 "= %.1f points"
 msgstr "黒地: %.0f - %.1f (コミ) - %0.f (置き石)\n= %.1f 目"
 
-#: MainFrame.cpp:1261
+#: MainFrame.cpp:2130
 #, c-format
 msgid ""
 "BLACK wins by %.0f - %.1f (komi)\n"
 "= %.1f points"
 msgstr "黒地: %.0f - %.1f (コミ)\n= %.1f 目"
 
-#: MainFrame.cpp:1270
+#: MainFrame.cpp:2139
 msgid "WHITE wins by resignation"
 msgstr "黒が投了しました"
 
-#: MainFrame.cpp:1273
+#: MainFrame.cpp:2142
 #, c-format
 msgid ""
 "WHITE wins by %.0f + %.1f (komi) + %0.f (handicap)\n"
 "= %.1f points"
 msgstr "白地: %.0f + %.1f (コミ) + %0.f (置き石)\n= %.1f 目"
 
-#: MainFrame.cpp:1276
+#: MainFrame.cpp:2145
 #, c-format
 msgid ""
 "WHITE wins by %.0f + %.1f (komi)\n"
 "= %.1f points"
 msgstr "白地: %.0f + %.1f (コミ)\n= %.1f 目"
 
-#: MainFrame.cpp:1285
+#: MainFrame.cpp:2154
 msgid "BLACK wins."
 msgstr "黒の勝ちです"
 
-#: MainFrame.cpp:1287
+#: MainFrame.cpp:2156
 msgid "WHITE wins."
 msgstr "白の勝ちです"
 
-#: MainFrame.cpp:1297
+#: MainFrame.cpp:2166
 msgid "I am not sure I am scoring this correctly."
 msgstr "この目数の数値は不確かです"
 
-#: MainFrame.cpp:1989
-msgid "Average thinking time per one move   "
-msgstr "1手あたりの平均思考時間"
+#: MainFrame.cpp:2171
+#, c-format
+msgid "Average thinking time per one move    : %d[ms]\n"
+msgstr "1手あたりの平均思考時間 : %d ミリ秒\n"
 
-#: MainFrame.cpp:1990
-msgid "Average number of visits per one move"
-msgstr "1手あたりの平均訪問回数"
+#: MainFrame.cpp:2171
+#, c-format
+msgid "Average number of visits per one move : %d[times]"
+msgstr "1手あたりの平均訪問回数 : %d 回"
 
-#: MainFrame.cpp:1327
+#: MainFrame.cpp:2216
 #, c-format
 msgid "%d kyu"
 msgstr "%d 級"
 
-#: MainFrame.cpp:1330
+#: MainFrame.cpp:2219
 #, c-format
 msgid "%d dan"
 msgstr "アマ %d 段"
 
-#: MainFrame.cpp:1332
+#: MainFrame.cpp:2221
 #, c-format
 msgid "%d pro"
 msgstr "プロ %d 段"
 
-#: MainFrame.cpp:1377
+#: MainFrame.cpp:2326
 msgid "Undoing one move"
 msgstr "1手戻す"
 
-#: MainFrame.cpp:1394
+#: MainFrame.cpp:2379
 msgid "Forward one move"
 msgstr "1手進める"
 
-#: MainFrame.cpp:1459
+#: MainFrame.cpp:2440
 msgid "Read %d moves, going to move %d"
 msgstr "読み込み %d 手, %d 手へ"
 
-#: MainFrame.cpp:1498 MainFrame.cpp:1524
+#: MainFrame.cpp:2536 MainFrame.cpp:2594
 msgid "Choose a file"
 msgstr "ファイルを選択"
 
-#: MainFrame.cpp:1499 MainFrame.cpp:1525
+#: MainFrame.cpp:2537 MainFrame.cpp:2595
 msgid "Go games (*.sgf)|*.sgf"
 msgstr ""
 
-#: MainFrame.cpp:1505
+#: MainFrame.cpp:2543
 msgid "Opening: "
 msgstr "開く: "
 
-#: MainFrame.cpp:1532
+#: MainFrame.cpp:2602
 msgid "Saving: "
 msgstr "保存: "
 
-#: MainFrame.cpp:1607
-msgid "Adjust clocks clicked"
-msgstr "時間調整がクリックされました"
+#: MainFrame.cpp:2738 engine\UCTSearch.cpp:807
+msgid "Thinking..."
+msgstr "思考中..."
 
-#: MainFrame.cpp:1669
+#: MainFrame.cpp:2742
 msgid "Analysis stopped"
 msgstr "検討を停止しました"
 
-#: MainFrame.cpp:1669
+#: MainFrame.cpp:2755
+msgid "Adjust clocks clicked"
+msgstr "時間調整がクリックされました"
+
+#: MainFrame.cpp:3078 MainFrame.cpp:4215
+msgid "KataGo terminated abnormally."
+msgstr "KataGoエンジンが異常終了しました"
+
+#: MainFrame.cpp:3111
+msgid "Exception at OnIdleTimer: %s %s"
+msgstr "KataGoエンジンへの探索停止要求中に例外が発生しました"
+
+#: MainFrame.cpp:3289 MainFrame.cpp:3574
 #, c-format
 msgid "Analysis stopped. Time:%d[ms] Visits:%d"
 msgstr "検討を停止しました(%d[ms] %d回)"
 
-#: MainFrame.cpp:1824
-msgid "GTP error response: "
-msgstr "GTP エラー応答: "
+#: MainFrame.cpp:3294 MainFrame.cpp:3296
+#, c-format
+msgid "Exception at ANALYSIS_QUERY_WAIT: %s %s"
+msgstr "KataGoエンジンからの分析結果解析中に例外が発生しました"
 
-#: MainFrame.cpp:2179
+#: MainFrame.cpp:3392 MainFrame.cpp:3395
+#, c-format
+msgid "Exception at GAME_FIRST_QUERY_WAIT: %s %s"
+msgstr "KataGoエンジンからの指し手情報解析中に例外が発生しました"
+
+#: MainFrame.cpp:3450 MainFrame.cpp:3452
+#, c-format
+msgid "Exception at GAME_SECOND_QUERY_WAIT: %s %s"
+msgstr "KataGoエンジンからのポリシーおよび所有権情報解析中に例外が発生しました"
+
+#: MainFrame.cpp:3844 MainFrame.cpp:3847
+#, c-format
+msgid "Exception at KATAGO_GTP_WAIT(kata-genmove_analyze): %s %s"
+msgstr "KataGoエンジンからのkata-genmove_analyze応答解析中に例外が発生しました"
+
+#: MainFrame.cpp:4020 MainFrame.cpp:4023
+#, c-format
+msgid "Exception at KATAGO_GTP_WAIT(kata-raw-nn 0): %s %s"
+msgstr "KataGoエンジンからのkata-raw-nn応答解析中に例外が発生しました"
+
+#: MainFrame.cpp:4142 MainFrame.cpp:4144
+#, c-format
+msgid "Exception at KATAGO_GTP_ETC_WAIT: %s %s"
+msgstr "KataGoエンジンからの各種応答解析中に例外が発生しました"
+
+#: MainFrame.cpp:4151
 msgid "KataGo response arrived"
 msgstr "KataGo応答受信"
 
-#: MainFrame.cpp:2189
-msgid "KataGo starting... "
-msgstr "KataGo起動中... "
+#: MainFrame.cpp:4190
+msgid "KataGo terminated"
+msgstr "KataGoエンジンが終了しました"
 
-#: MainFrame.cpp:723
-#, c-format
-msgid "Thinking at most %d seconds..."
-msgstr "最大%d秒で思考中..."
-
-#: TBoardPanel.cpp:105
+#: TBoardPanel.cpp:110
 #, c-format
 msgid "width: %d height: %d"
 msgstr "幅: %d 高さ: %d"
 
-#: TBoardPanel.cpp:112
+#: TBoardPanel.cpp:117
 #, c-format
 msgid "cell size: %d"
 msgstr "セルサイズ: %d"
 
-#: TBoardPanel.cpp:127
+#: TBoardPanel.cpp:132
 msgid "Paint on empty state"
 msgstr "空の状態を描画"
-
-#: TBoardPanel.cpp:439
-#, c-format
-msgid "Left down at %d %d"
-msgstr "左クリック %d %d"
 
 #: TBoardPanel.cpp:442
 msgid "Click on empty board"
 msgstr "空きボードクリック"
 
-#: TBoardPanel.cpp:447
+#: TBoardPanel.cpp:449
+#, c-format
+msgid "Left down at %d %d"
+msgstr "左クリック %d %d"
+
+#: TBoardPanel.cpp:452
 msgid "Game has been resigned"
 msgstr "対局は投了で終了しました"
 
-#: TBoardPanel.cpp:452
+#: TBoardPanel.cpp:457
 msgid "Click on locked state"
 msgstr "ロック状態でのクリック"
 
-#: TBoardPanel.cpp:490
+#: TBoardPanel.cpp:498
 msgid "It's not your move!"
 msgstr "あなたの手番ではありません！"
 
-#: TScorePanel.cpp:114 TScorePanel.cpp:116
+#: TScorePanel.cpp:115 TScorePanel.cpp:117 TScorePanel.cpp:169 TScorePanel.cpp:171
 msgid "WHITE"
 msgstr "白"
 
-#: TScorePanel.cpp:115
+#: TScorePanel.cpp:116 TScorePanel.cpp:170
 msgid "BLACK"
 msgstr "黒"
 
-#: TScorePanel.cpp:118 TScorePanel.cpp:119
+#: TScorePanel.cpp:119 TScorePanel.cpp:120
 msgid "Combined"
 msgstr "複合"
 
-#: TScorePanel.cpp:121
+#: TScorePanel.cpp:122
 msgid "Monte Carlo"
 msgstr "モンテカルロ"
 
-#: TScorePanel.cpp:123
+#: TScorePanel.cpp:124
 msgid "Network"
 msgstr "ネットワーク"
 
-#: TScorePanel.cpp:123
+#: TScorePanel.cpp:173 TScorePanel.cpp:174
 msgid "Win rate"
 msgstr "勝率"
 
@@ -1070,31 +1143,27 @@ msgstr "%d ノード探索"
 msgid "Thinking at most %.1f seconds..."
 msgstr "最大%.1f秒で思考中..."
 
-#: engine\UCTSearch.cpp:807
-msgid "Thinking..."
-msgstr "思考中..."
-
-#: engine\UCTSearch.cpp:956
+#: engine\UCTSearch.cpp:958
 #, c-format
 msgid "%d visits, %d nodes, %d playouts, %d p/s"
 msgstr "%d 訪問, %d ノード, %d プレイアウト, %d プレイアウト/秒"
 
-#: engine\UCTSearch.cpp:979
+#: engine\UCTSearch.cpp:981
 #, c-format
 msgid "Best move: pass(Win rate:%3.1f%%)"
 msgstr "最善手: パス(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:981
+#: engine\UCTSearch.cpp:983
 #, c-format
 msgid "Best move: resign(Win rate:%3.1f%%)"
 msgstr "最善手: 投了(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:983
+#: engine\UCTSearch.cpp:985
 #, c-format
 msgid "Best move: error(Win rate:%3.1f%%)"
 msgstr "最善手: エラー(勝率:%3.1f%%)"
 
-#: engine\UCTSearch.cpp:985
+#: engine\UCTSearch.cpp:987
 #, c-format
 msgid "Best move: %s(Win rate:%3.1f%%)"
 msgstr "最善手: %s(勝率:%3.1f%%)"
