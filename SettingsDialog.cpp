@@ -56,8 +56,8 @@ void SettingsDialog::doInit(wxInitDialogEvent& event) {
 #else
         wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)1);
 #endif
-        m_radioBoxEngineType->Enable(2, false);
     }
+    m_radioBoxEngineType->Enable(2, false);
 #endif
     m_radioBoxEngineType->SetSelection(engine_type);
     if (engine_type == 0) {
