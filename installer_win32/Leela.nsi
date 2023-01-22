@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "2.0.2"
+!define VERSION   "2.0.3"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -509,7 +509,13 @@ Section "Uninstall"
   Delete "$INSTDIR\MSVCP140.dll"
   Delete "$INSTDIR\VCRUNTIME140.dll"
   Delete "$INSTDIR\VCRUNTIME140_1.dll"
+  Delete "$INSTDIR\nvinfer.dll"
+  Delete "$INSTDIR\nvinfer_builder_resource.dll"
+  Delete "$INSTDIR\nvinfer_plugin.dll"
+  Delete "$INSTDIR\nvonnxparser.dll"
+  Delete "$INSTDIR\nvparsers.dll"
   Delete "$INSTDIR\katago.exe"
+  Delete "$INSTDIR\katago_TRT.exe"
   Delete "$INSTDIR\katago_OpenCL.exe"
   Delete "$INSTDIR\LeelaGUI.ini"
   Delete "$INSTDIR\LeelaGUI_OpenCL.ini"
