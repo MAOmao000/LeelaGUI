@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "2.0.3"
+!define VERSION   "2.0.4"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -333,22 +333,9 @@ Section "LeelaI18N" leela
 
   File "bin\${LEELABIN}"
   File "bin\libopenblas.dll"
-  File "bin\libcrypto-1_1-x64.dll"
-  File "bin\libssl-1_1-x64.dll"
-  File "bin\libz.dll"
-  File "bin\libzip.dll"
-  File "bin\bz2.dll"
-  File "bin\zip.dll"
-  File "bin\zlib.dll"
-  File "bin\MSVCP140.dll"
-  File "bin\VCRUNTIME140.dll"
-  File "bin\VCRUNTIME140_1.dll"
   File "bin\katago.exe"
   File "bin\katago_avx2.exe"
   File "bin\katago_TRT.exe"
-  #File "bin\LeelaGUI.ini"
-  #File "bin\analysis_example.cfg"
-  #File "bin\gtp_example.cfg"
   File "bin\katago_common.cfg"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "bin\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
