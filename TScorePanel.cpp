@@ -68,7 +68,59 @@ void TScorePanel::doPaint(wxPaintEvent& event) {
         path.AddLineToPoint(width, height/2.0);
         gc->StrokePath(path);
 
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        if (parent->getUseKataGo()) {
+            // Score lines
+            if (data.size() > 1) {
+                double max_move = std::get<0>(data.back());
+                auto pen_array = { wxBLACK_PEN, wxRED_PEN  };
+                int tuple_idx = 1;
+
+                for (auto const& pen : pen_array) {
+                    gc->SetPen(*pen);
+                    path = gc->CreatePath();
+                    // Starting point
+                    if (tuple_getter(data[0], tuple_idx) >= 0.0) {
+                        path.MoveToPoint((std::get<0>(data[0]) / max_move) * width,
+                                         (1.0 - tuple_getter(data[0], tuple_idx)) * height);
+                    } else {
+                        // Not valid, assume 0.5 for start
+                        path.MoveToPoint((std::get<0>(data[0]) / max_move) * width,
+                                         0.5 * height);
+                    }
+                    for (auto const& scoretuple: data) {
+                        if (tuple_getter(scoretuple, tuple_idx) >= 0.0) {
+                            path.AddLineToPoint((std::get<0>(scoretuple) / max_move) * width,
+                                                (1.0 - tuple_getter(scoretuple, tuple_idx)) * height);
+                        }
+                    }
+                    gc->StrokePath(path);
+                    tuple_idx++;
+                }
+                // Current move
+                if (m_CurrentMove >= 0) {
+                    double current_x = ((double)m_CurrentMove/max_move) * width;
+                    gc->SetPen(*wxGREY_PEN);
+                    path = gc->CreatePath();
+                    path.MoveToPoint(current_x, 0.0);
+                    path.AddLineToPoint(current_x, height);
+                    gc->StrokePath(path);
+                }
+            }
+
+            // Legend
+            wxFont colfont(height / 30.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+            wxFont legfont(height / 40.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+            gc->SetFont(colfont, *wxBLACK);
+            wxDouble fontheight, fontheight2;
+            gc->GetTextExtent(_("WHITE"), NULL, &fontheight);
+            gc->DrawText(_("BLACK"), 0.0, 0.0);
+            gc->DrawText(_("WHITE"), 0.0, height - fontheight);
+            gc->SetFont(legfont, *wxBLACK);
+            gc->GetTextExtent(_("Win rate"), NULL, &fontheight2);
+            gc->DrawText(_("Win rate"), 0.0, fontheight * 1.1);
+            gc->SetFont(legfont, *wxRED);
+            gc->DrawText(_("Score"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
+        } else {
             // Score lines
             if (data.size() > 1) {
                 double max_move = std::get<0>(data.back());
@@ -122,58 +174,6 @@ void TScorePanel::doPaint(wxPaintEvent& event) {
             gc->DrawText(_("Monte Carlo"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
             gc->SetFont(legfont, *wxRED);
             gc->DrawText(_("Network"), 0.0, fontheight * 1.1 + fontheight2 * 2.4);
-        } else {
-            // Score lines
-            if (data.size() > 1) {
-                double max_move = std::get<0>(data.back());
-                auto pen_array = { wxBLACK_PEN, wxRED_PEN  };
-                int tuple_idx = 1;
-
-                for (auto const& pen : pen_array) {
-                    gc->SetPen(*pen);
-                    path = gc->CreatePath();
-                    // Starting point
-                    if (tuple_getter(data[0], tuple_idx) >= 0.0) {
-                        path.MoveToPoint((std::get<0>(data[0]) / max_move) * width,
-                                         (1.0 - tuple_getter(data[0], tuple_idx)) * height);
-                    } else {
-                        // Not valid, assume 0.5 for start
-                        path.MoveToPoint((std::get<0>(data[0]) / max_move) * width,
-                                         0.5 * height);
-                    }
-                    for (auto const& scoretuple: data) {
-                        if (tuple_getter(scoretuple, tuple_idx) >= 0.0) {
-                            path.AddLineToPoint((std::get<0>(scoretuple) / max_move) * width,
-                                                (1.0 - tuple_getter(scoretuple, tuple_idx)) * height);
-                        }
-                    }
-                    gc->StrokePath(path);
-                    tuple_idx++;
-                }
-                // Current move
-                if (m_CurrentMove >= 0) {
-                    double current_x = ((double)m_CurrentMove/max_move) * width;
-                    gc->SetPen(*wxGREY_PEN);
-                    path = gc->CreatePath();
-                    path.MoveToPoint(current_x, 0.0);
-                    path.AddLineToPoint(current_x, height);
-                    gc->StrokePath(path);
-                }
-            }
-
-            // Legend
-            wxFont colfont(height / 30.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-            wxFont legfont(height / 40.0, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-            gc->SetFont(colfont, *wxBLACK);
-            wxDouble fontheight, fontheight2;
-            gc->GetTextExtent(_("WHITE"), NULL, &fontheight);
-            gc->DrawText(_("BLACK"), 0.0, 0.0);
-            gc->DrawText(_("WHITE"), 0.0, height - fontheight);
-            gc->SetFont(legfont, *wxBLACK);
-            gc->GetTextExtent(_("Win rate"), NULL, &fontheight2);
-            gc->DrawText(_("Win rate"), 0.0, fontheight * 1.1);
-            gc->SetFont(legfont, *wxRED);
-            gc->DrawText(_("Score"), 0.0, fontheight * 1.1 + fontheight2 * 1.2);
         }
 
         delete gc;

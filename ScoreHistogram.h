@@ -18,13 +18,16 @@ class ScoreHistogram : public TScoreHistogram
 	public:
 		/** Constructor */
 		ScoreHistogram( wxWindow* parent );
-                void ClearHistogram();
+        void ClearHistogram();
+        void setUseKataGo(bool use_KataGo);
+        bool getUseKataGo();
 	//// end generated class members
-        private:
-            void doNewScore(wxCommandEvent& event);
+    private:
+        void doNewScore(wxCommandEvent& event);
 
-            static std::vector<std::tuple<int, float, float, float>> m_scores;
-            friend class TScorePanel;
+        static std::vector<std::tuple<int, float, float, float>> m_scores;
+        bool m_use_KataGo;
+    friend class TScorePanel;
 
 };
 

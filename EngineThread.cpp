@@ -4,16 +4,11 @@
 #include "UCTSearch.h"
 #include "MainFrame.h"
 #include "Utils.h"
-#ifdef USE_THREAD
 #include "MCOTable.h"
-#endif
 
 using namespace std;
-#ifdef USE_THREAD
 using std::this_thread::sleep_for;
-#endif
 
-#ifdef USE_THREAD
 TEngineThread::TEngineThread(GameState& state,
                              MainFrame *frame,
                              wxProcess *process,
@@ -46,8 +41,9 @@ TEngineThread::TEngineThread(GameState& state,
      m_runflag(true)
 {
     m_state->set_timecontrol(m_tm);
+    m_katago_engine = true;
 }
-#else
+
 TEngineThread::TEngineThread(const GameState& state, MainFrame *frame)
     :m_state(std::make_unique<GameState>(state)),
      m_frame(frame),
@@ -61,14 +57,15 @@ TEngineThread::TEngineThread(const GameState& state, MainFrame *frame)
      m_update_score(true),
      m_runflag(true)
 {
+    m_katago_engine = false;
 }
-#endif
 
 void TEngineThread::Run() {
     auto Func = [this] {
         int who = m_state->get_to_move();
         try {
-            if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            //if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            if (!m_katago_engine) {
                 // Leela original engine start
                 auto search = make_unique<UCTSearch>(*m_state);
 
@@ -113,7 +110,6 @@ void TEngineThread::Run() {
                 return;
                 // Leela original engine end
             }
-#ifdef USE_THREAD
             // KataGo analysis engine start
             int board_size = m_state->board.get_boardsize();
             string tmp_query = "";
@@ -246,14 +242,20 @@ void TEngineThread::Run() {
                         TRowVector row;
                         row.emplace_back(_("Move").utf8_str(), j2["move"].get<std::string>());
                         row.emplace_back(_("Effort%").utf8_str(),
-                            std::to_string(100.0 * j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
-                        row.emplace_back(_("Simulations").utf8_str(), std::to_string(j2["visits"].get<int>()));
+                            std::to_string(100.0 * j2["visits"].get<int>()
+                                / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+                        row.emplace_back(_("Simulations").utf8_str(),
+                                         std::to_string(j2["visits"].get<int>()));
                         if (who == FastBoard::BLACK) {
-                            row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 * j2["winrate"].get<float>()));
-                            row.emplace_back(_("Score").utf8_str(), std::to_string(j2["scoreLead"].get<float>()));
+                            row.emplace_back(_("Win%").utf8_str(),
+                                             std::to_string(100.0 * j2["winrate"].get<float>()));
+                            row.emplace_back(_("Score").utf8_str(),
+                                             std::to_string(j2["scoreLead"].get<float>()));
                         } else {
-                            row.emplace_back(_("Win%").utf8_str(), std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
-                            row.emplace_back(_("Score").utf8_str(), std::to_string(-1.0 * j2["scoreLead"].get<float>()));
+                            row.emplace_back(_("Win%").utf8_str(),
+                                             std::to_string(100.0 - 100.0 * j2["winrate"].get<float>()));
+                            row.emplace_back(_("Score").utf8_str(),
+                                             std::to_string(-1.0 * j2["scoreLead"].get<float>()));
                         }
                         std::string pvstring;
                         nlohmann::json j3 = j2["pv"];
@@ -265,16 +267,28 @@ void TEngineThread::Run() {
                         }
                         row.emplace_back(_("PV").utf8_str(), pvstring);
                         analysis_data.emplace_back(row);
-                        move_data->emplace_back(j2["move"].get<std::string>(), (float)(j2["visits"].get<int>() / (double)res_1_json["rootInfo"]["visits"].get<int>()));
+                        move_data->emplace_back(j2["move"].get<std::string>(),
+                            (float)(j2["visits"].get<int>()
+                                / (double)res_1_json["rootInfo"]["visits"].get<int>()));
                     }
                     auto query_end = std::chrono::system_clock::now();
-                    int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
+                    int think_time
+                        = (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                            (query_end - m_query_start).count();
                     if (who == FastBoard::BLACK) {
-                        Utils::GUIprintf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
-                            100 - winrate * 100, -1 * scoreMean, think_time, res_1_json["rootInfo"]["visits"].get<int>());
+                        Utils::GUIprintf((_("Under analysis... ") +
+                            _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
+                                         100 - winrate * 100,
+                                         -1 * scoreMean,
+                                         think_time,
+                                         res_1_json["rootInfo"]["visits"].get<int>());
                     } else {
-                        Utils::GUIprintf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
-                            winrate * 100, scoreMean, think_time, res_1_json["rootInfo"]["visits"].get<int>());
+                        Utils::GUIprintf((_("Under analysis... ") +
+                            _("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d")).utf8_str(),
+                                         winrate * 100,
+                                         scoreMean,
+                                         think_time,
+                                         res_1_json["rootInfo"]["visits"].get<int>());
                     }
                     Utils::GUIAnalysis((void*)analysis_packet.release());
                     Utils::GUIBestMoves((void*)move_data.release());
@@ -290,13 +304,16 @@ void TEngineThread::Run() {
                     } else if (scoreMean < 0.0) {
                         lead = 0.5 + (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40);
                     }
-                    std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, 1.0 - winrate, lead, 1.0 - winrate);
+                    std::tuple<int, float, float, float> scoretuple
+                        = make_tuple(movenum, 1.0 - winrate, lead, 1.0 - winrate);
                     event->SetClientData((void*)new auto(scoretuple));
 
                     wxQueueEvent(m_frame->GetEventHandler(), event);
                 }
                 auto query_end = std::chrono::system_clock::now();
-                int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
+                int think_time
+                    = (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                        (query_end - m_query_start).count();
                 Utils::GUIprintf(_("Analysis stopped. Time:%d[ms] Visits:%d").utf8_str(),
                                  think_time, res_1_json["rootInfo"]["visits"].get<int>());
                 m_thinking.store(false, std::memory_order_release);
@@ -364,7 +381,8 @@ void TEngineThread::Run() {
                     res_1_json = nlohmann::json::parse(res_query);
                     if (res_1_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
                         continue;
-                    } else if (res_1_json.contains("noResults") && res_1_json["noResults"].get<bool>()) {
+                    } else if (res_1_json.contains("noResults") &&
+                               res_1_json["noResults"].get<bool>()) {
                         Utils::GUIprintf(_(""));
                         m_state->stop_clock(who);
                         m_thinking.store(false, std::memory_order_release);
@@ -458,7 +476,8 @@ void TEngineThread::Run() {
                     res_2_json = nlohmann::json::parse(res_query);
                     if (res_2_json["id"].get<std::string>() != send_json["id"].get<std::string>()) {
                         continue;
-                    } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+                    } else if (res_2_json.contains("noResults") &&
+                               res_2_json["noResults"].get<bool>()) {
                         Utils::GUIprintf(_(""));
                         m_state->stop_clock(who);
                         return;
@@ -490,41 +509,51 @@ void TEngineThread::Run() {
             for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
                 m_state->m_policy.emplace_back(*itr);
             }
-            if (move_str.length() > 0) {
+            if (move_str.length() <= 0) {
+                move_str = "pass";
+            } else if (m_resigning) {
                 // KataGo's Resignation Decision
                 float initialBlackAdvantageInPoints;
                 if (m_handi.size() <= 1) {
-                    initialBlackAdvantageInPoints = 7.0 - m_state->get_komi();
+                    initialBlackAdvantageInPoints
+                        = 7.0f - m_state->get_komi();
                 } else {
-                    initialBlackAdvantageInPoints = 14.0 * (m_handi.size() - 1) + (7.0 - m_state->get_komi() - m_handi.size());
+                    initialBlackAdvantageInPoints
+                        = 14.0f * (m_handi.size() - 1) + (7.0f - m_state->get_komi() - m_handi.size());
                 }
                 int minTurnForResignation = 0;
                 float noResignationWhenWhiteScoreAbove = board_size * board_size;
-                if (initialBlackAdvantageInPoints > 0.9 && who == FastBoard::WHITE) {
+                if (initialBlackAdvantageInPoints > 0.9f && who == FastBoard::WHITE) {
                     minTurnForResignation = 1 + noResignationWhenWhiteScoreAbove / 5;
-                    float numTurnsToCatchUp = 0.60 * noResignationWhenWhiteScoreAbove - minTurnForResignation;
-                    float numTurnsSpent = (float)(m_state->get_movenum() + 1) - minTurnForResignation;
-                    if (numTurnsToCatchUp <= 1.0) {
-                        numTurnsToCatchUp = 1.0;
+                    float numTurnsToCatchUp
+                        = 0.60f * noResignationWhenWhiteScoreAbove - minTurnForResignation;
+                    float numTurnsSpent
+                        = (float)(m_state->get_movenum() + 1) - minTurnForResignation;
+                    if (numTurnsToCatchUp <= 1.0f) {
+                        numTurnsToCatchUp = 1.0f;
                     }
-                    if (numTurnsSpent <= 0.0) {
-                        numTurnsSpent = 0.0;
+                    if (numTurnsSpent <= 0.0f) {
+                        numTurnsSpent = 0.0f;
                     }
                     if (numTurnsSpent > numTurnsToCatchUp) {
                         numTurnsSpent = numTurnsToCatchUp;
                     }
-                    float resignScore = -initialBlackAdvantageInPoints * ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
-                    resignScore -= 5.0;
-                    resignScore -= initialBlackAdvantageInPoints * 0.15;
+                    float resignScore
+                        = -initialBlackAdvantageInPoints *
+                            ((numTurnsToCatchUp - numTurnsSpent) / numTurnsToCatchUp);
+                    resignScore -= 5.0f;
+                    resignScore -= initialBlackAdvantageInPoints * 0.15f;
                     noResignationWhenWhiteScoreAbove = resignScore;
                 }
                 bool resign = true;
                 if (m_state->get_movenum() + 1 < minTurnForResignation) {
                     resign = false;
-                } else if (who == FastBoard::WHITE && (-1.0 * scoreMean) > noResignationWhenWhiteScoreAbove) {
+                } else if (who == FastBoard::WHITE &&
+                           (-1.0f * scoreMean) > noResignationWhenWhiteScoreAbove) {
                     resign = false;
-                } else if ((who == FastBoard::WHITE && (-1.0 * scoreMean) > -1.0 * RESIGN_MINSCORE_DIFFERENCE) ||
-                    (who == FastBoard::BLACK && scoreMean > (-1.0 * RESIGN_MINSCORE_DIFFERENCE))) {
+                } else if ((who == FastBoard::WHITE &&
+                           (-1.0f * scoreMean) > -1.0f * RESIGN_MINSCORE_DIFFERENCE) ||
+                    (who == FastBoard::BLACK && scoreMean > (-1.0f * RESIGN_MINSCORE_DIFFERENCE))) {
                     resign = false;
                 }
                 for (size_t i = 0; i < m_state->m_win_rate.size() - 1; i++) {
@@ -542,8 +571,6 @@ void TEngineThread::Run() {
                 if (resign && m_state->m_win_rate[0] < RESIGN_THRESHOLD) {
                     move_str = "resign";
                 }
-            } else {
-                move_str = "pass";
             }
             if (move_str == "pass") {
                 m_state->play_move(who, FastBoard::PASS);
@@ -559,17 +586,20 @@ void TEngineThread::Run() {
                 float lead = 0.5f;
                 if (scoreMean > 0.0f) {
                     lead = 0.5f + (std::min)(0.5f, std::sqrt(scoreMean) / 40.0f);
-                } else if (scoreMean < 0.0) {
+                } else if (scoreMean < 0.0f) {
                     lead = 0.5f - (std::min)(0.5f, std::sqrt(-1.0f * scoreMean) / 40.0f);
                 }
-                std::tuple<int, float, float, float> scoretuple = make_tuple(movenum, winrate, lead, winrate);
+                std::tuple<int, float, float, float> scoretuple
+                    = make_tuple(movenum, winrate, lead, winrate);
                 event->SetClientData((void*)new auto(scoretuple));
 
                 wxQueueEvent(m_frame->GetEventHandler(), event);
             }
 
             auto query_end = std::chrono::system_clock::now();
-            int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>(query_end - m_query_start).count();
+            int think_time
+                = (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                    (query_end - m_query_start).count();
             if (who == FastBoard::BLACK) {
                 Utils::GUIprintf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d").utf8_str(),
                     100.0f - winrate * 100.0f, -1.0f * scoreMean, think_time, visits);
@@ -585,7 +615,6 @@ void TEngineThread::Run() {
 
             m_state->stop_clock(who);
             // KataGo analysis engine (games) end
-#endif
         } catch (std::exception& e) {
             wxString errorString;
             errorString.Printf(_("Exception %s %s\n"), typeid(e).name(), e.what());
@@ -639,7 +668,6 @@ void TEngineThread::kill_score_update(void) {
     m_update_score = false;
 }
 
-#ifdef USE_THREAD
 void TEngineThread::set_handi(std::vector<int> handi) {
     m_handi = handi;
 }
@@ -703,4 +731,3 @@ void TEngineThread::GTPSend(const wxString& sendCmd, string &res_msg, const int 
     }
     m_GTPmutex->unlock();
 }
-#endif

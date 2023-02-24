@@ -14,6 +14,7 @@ TScoreHistogram( parent )
     });
 
     wxPersistentRegisterAndRestore(this, "ScoreHistogram");
+    m_use_KataGo = false;
 }
 
 void ScoreHistogram::doNewScore(wxCommandEvent& event) {
@@ -39,4 +40,12 @@ void ScoreHistogram::doNewScore(wxCommandEvent& event) {
 
 void ScoreHistogram::ClearHistogram() {
     m_scores.clear();
+}
+
+void ScoreHistogram::setUseKataGo(bool use_KataGo) {
+    m_use_KataGo = use_KataGo;
+}
+
+bool ScoreHistogram::getUseKataGo() {
+    return m_use_KataGo;
 }

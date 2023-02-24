@@ -5,16 +5,12 @@
 #include "GameState.h"
 #include "Utils.h"
 #include <atomic>
-#ifdef USE_THREAD
-#include <vector>
-#endif
 
 class MainFrame;
 using Utils::ThreadGroup;
 
 class TEngineThread {
     public:
-#ifdef USE_THREAD
         TEngineThread(GameState& gamestate,
                       MainFrame *frame,
                       wxProcess *process,
@@ -25,9 +21,7 @@ class TEngineThread {
                       const std::string& query_id,
                       const std::chrono::time_point<std::chrono::system_clock>& query_start,
                       std::mutex *GTPmutex);
-#else
         TEngineThread(const GameState& gamestate, MainFrame *frame);
-#endif
         void Wait();
         void Run();
         void limit_visits(int visits);
@@ -40,16 +34,13 @@ class TEngineThread {
         void set_thinking(bool flag);
         bool get_thinking();
 
-#ifdef USE_THREAD
         void set_handi(std::vector<int> handi);
-#endif
         void stop_engine(void);
         void kill_score_update(void);
         GameState& get_state(void) {
             return *m_state;
         }
     private:
-#ifdef USE_THREAD
         void GTPSend(const wxString& sendCmd, std::string& inmsg, const int& sleep_ms=100);
         TimeControl m_tm;
         wxProcess *m_process;
@@ -62,7 +53,6 @@ class TEngineThread {
         std::vector<int> m_handi;
         std::atomic<bool> m_thinking;
         std::mutex *m_GTPmutex;
-#endif
         std::unique_ptr<GameState> m_state;
         MainFrame *m_frame;
         int m_maxvisits=0;
@@ -75,5 +65,6 @@ class TEngineThread {
         bool m_update_score;
         ThreadGroup m_tg{thread_pool};
         std::atomic<bool> m_runflag;
+        bool m_katago_engine;
 };
 #endif

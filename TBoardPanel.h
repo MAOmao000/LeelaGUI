@@ -24,6 +24,8 @@ public:
     void setShowTerritory(bool val);
     void setShowProbabilities(bool val);
     void setShowBestMoves(bool val);
+    void setUseKataGo(bool use_KataGo);
+    void setKataGoEngineType(int engine_type);
     bool getShowOwner();
     bool getShowMoyo();
     bool getShowProbabilities();
@@ -68,6 +70,8 @@ private:
     std::vector<float> m_Owner;
     std::vector<float> m_Probabilities;
     float m_MaxProbability;
+    bool m_use_KataGo;
+    int m_KataGo_engine_type;
 };
 
 #endif

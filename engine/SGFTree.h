@@ -32,7 +32,10 @@ public:
 
     int get_rule(void);
 
-    static std::string state_to_string(GameState * state, int compcolor, bool japanese_rule=false);
+    static std::string state_to_string(GameState * state,
+                                       int compcolor,
+                                       bool japanese_rule=false,
+                                       bool katago_engine=false);
 
 private:
     void populate_states(void);

@@ -393,7 +393,10 @@ std::vector<int> SGFTree::get_mainline() {
     return moves;
 }
 
-std::string SGFTree::state_to_string(GameState * pstate, int compcolor, bool japanese_rule) {
+std::string SGFTree::state_to_string(GameState * pstate,
+                                     int compcolor,
+                                     bool japanese_rule,
+                                     bool katago_engine) {
     std::unique_ptr<GameState> state(new GameState);
 
     // make a working copy
@@ -409,7 +412,7 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor, bool jap
     char timestr[sizeof "2017-10-16"];
     strftime(timestr, sizeof timestr, "%F", localtime(&now));
 
-    if (japanese_rule) {
+    if (katago_engine && japanese_rule) {
         header.append("(;GM[1]FF[4]RU[Japanese]");
     } else {
         header.append("(;GM[1]FF[4]RU[Chinese]");
@@ -470,14 +473,14 @@ std::string SGFTree::state_to_string(GameState * pstate, int compcolor, bool jap
 
     if (state->get_last_move() != FastBoard::RESIGN) {
         float score;
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-            score = state->final_score();
-        } else {
+        if (katago_engine) {
             if (state->get_to_move() == FastBoard::WHITE) {
                 score = -1.0f * (ceil(state->m_black_score) - 0.5);
             } else {
                 score = ceil(state->m_black_score) - 0.5;
             }
+        } else {
+            score = state->final_score();
         }
 
         if (score > 0.0f) {
