@@ -30,12 +30,14 @@ The main features added are as follows.
 
 ## Additional features when KataGo engine is selected
 - Changes to the New Game dialog  
+  - You can specify the used engine for new game.  
+  - You can specify the rule for new game.  
   - By selecting Specify a number in Engine max level, the number of visits per move can be specified as a fine number from 1.  
-  - You can specify rule for new games.  
 - Changes to the Game Score dialog  
   Shows the average thinking time and average number of visits per move for KataGo during the current game.  
 - Changes to the Settings dialog  
-  You can specify the rules for rating games.  
+  - You can specify the used engine for rated game.  
+  - You can specify the rules for rated game.  
 
 ## Build from source code with cmake
 wxWidgets-3.2 or later requires cmake 3.24 or later.  
