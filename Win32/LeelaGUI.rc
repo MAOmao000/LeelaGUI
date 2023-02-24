@@ -28,23 +28,23 @@ LANGUAGE 17, 1
 // remains consistent on all systems.
 AAAA                    ICON                    "..\\img\\leela_mock.ico"
 
-WXICON_AAA              ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\std.ico"
+WXICON_AAA              ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\std.ico"
 
-WXICON_SMALL_CLOSED_FOLDER ICON                 "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\folder1.ico"
+WXICON_SMALL_CLOSED_FOLDER ICON                 "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\folder1.ico"
 
-WXICON_SMALL_OPEN_FOLDER ICON                   "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\folder2.ico"
+WXICON_SMALL_OPEN_FOLDER ICON                   "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\folder2.ico"
 
-WXICON_SMALL_FILE       ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\file1.ico"
+WXICON_SMALL_FILE       ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\file1.ico"
 
-WXICON_SMALL_COMPUTER   ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\computer.ico"
+WXICON_SMALL_COMPUTER   ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\computer.ico"
 
-WXICON_SMALL_DRIVE      ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\drive.ico"
+WXICON_SMALL_DRIVE      ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\drive.ico"
 
-WXICON_SMALL_CDROM      ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\cdrom.ico"
+WXICON_SMALL_CDROM      ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\cdrom.ico"
 
-WXICON_SMALL_FLOPPY     ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\floppy.ico"
+WXICON_SMALL_FLOPPY     ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\floppy.ico"
 
-WXICON_SMALL_REMOVEABLE ICON                    "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\removble.ico"
+WXICON_SMALL_REMOVEABLE ICON                    "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\removble.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -94,9 +94,9 @@ IDB_WHITESTONE          BITMAP                  "..\\img\\whitestone.bmp"
 
 IDB_BLACKSTONE          BITMAP                  "..\\img\\blackstone.bmp"
 
-CSQUERY                 BITMAP                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\csquery.bmp"
+CSQUERY                 BITMAP                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\csquery.bmp"
 
-WXBITMAP_STD_COLOURS    BITMAP                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\colours.bmp"
+WXBITMAP_STD_COLOURS    BITMAP                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\colours.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -105,8 +105,8 @@ WXBITMAP_STD_COLOURS    BITMAP                  "C:\\wxWidgets-3.2.0\\include\\w
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,11,0,0
- PRODUCTVERSION 0,11,0,0
+ FILEVERSION 2,0,5,0
+ PRODUCTVERSION 2,0,5,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -121,13 +121,13 @@ BEGIN
     BEGIN
         BLOCK "040004b0"
         BEGIN
-            VALUE "FileDescription", "Leela - the Go program"
-            VALUE "FileVersion", "0.11.0.0"
-            VALUE "InternalName", "Leela"
-            VALUE "LegalCopyright", "Copyright (C) 2017 Gian-Carlo Pascutto"
-            VALUE "OriginalFilename", "LeelaGUI.exe"
-            VALUE "ProductName", "Leela"
-            VALUE "ProductVersion", "0.11.0.0"
+            VALUE "FileDescription", "LeelaI18N - the Go program"
+            VALUE "FileVersion", "2.0.5.0"
+            VALUE "InternalName", "LeelaI18N"
+            VALUE "LegalCopyright", "Copyright (C) 2017-2023 MAOmao000"
+            VALUE "OriginalFilename", "LeelaI18NGUI.exe"
+            VALUE "ProductName", "LeelaI18N"
+            VALUE "ProductVersion", "2.0.5.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -169,25 +169,25 @@ END
 // Cursor
 //
 
-WXCURSOR_HAND           CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\hand.cur"
+WXCURSOR_HAND           CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\hand.cur"
 
-WXCURSOR_BULLSEYE       CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\bullseye.cur"
+WXCURSOR_BULLSEYE       CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\bullseye.cur"
 
-WXCURSOR_PENCIL         CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\pencil.cur"
+WXCURSOR_PENCIL         CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\pencil.cur"
 
-WXCURSOR_MAGNIFIER      CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\magnif1.cur"
+WXCURSOR_MAGNIFIER      CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\magnif1.cur"
 
-WXCURSOR_ROLLER         CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\roller.cur"
+WXCURSOR_ROLLER         CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\roller.cur"
 
-WXCURSOR_PBRUSH         CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\pbrush.cur"
+WXCURSOR_PBRUSH         CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\pbrush.cur"
 
-WXCURSOR_PLEFT          CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\pntleft.cur"
+WXCURSOR_PLEFT          CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\pntleft.cur"
 
-WXCURSOR_PRIGHT         CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\pntright.cur"
+WXCURSOR_PRIGHT         CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\pntright.cur"
 
-WXCURSOR_BLANK          CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\blank.cur"
+WXCURSOR_BLANK          CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\blank.cur"
 
-WXCURSOR_CROSS          CURSOR                  "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\cross.cur"
+WXCURSOR_CROSS          CURSOR                  "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\cross.cur"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ WXCURSOR_CROSS          CURSOR                  "C:\\wxWidgets-3.2.0\\include\\w
 // RT_MANIFEST
 //
 
-wxMANIFEST_ID           RT_MANIFEST             "C:\\wxWidgets-3.2.0\\include\\wx\\msw\\wx.manifest"
+wxMANIFEST_ID           RT_MANIFEST             "C:\\wxWidgets-3.2.1\\include\\wx\\msw\\wx.manifest"
 
 
 #ifdef APSTUDIO_INVOKED
