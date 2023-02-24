@@ -54,21 +54,21 @@ cmake --build .
 	+ -DUSE_GPU=0(or1)  
 	Specify if OpenCL (GPU) is used (optional)  
 	+ -DUSE_WLCOPY=0(or1)  
-	Specify if clipboard copy is done by wl-copy command (optional)  
+	Specify if clipboard copy is done by wl-copy command (Linux option)  
 	+ -DBOOST_ROOT=xxx  
-	Specify the folder where boost will be installed (optional)  
+	Specify the folder where boost will be installed (option)  
 	+ -DOpenCL_ROOT=xxx  
-	Specify the folder where OpenCL will be installed (optional)  
+	Specify the folder where OpenCL will be installed (option)  
 	+ -DOPENBLAS_ROOT=xxx  
-	Specify the folder where OpenBLAS will be installed (optional)  
+	Specify the folder where OpenBLAS will be installed (option)  
 	+ -DwxWidgets_ROOT_DIR=xxx  
 	Specifies the folder where wxWidgets is installed (Windows option)  
 	+ -DwxWidgets_CONFIGURATION=xxx  
 	Configuration to use (e.g., msw, mswd, mswu, mswunivud, etc.) (Windows option)  
 	+ -DCMAKE_C_COMPILER=/usr/bin/clang  
-	C language compiler is clang (Required for Linux)  
+	C language compiler to use (option)  
 	+ -DCMAKE_CXX_COMPILER=/usr/bin/clang++  
-	C++ language compiler is clang++ (Required for Linux)  
+	C++ language compiler to use (option)  
 
 The following is the readme for the original LeelaGUI.  
 
