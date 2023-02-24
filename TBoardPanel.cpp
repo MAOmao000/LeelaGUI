@@ -85,6 +85,8 @@ TBoardPanel::TBoardPanel(wxWindow *parent, wxWindowID winid, const wxPoint& pos,
     m_PV.resize(FastBoard::MAXSQ);
     m_Probabilities.resize(FastBoard::MAXSQ);
     m_DisplayedStateHash = 0;
+    m_use_KataGo = false;
+    m_KataGo_engine_type = GTP::NONE;
 
     clearViz();
 }
@@ -238,9 +240,9 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
                 dc.SetPen(penEmpty);
                 dc.SetBrush(bbrush);
 #ifdef WIN32
-                dc.DrawCircle(xoff, yoff, std::max(1, (stoneSize/7)+1));
+                dc.DrawCircle(xoff, yoff, std::max(1, (stoneSize/5)+1));
 #else
-                dc.DrawCircle(xoff - 1, yoff - 1, std::max(1, (stoneSize/7)+1));
+                dc.DrawCircle(xoff - 1, yoff - 1, std::max(1, (stoneSize/5)+1));
 #endif
             }
         }
@@ -337,6 +339,9 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
     wxPen bDeadPenThick(*wxWHITE, 2, wxPENSTYLE_SOLID);
     dc.SetFont(pvfont);
 
+    wxBrush bmbrush(wxColour(128, 128, 128));
+    wxBrush wmbrush(wxColour(255, 255, 0));
+
     // PV coloring
     bool btm = m_analysisColor == FastBoard::BLACK;
 
@@ -363,22 +368,23 @@ void TBoardPanel::doPaint(wxPaintEvent& event) {
                        && ((!btm && m_PV[vtx] > 0 && (m_PV[vtx] % 2 == 1))
                            || (btm && m_PV[vtx] > 0 && (m_PV[vtx] % 2 == 0))))) {
                 dc.DrawBitmap(wstone, xxoff, yyoff, true);
-            }  else if (m_showOwner) {
+            } // else if (m_showOwner) {
+            if (m_showOwner) {
                 float ratio = 2.0f * fabs(0.5f - m_Owner[vtx]);
                 int miniDiam = (stoneDiam * ratio) - 1;
                 if (miniDiam >= 3) {
+                    miniDiam = (stoneDiam * ratio * 0.8f) - 1;
                     int xxxoff = (xoff - (miniDiam/2));
                     int yyyoff = (yoff - (miniDiam/2));
 
-                    wxImage* refStone = nullptr;
                     if (m_Owner[vtx] > 0.5f) {
-                        refStone = &m_blackStone;
+                        dc.SetBrush(bmbrush);
+                        dc.DrawRoundedRectangle(xxxoff, yyyoff, miniDiam, miniDiam, 0);
                     } else {
-                        refStone = &m_whiteStone;
+                        dc.SetBrush(wmbrush);
+                        dc.DrawRoundedRectangle(xxxoff, yyyoff, miniDiam, miniDiam, 0);
                     }
-                    wxBitmap mini = wxBitmap(refStone->Scale(miniDiam, miniDiam,
-                                                             wxIMAGE_QUALITY_HIGH));
-                    dc.DrawBitmap(mini, xxxoff, yyyoff, true);
+                    dc.SetBrush(rbrush);
                 }
             }
 
@@ -478,7 +484,7 @@ void TBoardPanel::doLeftMouse(wxMouseEvent& event) {
         if (m_State->legal_move(vtx)) {
             wxCommandEvent event_w(wxEVT_NEW_MOVE, GetId());
             event_w.SetEventObject(this);
-            if (cfg_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
+            if (m_use_KataGo && m_KataGo_engine_type == GTP::GTP_INTERFACE) {
                 wxString msg;
                 if (m_State->get_to_move() == FastBoard::BLACK) {
                     msg = wxString("play b " + m_State->move_to_text(vtx));
@@ -567,7 +573,7 @@ void TBoardPanel::doMoyo() {
 void TBoardPanel::doOwner() {
     int boardsize = m_State->board.get_boardsize();
 
-    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+    if (m_use_KataGo) {
         if (m_State->m_owner.size() > 0) {
             m_Owner.clear();
             for (auto itr = m_State->m_owner.begin(); itr != m_State->m_owner.end(); ++itr) {
@@ -575,6 +581,9 @@ void TBoardPanel::doOwner() {
             }
             return;
         }
+        m_Owner.resize(FastBoard::MAXSQ);
+        std::fill(m_Owner.begin(), m_Owner.end(), 0.5f);
+        return;
     }
 
     if (!MCOwnerTable::get_MCO()->is_primed()) {
@@ -656,7 +665,7 @@ void TBoardPanel::doDisplayMainline(wxCommandEvent& event) {
 
 void TBoardPanel::doProbabilities() {
     if (m_State->board.get_hash() != m_DisplayedStateHash) {
-        if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+        if (m_use_KataGo) {
             if (m_State->m_policy.size() > 0) {
                 m_Probabilities.clear();
                 for (auto itr = m_State->m_policy.begin(); itr != m_State->m_policy.end(); ++itr) {
@@ -666,6 +675,9 @@ void TBoardPanel::doProbabilities() {
                 m_DisplayedStateHash = m_State->board.get_hash();
                 return;
             }
+            std::fill(m_Probabilities.begin(), m_Probabilities.end(), 0.0f);
+            m_MaxProbability = 0.0f;
+            return;
         }
         std::fill(m_Probabilities.begin(), m_Probabilities.end(), 0.0f);
         m_MaxProbability = 0.0f;
@@ -721,4 +733,12 @@ void TBoardPanel::doBestMovesUpdate(wxCommandEvent& event) {
         m_DisplayedStateHash = m_State->board.get_hash();
         Refresh();
     }
+}
+
+void TBoardPanel::setUseKataGo(bool use_KataGo) {
+    m_use_KataGo = use_KataGo;
+}
+
+void TBoardPanel::setKataGoEngineType(int engine_type) {
+    m_KataGo_engine_type = engine_type;
 }
