@@ -55,7 +55,11 @@ bool MyApp::OnInit()
     SetUnhandledExceptionFilter(ExceptFilterProc);
 #endif
 
+#ifdef USE_GPU
+    wxConfig * config = new wxConfig(wxT("LeelaI18NGPU"), wxT("Sjeng.Org"));
+#else
     wxConfig * config = new wxConfig(wxT("LeelaI18N"), wxT("Sjeng.Org"));
+#endif
     wxConfig::Set(config);
 
 #ifdef WIN32
