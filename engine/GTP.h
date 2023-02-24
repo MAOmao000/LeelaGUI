@@ -38,7 +38,6 @@ extern int cfg_random_loops;
 extern std::string cfg_logfile;
 extern FILE* cfg_logfile_handle;
 extern bool cfg_quiet;
-extern int cfg_lang;
 extern int cfg_use_engine;
 extern int cfg_engine_type;
 extern bool cfg_board25;
@@ -50,7 +49,7 @@ public:
     static constexpr int ANALYSIS = 1;
     static constexpr int GTP_INTERFACE = 2;
     static bool execute(GameState & game, std::string xinput);
-    static void setup_default_parameters(int lang=0, int use_engine=ORIGINE_ENGINE, bool board25=true);
+    static void setup_default_parameters(int use_engine=ORIGINE_ENGINE, bool board25=true);
     static bool perform_self_test(GameState & state);
 private:
     static const int GTP_VERSION = 2;

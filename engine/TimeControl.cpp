@@ -14,7 +14,6 @@ TimeControl::TimeControl(int boardsize, int maintime, int byotime,
       m_boardsize(boardsize) {
 
     reset_clocks();
-    set_boardsize(boardsize);
 
     auto time_remaining = m_maintime;
     auto moves_remaining = get_moves_expected(m_boardsize, 1);
@@ -119,8 +118,6 @@ void TimeControl::display_times() {
     myprintf("\n");
 }
 
-//int TimeControl::max_time_for_move(const int boardsize, const int color,
-//                                   const size_t movenum) const {
 int TimeControl::max_time_for_move(int color, const size_t movenum) {
     // default: no byo yomi (absolute)
     auto time_remaining = m_remaining_time[color];
@@ -179,25 +176,15 @@ int TimeControl::max_time_for_move(int color, const size_t movenum) {
 
 size_t TimeControl::opening_moves(const int boardsize) const {
     auto num_intersections = boardsize * boardsize;
-    //auto fast_moves = num_intersections / 6;
     auto fast_moves = num_intersections / 4;
     return fast_moves;
 }
 
 int TimeControl::get_moves_expected(const int boardsize,
                                     const size_t movenum) const {
-    /*
-    auto board_div = 5;
-    if (cfg_timemanage != TimeManagement::OFF) {
-        // We will take early exits with time management on, so
-        // it's OK to make our base time bigger.
-        board_div = 9;
-    }
-    */
 
     // Note this is constant as we play, so it's fair
     // to underestimate quite a bit.
-    //auto base_remaining = (boardsize * boardsize) / board_div;
 
     // Don't think too long in the opening.
     auto fast_moves = opening_moves(boardsize);
@@ -232,16 +219,6 @@ void TimeControl::adjust_time(int color, int time, int stones) {
             // KGS extension
             m_periods_left[color] = stones;
         }
-    }
-}
-
-void TimeControl::set_boardsize(int boardsize) {
-    // Note this is constant as we play, so it's fair
-    // to underestimate quite a bit.
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
-        m_moves_expected = (boardsize * boardsize) / 2;
-    } else {
-        m_moves_expected = (boardsize * boardsize) / 5;
     }
 }
 

@@ -60,12 +60,11 @@ int cfg_random_loops;
 std::string cfg_logfile;
 FILE* cfg_logfile_handle;
 bool cfg_quiet;
-int cfg_lang;
 int cfg_use_engine;
 int cfg_engine_type;
 bool cfg_board25;
 
-void GTP::setup_default_parameters(int lang, int use_engine, bool board25) {
+void GTP::setup_default_parameters(int use_engine, bool board25) {
     cfg_allow_pondering = true;
     cfg_allow_book = false;
     cfg_num_threads = std::max(1, std::min(SMP::get_num_cpus(), MAX_CPUS));
@@ -104,7 +103,6 @@ void GTP::setup_default_parameters(int lang, int use_engine, bool board25) {
     cfg_random_loops = 4;
     cfg_logfile_handle = nullptr;
     cfg_quiet = false;
-    cfg_lang = lang;
     cfg_engine_type = use_engine;
     if (use_engine) {
         cfg_use_engine = KATAGO_ENGINE;

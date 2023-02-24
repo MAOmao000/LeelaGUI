@@ -19,7 +19,6 @@ void GameState::init_game(int size, float komi) {
     game_history.clear();
     game_history.push_back(*this);
 
-    m_timecontrol.set_boardsize(board.get_boardsize());
     m_timecontrol.reset_clocks();
 
     m_policy.clear();

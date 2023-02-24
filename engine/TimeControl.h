@@ -18,7 +18,6 @@ public:
     void stop(int color);
     int max_time_for_move(int color, const size_t movenum = 0);
     void adjust_time(int color, int time, int stones);
-    void set_boardsize(int boardsize);
     void display_times();
     int get_remaining_time(int color);
     void reset_clocks();
@@ -35,7 +34,6 @@ private:
     int m_byotime;
     int m_byostones;
     int m_byoperiods;
-    int m_moves_expected;
     int m_boardsize;
     int m_mintime;
 
