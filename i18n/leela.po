@@ -497,6 +497,10 @@ msgstr "白"
 msgid "Your color"
 msgstr "手番"
 
+#: GUI.cpp:403
+msgid "Use engine"
+msgstr "対局に使用するエンジン"
+
 #: GUI.cpp:401
 msgid "100 simulations"
 msgstr "100回試行"
@@ -613,33 +617,49 @@ msgstr "設定"
 msgid "Engine Settings"
 msgstr "エンジン設定"
 
-#: GUI.cpp:714
-msgid "Allow Passes"
-msgstr "パスを許可"
+#: GUI.cpp:720
+msgid "Pondering (Leela)"
+msgstr "相手手番中の先読み(Leela)"
 
-#: GUI.cpp:718
-msgid "Pondering"
-msgstr "相手手番中も先読みする"
+#: GUI.cpp:723
+msgid "Pondering (KataGo)"
+msgstr "相手手番中の先読み(KataGo)"
 
-#: GUI.cpp:721
-msgid "Resignations"
-msgstr "投了を許可"
+#: GUI.cpp:726
+msgid "Resignations (Leela)"
+msgstr "投了を許可(Leela)"
 
-#: GUI.cpp:725
-msgid "Neural Networks"
-msgstr "ニューラルネットワーク"
+#: GUI.cpp:730
+msgid "Resignations (KataGo)"
+msgstr "投了を許可(KataGo)"
 
-#: GUI.cpp:735
+#: GUI.cpp:734
+msgid "Allow Passes (Leela only)"
+msgstr "パスを許可(Leelaのみ)"
+
+#: GUI.cpp:738
+msgid "Neural Networks (Leela only)"
+msgstr "ニューラルネット(Leelaのみ)"
+
+#: GUI.cpp:754
 msgid "Chinese"
 msgstr "中国ルール"
 
-#: GUI.cpp:735
+#: GUI.cpp:754
 msgid "Japanese"
 msgstr "日本ルール"
 
-#: GUI.cpp:737
-msgid "Default Rule"
-msgstr "デフォルトルール"
+#: GUI.cpp:756
+msgid "Rule of KataGo"
+msgstr "KataGoのルール"
+
+#: GUI.cpp:762
+msgid "Engine used in rated game"
+msgstr "レーティング対局に使用するエンジン"
+
+#: GUI.cpp:769
+msgid "Note : Leela only supports Chinese rules"
+msgstr "注: Leela エンジンは中国ルールのみ対応"
 
 #: GUI.cpp:741
 msgid "Leela or ini File"
