@@ -19,6 +19,10 @@ The main features added are as follows.
   If the "dispute" button in the Score Dialog has the same processing as the "OK" button, the "dispute" button is not displayed.  
 - Change the coordinate scale of the board  
   The font of the coordinate scale on the board was slightly enlarged for easier reading, and lowercase letters were changed to uppercase letters.  
+- Change the display size of the star points on the board  
+  Display the stars on the board a little larger.  
+- Ownership display shape change  
+  Change the ownership display from a circle to a rectangle (because if you own 100%, you won't know if you have a stone or not).  
 - Changes to the Settings dialog  
   Added "japanese" checkboxes in Settings Dialog. Restart the program to reflect the result.  
 - Change installation destination  
@@ -30,29 +34,8 @@ The main features added are as follows.
 - Changes to the Game Score dialog  
   Shows the average thinking time and average number of visits per move for KataGo during the current game.  
 - Changes to the Settings dialog  
-  Default rules allow selection of Chinese and Japanese.  
-- Initial configuration file  
-  KataGo configuration definition information can be changed in the initial configuration file (.ini file).  
+  Rule allow selection of Chinese rulu and Japanese rule.  
 
-## LeelaGUI_OpenCL.ini" or "LeelaGUI.ini" file when using KataGo engine
-Initial configuration file (.ini file) has been optional since v2.0.0.  
-
-```
-katago_OpenCL.exe analysis -config analysis_example.cfg -model kata1-b40c256-s11840935168-d2898845681.bin.gz -override-config "numAnalysisThreads=1,numSearchThreadsPerAnalysisThread=8"
-
-{
-  "rules":"chinese",             # Rules to be used when playing a game of Baduk (default:japanese)
-  "whiteHandicapBonus":"N",      # Designation to add the number of handicaped stones to the calculation of komi (default:undefined)
-  "analysisPVLen":15,            # KataGo search depth (default:15)
-  "reportDuringSearchEvery":2.0, # Interval (in seconds) at which KataGo sends analysis data to LeelaGUI at analyze (default:2.0)
-  "overrideSettings":
-    {
-      "wideRootNoise":0.0        # KataGo search range (default:0.04)
-    }
-  "maxVisitsAnalysis":1000000,   # Maximum number of KataGo searches at analyze (default:1000000)
-  "maxTimeAnalysis":3600         # Maximum KataGo search time (seconds) at analyze (default:3600)
-}
-```
 ## Build from source code with cmake
 wxWidgets-3.2 or later requires cmake 3.24 or later.  
 ```
@@ -60,15 +43,13 @@ git clone https://github.com/MAOmao000/LeelaGUI.git
 cd LeelaGUI
 mkdir build
 cd build
-cmake .. -DUSE_GPU=1 -DUSE_THREAD=0 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DwxWidgets_CONFIGURATION=mswu -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+cmake .. -DUSE_GPU=1 -DUSE_WLCOPY=0 -DBOOST_ROOT=C:\boost\x64 -DOpenCL_ROOT=C:\OpenCL-SDK\install -DOPENBLAS_ROOT=C:\OpenBLAS-0.3.20-x64 -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DwxWidgets_CONFIGURATION=mswu -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
 cmake --build .
 ```
   
 - The arguments are as follows.  
 	+ -DUSE_GPU=0(or1)  
 	Specify if OpenCL (GPU) is used (optional)  
-	+ -DUSE_THREAD=0(or1)  
-	Specify if communicating with KataGo via threaded interface (optional)  
 	+ -DUSE_WLCOPY=0(or1)  
 	Specify if clipboard copy is done by wl-copy command (optional)  
 	+ -DBOOST_ROOT=xxx  
