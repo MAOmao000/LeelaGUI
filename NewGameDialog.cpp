@@ -50,6 +50,14 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     int color = wxConfig::Get()->ReadLong(wxT("DefaultColor"), (long)0);
     m_radioBoxColor->SetSelection(color);
 
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        m_radioBoxEngine->SetSelection(0);
+        m_radioBoxEngine->Enable(false);
+    } else {
+        int use_engine = wxConfig::Get()->ReadLong(wxT("useEngine"), (long)0);
+        m_radioBoxEngine->SetSelection(use_engine);
+    }
+
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
 
@@ -102,6 +110,9 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
 
     int color = m_radioBoxColor->GetSelection();
     wxConfig::Get()->Write(wxT("DefaultColor"), (long)color);
+
+    int use_engine = m_radioBoxEngine->GetSelection();
+    wxConfig::Get()->Write(wxT("useEngine"), (long)use_engine);
 
     int handicap = m_spinCtrlHandicap->GetValue();
     wxConfig::Get()->Write(wxT("DefaultHandicap"), (long)handicap);

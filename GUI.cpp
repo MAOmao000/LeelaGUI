@@ -384,7 +384,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer9->Add( m_staticText11, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer9->Add( sbSizer9, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	bSizer9->Add( sbSizer9, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 
 	bSizer11->Add( bSizer9, 0, wxALL|wxEXPAND, 5 );
@@ -397,6 +397,12 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_radioBoxColor = new wxRadioBox( this, wxID_ANY, _("Your color"), wxDefaultPosition, wxDefaultSize, m_radioBoxColorNChoices, m_radioBoxColorChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBoxColor->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxColor, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	wxString m_radioBoxEngineChoices[] = { _("Leela"), _("KataGo") };
+	int m_radioBoxEngineNChoices = sizeof( m_radioBoxEngineChoices ) / sizeof( wxString );
+	m_radioBoxEngine = new wxRadioBox( this, wxID_ANY, _("Use engine"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineNChoices, m_radioBoxEngineChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxEngine->SetSelection( 0 );
+	bSizer10->Add( m_radioBoxEngine, 0, wxALL, 5 );
 
 	wxString m_radioBoxLevelChoices[] = { _("100 simulations"), _("500 simulations"), _("1000 simulations"), _("5000 simulations"), _("10000 simulations"), _("20000 simulations"), _("Ponder/Time priority"), _("Specify a number") };
 	int m_radioBoxLevelNChoices = sizeof( m_radioBoxLevelChoices ) / sizeof( wxString );
@@ -711,18 +717,25 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	wxGridSizer* gSizer1;
 	gSizer1 = new wxGridSizer( 0, 2, 0, 0 );
 
-	m_checkBoxPasses = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PASSTOGGLE, _("Allow Passes"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxPonderingLeela = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering (Leela)"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer1->Add( m_checkBoxPonderingLeela, 0, wxALL, 5 );
+
+	m_checkBoxPonderingKataGo = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering (KataGo)"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer1->Add( m_checkBoxPonderingKataGo, 0, wxALL, 5 );
+
+	m_checkBoxResignationsLeela = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations (Leela)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxResignationsLeela->SetValue(true);
+	gSizer1->Add( m_checkBoxResignationsLeela, 0, wxALL, 5 );
+
+	m_checkBoxResignationsKataGo = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations (KataGo)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxResignationsKataGo->SetValue(true);
+	gSizer1->Add( m_checkBoxResignationsKataGo, 0, wxALL, 5 );
+
+	m_checkBoxPasses = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PASSTOGGLE, _("Allow Passes (Leela only)"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxPasses->SetValue(true);
 	gSizer1->Add( m_checkBoxPasses, 0, wxALL, 5 );
 
-	m_checkBoxPondering = new wxCheckBox( sbSizer7->GetStaticBox(), ID_PONDERTOGGLE, _("Pondering"), wxDefaultPosition, wxDefaultSize, 0 );
-	gSizer1->Add( m_checkBoxPondering, 0, wxALL, 5 );
-
-	m_checkBoxResignations = new wxCheckBox( sbSizer7->GetStaticBox(), ID_RESIGNTOGGLE, _("Resignations"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_checkBoxResignations->SetValue(true);
-	gSizer1->Add( m_checkBoxResignations, 0, wxALL, 5 );
-
-	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, _("Neural Networks"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_checkBoxNeuralNet = new wxCheckBox( sbSizer7->GetStaticBox(), ID_NETWORKTOGGLE, _("Neural Networks (Leela only)"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxNeuralNet->SetValue(true);
 	gSizer1->Add( m_checkBoxNeuralNet, 0, wxALL, 5 );
 
@@ -732,11 +745,33 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	wxBoxSizer* bSizer22;
 	bSizer22 = new wxBoxSizer( wxVERTICAL );
 
+	wxBoxSizer* bSizer23;
+	bSizer23 = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer24;
+	bSizer24 = new wxBoxSizer( wxHORIZONTAL );
+
 	wxString m_radioBoxDefaultRuleChoices[] = { _("Chinese"), _("Japanese") };
 	int m_radioBoxDefaultRuleNChoices = sizeof( m_radioBoxDefaultRuleChoices ) / sizeof( wxString );
-	m_radioBoxDefaultRule = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Default Rule"), wxDefaultPosition, wxDefaultSize, m_radioBoxDefaultRuleNChoices, m_radioBoxDefaultRuleChoices, 1, wxRA_SPECIFY_ROWS );
-	m_radioBoxDefaultRule->SetSelection( 0 );
-	bSizer22->Add( m_radioBoxDefaultRule, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	m_radioBoxDefaultRule = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Rule of KataGo"), wxDefaultPosition, wxDefaultSize, m_radioBoxDefaultRuleNChoices, m_radioBoxDefaultRuleChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxDefaultRule->SetSelection( 1 );
+	bSizer24->Add( m_radioBoxDefaultRule, 0, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	wxString m_radioBoxRatedEngineChoices[] = { _("Leela"), _("KataGo") };
+	int m_radioBoxRatedEngineNChoices = sizeof( m_radioBoxRatedEngineChoices ) / sizeof( wxString );
+	m_radioBoxRatedEngine = new wxRadioBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Engine used in rated game"), wxDefaultPosition, wxDefaultSize, m_radioBoxRatedEngineNChoices, m_radioBoxRatedEngineChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxRatedEngine->SetSelection( 0 );
+	bSizer24->Add( m_radioBoxRatedEngine, 1, wxALL, 5 );
+
+
+	bSizer23->Add( bSizer24, 0, 0, 5 );
+
+	m_staticText12 = new wxStaticText( sbSizer7->GetStaticBox(), wxID_ANY, _("Note : Leela only supports Chinese rules"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText12->Wrap( -1 );
+	bSizer23->Add( m_staticText12, 0, wxALL, 5 );
+
+
+	bSizer22->Add( bSizer23, 1, wxEXPAND, 5 );
 
 	wxString m_radioBoxEngineTypeChoices[] = { _("Leela or ini File"), _("KataGo Analysis"), _("KataGo GTP") };
 	int m_radioBoxEngineTypeNChoices = sizeof( m_radioBoxEngineTypeChoices ) / sizeof( wxString );
@@ -748,9 +783,9 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Engine") ), wxVERTICAL );
 
 #ifdef WIN32
-	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*.exe)|*.exe"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
-#else
-	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*)|*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*.exe;*.bat)|*.exe;*.bat"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
+#else    
+	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*;*.sh)|*;*.sh"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
 #endif
 	sbSizer10->Add( m_filePickerEngine, 0, wxALL|wxEXPAND, 5 );
 
@@ -782,7 +817,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	bSizer15->Add( sbSizer7, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer9;
-	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, _("Interface Settings") ), wxVERTICAL );
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( m_panel4, wxID_ANY, _("Interface Settings") ), wxHORIZONTAL );
 
 	m_checkBoxSound = new wxCheckBox( sbSizer9->GetStaticBox(), ID_SOUNDSWITCH, _("Sound"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_checkBoxSound->SetValue(true);
@@ -801,7 +836,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	m_panel4->SetSizer( bSizer15 );
 	m_panel4->Layout();
 	bSizer15->Fit( m_panel4 );
-	bSizer13->Add( m_panel4, 1, wxALL|wxEXPAND, 5 );
+	bSizer13->Add( m_panel4, 0, wxALL, 5 );
 
 	wxBoxSizer* m_sdbSizer3;
 	m_sdbSizer3 = new wxBoxSizer( wxHORIZONTAL );

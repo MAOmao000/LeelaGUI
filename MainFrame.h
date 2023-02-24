@@ -95,12 +95,12 @@ class MainFrame : public TMainFrame {
 	void broadcastCurrentMove();
 	void startEngine();
 	bool stopEngine(bool update_score = true);
+	bool getAnalysisPolicyAndOwner();
 	// true = user accepts score
 	bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
 	bool scoreGame(float & komi, float & handicap, float & score, float & prescore);
 	void ratedGameEnd(bool won);
 	wxString rankToString(int rank);
-	void updateStatusBar(char *str);
 	void setActiveMenus();
 	void gameNoLongerCounts();
 	void loadSGFString(const wxString& SGF, int movenum = 999);
@@ -114,9 +114,21 @@ class MainFrame : public TMainFrame {
 	void OnIdle(wxIdleEvent& event);
 	void startKataGo();
 	void playMove(int who);
+	bool kataRawParse(const wxString& kataRes, const bool& win_score_read = false);
+	void make_owner_policy(std::unique_ptr<GameState>& state,
+							nlohmann::json& res_json,
+							float winrate,
+							float score);
+	void make_owner_policy(std::unique_ptr<GameState>& state,
+							std::vector<float> ownership,
+							std::vector<float> policy,
+							float policy_pass,
+							float winrate,
+							float score);
 	void postIdle();
 	void doKataGoStart(const wxString& kataRes);
-	void doAnalysisResponse(const wxString& kataRes);
+	void doAnalysisResponseWait(const wxString& kataRes);
+	void doAnalysisStartingWait(const wxString& kataRes);
 	void doAnalysisQuery(const wxString& kataRes);
 	void doGameFirstQuery(const wxString& kataRes);
 	void doGameSecondQuery(const wxString& kataRes);
@@ -125,6 +137,8 @@ class MainFrame : public TMainFrame {
 	void doKataGTPAnalysis(const wxString& kataRes);
 	void doKataGTPWait(const wxString& kataRes);
 	void doKataGTPEtcWait(const wxString& kataRes);
+	void doAnalysisSGFWait(const wxString& kataRes);
+	void doAnalysisUndoWait(const wxString& kataRes);
 #endif
 
 	static constexpr int NO_WINDOW_AUTOSIZE = 1;
@@ -137,11 +151,14 @@ class MainFrame : public TMainFrame {
 
 #ifndef USE_THREAD
 	static constexpr int WAKE_UP_TIMER_MS = 100;
+#endif
+
 	enum {
 		INIT,
 		KATAGO_STARTING,
 		KATAGO_STARTING_WAIT,
 		ANALYSIS_RESPONSE_WAIT,
+		ANALYSIS_STARTING_WAIT,
 		KATAGO_IDLE,
 		KATAGO_STOPING,
 		KATAGO_STOPED,
@@ -152,8 +169,10 @@ class MainFrame : public TMainFrame {
 		KATAGO_GTP_ANALYSIS,
 		KATAGO_GTP_WAIT,
 		KATAGO_GTP_ETC_WAIT,
+		ANALYSIS_SGF_WAIT,
+		ANALYSIS_UNDO_WAIT,
 	};
-#endif
+	int m_use_engine;
 	GameState m_State;
 	std::vector<GameState> m_StateStack;
 	int m_playerColor;
@@ -162,9 +181,12 @@ class MainFrame : public TMainFrame {
 	bool m_netsEnabled;
 	bool m_soundEnabled;
 	bool m_resignEnabled;
+	bool m_resignKataGoEnabled;
 	bool m_ponderEnabled;
+	bool m_ponderKataGoEnabled;
 	bool m_passEnabled;
-	bool m_japaneseEnabled;
+	bool m_japanese_rule;
+	bool m_japanese_rule_init;
 	wxSound m_tock;
 	bool m_ratedGame;
 	bool m_analyzing;
@@ -183,8 +205,6 @@ class MainFrame : public TMainFrame {
 	wxOutputStream* m_out{nullptr};
 	wxInputStream* m_in{nullptr};
 	wxInputStream* m_err{nullptr};
-	bool m_japanese_rule;
-	bool m_japanese_rule_init;
 	std::vector<wxString> m_ini_line;
 	std::string m_query_id;
 	int m_ini_line_idx;
@@ -201,6 +221,8 @@ class MainFrame : public TMainFrame {
 	float m_black_winrate;
 	float m_black_score;
 	int m_visit_count;
+	bool m_picked_winrate;
+	bool m_picked_score;
 	bool m_pick_policy;
 	bool m_picked_pass;
 	bool m_pick_ownership;
@@ -213,13 +235,13 @@ class MainFrame : public TMainFrame {
 	bool m_thinking;
 	int m_think_num;
 	int m_visits;
+	int m_katagoStatus;
+	std::mutex m_GTPmutex;
 #ifdef USE_THREAD
 	wxProcess* m_process{nullptr};
-	std::mutex m_GTPmutex;
 #else
 	std::unique_ptr<GameState> m_StateEngine;
 	nlohmann::json m_send_json;
-	int  m_katagoStatus;
 	bool m_runflag;
 	bool m_isDuringSearch;
 	bool m_update_score;
@@ -237,7 +259,9 @@ class MainFrame : public TMainFrame {
 	bool m_post_doForceMove;
 	bool m_post_doResign;
 	bool m_post_doAnalyze;
+	bool m_post_move_change;
 	std::string m_move_str;
+	wxString m_kataRes;
 	float m_winrate;
 	float m_scoreMean;
 	SubProcess* m_process{nullptr};

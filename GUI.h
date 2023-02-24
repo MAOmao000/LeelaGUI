@@ -233,6 +233,7 @@ class TNewGameDialog : public wxDialog
 		wxSpinCtrl* m_spinCtrlByo;
 		wxStaticText* m_staticText11;
 		wxRadioBox* m_radioBoxColor;
+		wxRadioBox* m_radioBoxEngine;
 		wxRadioBox* m_radioBoxLevel;
 		wxSpinCtrl* m_spinCtrlLevel;
 		wxCheckBox* m_checkNeuralNet;
@@ -432,9 +433,9 @@ class TSettingsDialog : public wxDialog
 	protected:
 		enum
 		{
-			ID_PASSTOGGLE = 1000,
-			ID_PONDERTOGGLE,
+			ID_PONDERTOGGLE = 1000,
 			ID_RESIGNTOGGLE,
+			ID_PASSTOGGLE,
 			ID_NETWORKTOGGLE,
 			ID_ENGINETYPE,
 			ID_SOUNDSWITCH,
@@ -443,11 +444,15 @@ class TSettingsDialog : public wxDialog
 		};
 
 		wxPanel* m_panel4;
+		wxCheckBox* m_checkBoxPonderingLeela;
+		wxCheckBox* m_checkBoxPonderingKataGo;
+		wxCheckBox* m_checkBoxResignationsLeela;
+		wxCheckBox* m_checkBoxResignationsKataGo;
 		wxCheckBox* m_checkBoxPasses;
-		wxCheckBox* m_checkBoxPondering;
-		wxCheckBox* m_checkBoxResignations;
 		wxCheckBox* m_checkBoxNeuralNet;
 		wxRadioBox* m_radioBoxDefaultRule;
+		wxRadioBox* m_radioBoxRatedEngine;
+		wxStaticText* m_staticText12;
 		wxRadioBox* m_radioBoxEngineType;
 		wxFilePickerCtrl* m_filePickerEngine;
 		wxFilePickerCtrl* m_filePickerConfigration;

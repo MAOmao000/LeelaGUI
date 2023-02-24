@@ -67,10 +67,8 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_think_num = 0;
     m_visits = 0;
     m_process = nullptr;
-
-#ifndef USE_THREAD
     m_katagoStatus = INIT;
-#endif
+    m_use_engine = -1;
 
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(NULL);
@@ -78,25 +76,12 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
     wxLog::SetTimestamp("");
 
-    m_japaneseEnabled = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), false);
-    int lang = 0;
-    if (m_japaneseEnabled) {
-        lang = 1;
-    }
+    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineType"), (long)GTP::NONE);
 
-#ifdef USE_GPU
-    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeGPU"), (long)GTP::NONE);
-#else
-    int engine_type = wxConfig::Get()->ReadLong(wxT("EngineTypeCPU"), (long)GTP::NONE);
-#endif
 #ifdef USE_THREAD
     if (engine_type == GTP::GTP_INTERFACE) {
         engine_type = GTP::ANALYSIS;
-#ifdef USE_GPU
-        wxConfig::Get()->Write(wxT("EngineTypeGPU"), (long)GTP::ANALYSIS);
-#else
-        wxConfig::Get()->Write(wxT("EngineTypeCPU"), (long)GTP::ANALYSIS);
-#endif
+        wxConfig::Get()->Write(wxT("EngineType"), (long)GTP::ANALYSIS);
     }
 #endif
 
@@ -108,7 +93,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     }
     bool board25 = true;
 
-    GTP::setup_default_parameters(lang, engine_type, board25);
+    GTP::setup_default_parameters(engine_type, board25);
 
     Bind(wxEVT_NEW_MOVE, &MainFrame::doNewMove, this);
     Bind(wxEVT_BOARD_UPDATE, &MainFrame::doBoardUpdate, this);
@@ -149,7 +134,6 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     Bind(wxEVT_RECIEVE_KATAGO, &MainFrame::doRecieveKataGo, this);
     Bind(wxEVT_TERMINATED_KATAGO, &MainFrame::doTerminatedKataGo, this);
     Bind(wxEVT_TIMER, &MainFrame::OnIdleTimer, this, m_timerIdleWakeUp.GetId());
-    m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
 #endif
 
     auto rng = std::make_unique<Random>(5489UL);
@@ -191,7 +175,15 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_passEnabled = wxConfig::Get()->ReadBool(wxT("passEnabled"), true);
     m_soundEnabled = wxConfig::Get()->ReadBool(wxT("soundEnabled"), true);
     m_resignEnabled = wxConfig::Get()->ReadBool(wxT("resignEnabled"), true);
+    m_resignKataGoEnabled = wxConfig::Get()->ReadBool(wxT("resignKataGoEnabled"), true);
     m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
+    m_ponderKataGoEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
+    int rule = wxConfig::Get()->ReadLong(wxT("KataGoRule"), (long)0);
+    if (rule == 1) {
+        m_japanese_rule_init = true;
+    } else {
+        m_japanese_rule_init = false;
+    }
     m_ratedSize     = wxConfig::Get()->ReadLong(wxT("ratedSize"), 9L);
 
 #ifdef WIN32
@@ -247,7 +239,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 
 #ifdef __WXGTK__
     SetSize(530, 640);
-    if (m_japaneseEnabled) {
+    if (wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), false)) {
         m_statusBar->SetMinHeight(30);
     }
 #elif defined(__WXMAC__)
@@ -261,15 +253,12 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 }
 
 MainFrame::~MainFrame() {
-#ifdef USE_THREAD
     stopEngine();
-#else
-    if (cfg_use_engine != GTP::KATAGO_ENGINE) {
-        stopEngine();
-    }
-#endif
-    if (m_process) {
-        if (m_process->Exists(m_process->GetPid())) {
+    if (cfg_use_engine == GTP::KATAGO_ENGINE &&
+        m_katagoStatus != INIT &&
+        m_katagoStatus != KATAGO_STOPING &&
+        m_katagoStatus != KATAGO_STOPED) {
+        if (!m_process && m_process->Exists(m_process->GetPid())) {
 #ifdef WIN32
             wxProcess::Kill(m_process->GetPid(), wxSIGKILL);
 #else
@@ -283,9 +272,8 @@ MainFrame::~MainFrame() {
 #ifndef USE_THREAD
         delete m_process;
 #endif
-        m_process = nullptr;
-    }
 
+    }
     wxConfig::Get()->Write(wxT("analysisWindowOpen"),
         m_analysisWindow != nullptr && m_analysisWindow->IsShown());
     wxConfig::Get()->Write(wxT("scoreHistogramWindowOpen"),
@@ -373,10 +361,15 @@ void MainFrame::doInit() {
                 if (!m_ini_line.size() && s.find(" gtp ") != std::string::npos) {
                     pos = s.find(" -override-config");
                     if (pos == std::string::npos) {
-                        if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                        if (m_ponderKataGoEnabled) {
                             s += R"( -override-config "ponderingEnabled=true,)";
                         } else {
                             s += R"( -override-config "ponderingEnabled=false,)";
+                        }
+                        if (m_resignKataGoEnabled) {
+                            s += R"(allowResignation=true,)";
+                        } else {
+                            s += R"(allowResignation=false,)";
                         }
                         s += R"(reportAnalysisWinratesAs=SIDETOMOVE")";
                     } else {
@@ -385,22 +378,45 @@ void MainFrame::doInit() {
                             for (size_t i = pos_ponder + sizeof("ponderingEnabled") - 1;
                                  i < s.size(); i++) {
                                 if (s.substr(i, 1) == "t" || s.substr(i, 1) == "T") {
-                                    if (!wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                                    if (!m_ponderKataGoEnabled) {
                                         s.replace(i, 4, "false");
                                     }
                                     break;
                                 } else if (s.substr(i, 1) == "f" || s.substr(i, 1) == "F") {
-                                    if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                                    if (m_ponderKataGoEnabled) {
                                         s.replace(i, 5, "true");
                                     }
                                     break;
                                 }
                             }
                         } else {
-                            if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+                            if (m_ponderKataGoEnabled) {
                                 s += R"( -override-config "ponderingEnabled=true")";
                             } else {
                                 s += R"( -override-config "ponderingEnabled=false")";
+                            }
+                        }
+                        auto pos_resign = s.find("allowResignation");
+                        if (pos_resign != std::string::npos) {
+                            for (size_t i = pos_resign + sizeof("allowResignation") - 1;
+                                 i < s.size(); i++) {
+                                if (s.substr(i, 1) == "t" || s.substr(i, 1) == "T") {
+                                    if (!m_resignKataGoEnabled) {
+                                        s.replace(i, 4, "false");
+                                    }
+                                    break;
+                                } else if (s.substr(i, 1) == "f" || s.substr(i, 1) == "F") {
+                                    if (m_resignKataGoEnabled) {
+                                        s.replace(i, 5, "true");
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            if (m_resignKataGoEnabled) {
+                                s += R"( -override-config "allowResignation=true")";
+                            } else {
+                                s += R"( -override-config "allowResignation=false")";
                             }
                         }
                         auto pos_report = s.find("reportAnalysisWinratesAs");
@@ -451,131 +467,81 @@ void MainFrame::doInit() {
             cfg_use_engine = GTP::ORIGINE_ENGINE;
         }
     } else {
-#ifdef USE_GPU
         if (cfg_engine_type == GTP::ANALYSIS) {
-            wxConfig::Get()->Read(wxT("AnalysisEnginePathGPU"), &engine_path);
-            wxConfig::Get()->Read(wxT("AnalysisConfigPathGPU"), &config_path);
-            wxConfig::Get()->Read(wxT("AnalysisModelPathGPU"), &model_path);
+            wxConfig::Get()->Read(wxT("AnalysisEnginePath"), &engine_path);
+            wxConfig::Get()->Read(wxT("AnalysisConfigPath"), &config_path);
+            wxConfig::Get()->Read(wxT("AnalysisModelPath"), &model_path);
         } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-            wxConfig::Get()->Read(wxT("GTPEnginePathGPU"), &engine_path);
-            wxConfig::Get()->Read(wxT("GTPConfigPathGPU"), &config_path);
-            wxConfig::Get()->Read(wxT("GTPModelPathGPU"), &model_path);
+            wxConfig::Get()->Read(wxT("GTPEnginePath"), &engine_path);
+            wxConfig::Get()->Read(wxT("GTPConfigPath"), &config_path);
+            wxConfig::Get()->Read(wxT("GTPModelPath"), &model_path);
         }
-#else
-        if (cfg_engine_type == GTP::ANALYSIS) {
-            wxConfig::Get()->Read(wxT("AnalysisEnginePathCPU"), &engine_path);
-            wxConfig::Get()->Read(wxT("AnalysisConfigPathCPU"), &config_path);
-            wxConfig::Get()->Read(wxT("AnalysisModelPathCPU"), &model_path);
-        } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-            wxConfig::Get()->Read(wxT("GTPEnginePathCPU"), &engine_path);
-            wxConfig::Get()->Read(wxT("GTPConfigPathCPU"), &config_path);
-            wxConfig::Get()->Read(wxT("GTPModelPathCPU"), &model_path);
-        }
-#endif
 
 #ifdef WIN32
+        if (!engine_path.size()) {
 #ifdef USE_GPU
-        if (!engine_path.size()) {
             engine_path = wxT("katago_OpenCL.exe");
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisEnginePathGPU"), engine_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPEnginePathGPU"), engine_path);
-            }
-        }
-        if (!model_path.size()) {
-            model_path = wxT("b18c384nbt-uec.bin.gz");
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPModelPathGPU"), model_path);
-            }
-        }
 #else
-        if (!engine_path.size()) {
             engine_path = wxT("katago.exe");
+#endif
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisEnginePathCPU"), engine_path);
+                wxConfig::Get()->Write(wxT("AnalysisEnginePath"), engine_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPEnginePathCPU"), engine_path);
+                wxConfig::Get()->Write(wxT("GTPEnginePath"), engine_path);
             }
         }
         if (!model_path.size()) {
+#ifdef USE_GPU
+            model_path = wxT("b18c384nbt-uec.bin.gz");
+#else
             model_path = wxT("g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
+#endif
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisModelPathCPU"), model_path);
+                wxConfig::Get()->Write(wxT("AnalysisModelPath"), model_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPModelPathCPU"), model_path);
+                wxConfig::Get()->Write(wxT("GTPModelPath"), model_path);
             }
         }
-#endif
         if (!config_path.size()) {
             config_path = wxT("katago_common.cfg");
-#ifdef USE_GPU
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisConfigPathGPU"), config_path);
+                wxConfig::Get()->Write(wxT("AnalysisConfigPath"), config_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPConfigPathGPU"), config_path);
+                wxConfig::Get()->Write(wxT("GTPConfigPath"), config_path);
             }
-#else
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisConfigPathCPU"), config_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPConfigPathCPU"), config_path);
-            }
-#endif
         }
 #else
-#ifdef USE_GPU
         if (!engine_path.size()) {
+#ifdef USE_GPU
             engine_path = wxT("/usr/games/katago_OpenCL");
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisEnginePathGPU"), engine_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPEnginePathGPU"), engine_path);
-            }
-        }
-        if (!model_path.size()) {
-            model_path = wxT("/usr/games/b18c384nbt-uec.bin.gz");
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisModelPathGPU"), model_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPModelPathGPU"), model_path);
-            }
-        }
 #else
-        if (!engine_path.size()) {
             engine_path = wxT("/usr/games/katago");
+#endif
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisEnginePathCPU"), engine_path);
+                wxConfig::Get()->Write(wxT("AnalysisEnginePath"), engine_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPEnginePathCPU"), engine_path);
+                wxConfig::Get()->Write(wxT("GTPEnginePath"), engine_path);
             }
         }
         if (!model_path.size()) {
+#ifdef USE_GPU
+            model_path = wxT("/usr/games/b18c384nbt-uec.bin.gz");
+#else
             model_path = wxT("/usr/games/g170e-b20c256x2-s5303129600-d1228401921.bin.gz");
+#endif
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisModelPathCPU"), model_path);
+                wxConfig::Get()->Write(wxT("AnalysisModelPath"), model_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPModelPathCPU"), model_path);
+                wxConfig::Get()->Write(wxT("GTPModelPath"), model_path);
             }
         }
-#endif
         if (!config_path.size()) {
             config_path = wxT("/usr/games/katago_common.cfg");
-#ifdef USE_GPU
             if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisConfigPathGPU"), config_path);
+                wxConfig::Get()->Write(wxT("AnalysisConfigPath"), config_path);
             } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPConfigPathGPU"), config_path);
+                wxConfig::Get()->Write(wxT("GTPConfigPath"), config_path);
             }
-#else
-            if (cfg_engine_type == GTP::ANALYSIS) {
-                wxConfig::Get()->Write(wxT("AnalysisConfigPathCPU"), config_path);
-            } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-                wxConfig::Get()->Write(wxT("GTPConfigPathCPU"), config_path);
-            }
-#endif
         }
 #endif
         wxString exe_cmd;
@@ -587,10 +553,15 @@ void MainFrame::doInit() {
         } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
             exe_cmd.Printf("\"%s\" gtp -config \"%s\" -model \"%s\"",
                            engine_path, config_path, model_path);
-            if (wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true)) {
+            if (m_ponderKataGoEnabled) {
                 exe_cmd += R"( -override-config "ponderingEnabled=true,)";
             } else {
                 exe_cmd += R"( -override-config "ponderingEnabled=false,)";
+            }
+            if (m_resignKataGoEnabled) {
+                exe_cmd += R"(allowResignation=true,)";
+            } else {
+                exe_cmd += R"(allowResignation=false,)";
             }
             exe_cmd += R"(reportAnalysisWinratesAs=SIDETOMOVE")";
             m_ini_line.emplace_back(exe_cmd);
@@ -612,7 +583,6 @@ void MainFrame::doInit() {
 #else
                 wxProcess::Kill(m_process->GetPid());
 #endif
-                m_process = nullptr;
             } else if ( !(m_err = m_process->GetErrorStream()) ) {
                 wxLogDebug(_("Failed to connect to child stderr"));
 #ifdef WIN32
@@ -620,7 +590,6 @@ void MainFrame::doInit() {
 #else
                 wxProcess::Kill(m_process->GetPid());
 #endif
-                m_process = nullptr;
             } else if ( !(m_out = m_process->GetOutputStream()) ) {
                 wxLogDebug(_("Failed to connect to child stdin"));
 #ifdef WIN32
@@ -628,13 +597,13 @@ void MainFrame::doInit() {
 #else
                 wxProcess::Kill(m_process->GetPid());
 #endif
-                m_process = nullptr;
             } else {
                 cfg_use_engine = GTP::KATAGO_ENGINE;
                 cfg_engine_type = GTP::ANALYSIS;
             }
         }
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            m_katagoStatus = KATAGO_STOPED;
             if (defined_ini) {
                 errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
                                      "Start with the Leela engine?"), m_ini_line[0].mb_str());
@@ -648,6 +617,7 @@ void MainFrame::doInit() {
             }
         }
     } else {
+        m_katagoStatus = KATAGO_STOPED;
         cfg_use_engine = GTP::ORIGINE_ENGINE;
         cfg_engine_type = GTP::NONE;
     }
@@ -657,18 +627,17 @@ void MainFrame::doInit() {
         cfg_engine_type = GTP::NONE;
         auto pos = m_ini_line[0].find(" analysis ");
         if (pos != std::string::npos) {
+            cfg_use_engine = GTP::KATAGO_ENGINE;
             cfg_engine_type = GTP::ANALYSIS;
         } else {
             pos = m_ini_line[0].find(" gtp ");
             if (pos != std::string::npos) {
+            cfg_use_engine = GTP::KATAGO_ENGINE;
                 cfg_engine_type = GTP::GTP_INTERFACE;
                 m_ini_line_idx = 1;
-            } else {
-                cfg_use_engine = GTP::ORIGINE_ENGINE;
             }
         }
-        if (pos != std::string::npos) {
-            cfg_use_engine = GTP::KATAGO_ENGINE;
+        if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
             // Start KataGo's analysis engine.
             // Case of non use thread engine, receive query response in SubProcess class.
             m_process = new SubProcess(this);
@@ -703,6 +672,7 @@ void MainFrame::doInit() {
             }
         }
         if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            m_katagoStatus = KATAGO_STOPED;
             cfg_engine_type = GTP::NONE;
             if (defined_ini) {
                 errorString.Printf(_("The first line of the ini file is incorrect: %s\n"
@@ -717,6 +687,7 @@ void MainFrame::doInit() {
             }
         }
     } else {
+        m_katagoStatus = KATAGO_STOPED;
         cfg_use_engine = GTP::ORIGINE_ENGINE;
         cfg_engine_type = GTP::NONE;
     }
@@ -761,7 +732,7 @@ void MainFrame::doInit() {
 #else
                         wxProcess::Kill(m_process->GetPid());
 #endif
-                        m_process = nullptr;
+                        m_katagoStatus = KATAGO_STOPED;
                         cfg_use_engine = GTP::ORIGINE_ENGINE;
                         cfg_engine_type = GTP::NONE;
                         errorString.Printf(_("A startup error was returned from KataGo engine: %s\n"
@@ -819,12 +790,12 @@ void MainFrame::doInit() {
             try {
                 nlohmann::json dummy = nlohmann::json::parse(tmp_query);
                 if (!dummy.contains("rules")) {
-                    if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 0) {
-                        dummy["rules"] = "chinese";
-                        dummy["whiteHandicapBonus"] = "N";
-                    } else {
+                    if (m_japanese_rule_init) {
                         dummy["rules"] = "japanese";
                         dummy["whiteHandicapBonus"] = "0";
+                    } else {
+                        dummy["rules"] = "chinese";
+                        dummy["whiteHandicapBonus"] = "N";
                     }
                 }
                 if (dummy["rules"].get<std::string>() == "japanese") {
@@ -866,10 +837,9 @@ void MainFrame::doInit() {
         }
     }
 
+    m_use_engine = cfg_use_engine;
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-        m_in = nullptr;
-        m_err = nullptr;
-        m_out = nullptr;
+        m_katagoStatus = KATAGO_STOPED;
         if (close_window) {
             Close();
         } else {
@@ -881,8 +851,6 @@ void MainFrame::doInit() {
         }
         return;
     }
-
-    m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderKataGoEnabled"), true);
 
 #ifdef USE_THREAD
     // Case of use thread engine, check KataGo startup here.
@@ -913,6 +881,7 @@ void MainFrame::doInit() {
     m_post_doAnalyze = false;
     m_gtp_pending_cmd = "";
     m_katagoStatus = KATAGO_STARTING;
+    m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
 #endif
 
 }
@@ -923,11 +892,6 @@ void MainFrame::doStatusUpdate(wxCommandEvent& event) {
 
 void MainFrame::SetStatusBarText(wxString mess, int pos) {
     m_statusBar->SetStatusText(mess, pos);
-}
-
-void MainFrame::updateStatusBar(char *str) {
-    //wxString wxstr(str);
-    //SetStatusText(str);
 }
 
 // do whatever we need to do if the visible board gets updated
@@ -944,15 +908,16 @@ void MainFrame::doBoardUpdate(wxCommandEvent& event) {
 
 void MainFrame::doExit(wxCommandEvent & event) {
     wxLogDebug(_("MainFrame exit."));
-#ifdef USE_THREAD
-    stopEngine();
-#else
+
+#ifndef USE_THREAD
     if (cfg_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doExit = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doExit = true;
+            }
             return;
         }
         if (m_post_doExit) {
@@ -967,16 +932,17 @@ void MainFrame::doExit(wxCommandEvent & event) {
             m_katagoStatus = KATAGO_STOPING;
             return;
         }
-    } else {
-        stopEngine();
     }
 #endif
+
+    stopEngine();
+
     Close();
 }
 
 void MainFrame::startEngine() {
 #ifndef USE_THREAD
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         startKataGo();
         return;
     }
@@ -986,30 +952,36 @@ void MainFrame::startEngine() {
         m_query_start = std::chrono::system_clock::now();
         m_thinking = true;
 
-#ifdef USE_THREAD
-        uint64_t query_ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-        m_query_id = std::to_string(query_ms);
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this,
-            m_process, m_in, m_err, m_out, m_overrideSettings, m_query_id, m_query_start, &m_GTPmutex);
-#else
-        m_engineThread = std::make_unique<TEngineThread>(m_State, this);
-#endif
+        if (m_use_engine == GTP::KATAGO_ENGINE) {
+            uint64_t query_ms
+                = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+            m_query_id = std::to_string(query_ms);
+            m_engineThread = std::make_unique<TEngineThread>(m_State,
+                                                             this,
+                                                             m_process,
+                                                             m_in, m_err, m_out,
+                                                             m_overrideSettings,
+                                                             m_query_id,
+                                                             m_query_start,
+                                                             &m_GTPmutex);
+            m_engineThread->set_handi(m_move_handi);
+            m_engineThread->set_thinking(true);
+            m_engineThread->set_resigning(m_resignKataGoEnabled);
+        } else {
+            m_engineThread = std::make_unique<TEngineThread>(m_State, this);
+            m_engineThread->set_resigning(m_resignEnabled);
+        }
 
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
         }
         m_engineThread->limit_visits(m_visitLimit);
-        m_engineThread->set_resigning(m_resignEnabled);
         m_engineThread->set_analyzing(m_analyzing | m_pondering);
         m_engineThread->set_pondering(m_pondering);
         m_engineThread->set_quiet(!m_analyzing);
         m_engineThread->set_nets(m_netsEnabled);
 
-#ifdef USE_THREAD
-        m_engineThread->set_handi(m_move_handi);
-        m_engineThread->set_thinking(true);
-#endif
 
         if (m_passEnabled) {
             m_engineThread->set_nopass(m_disputing);
@@ -1018,7 +990,7 @@ void MainFrame::startEngine() {
         }
         m_engineThread->Run();
         if (!m_analyzing && !m_pondering) {
-            if (cfg_use_engine == GTP::KATAGO_ENGINE) { 
+            if (m_use_engine == GTP::KATAGO_ENGINE) { 
                 SetStatusBarText(_("Engine thinking...") + _(" (KataGo)"), 1);
             } else {
                 SetStatusBarText(_("Engine thinking...") + _(" (Leela)"), 1);
@@ -1035,28 +1007,31 @@ void MainFrame::startKataGo() {
         m_query_start = std::chrono::system_clock::now();
         m_thinking = true;
 
-        TimeControl tm = m_State.get_timecontrol();
+        int time_for_move;
+        m_update_score = true;
         m_StateEngine = std::make_unique<GameState>(m_State);
-        m_StateEngine->set_timecontrol(tm);
+        int color = m_StateEngine->get_to_move();
         // lock the board
         if (!m_pondering && !m_analyzing) {
             m_panelBoard->lockState();
-        }
-        m_update_score = true;
-        int color = m_StateEngine->get_to_move();
-        int time_for_move
-            = m_StateEngine->get_timecontrol().max_time_for_move(color, m_StateEngine->get_movenum());
-        if ( (time_for_move + 50) < 100 ) {
-            time_for_move = 1 + 1;
-        } else {
-            time_for_move = (time_for_move + 50) / 100 + 1;
-        }
-        if (!m_StateEngine->get_timecontrol().byo_yomi(color) &&
-            time_for_move > 2 &&
-            m_StateEngine->m_win_rate[0] > 0.6f &&
-            m_StateEngine->m_win_rate[1] > 0.6f &&
-            m_StateEngine->m_win_rate[2] > 0.6f) {
-            time_for_move--;
+            TimeControl tm = m_State.get_timecontrol();
+            m_StateEngine->set_timecontrol(tm);
+            time_for_move
+                = m_StateEngine->get_timecontrol().max_time_for_move(color,
+                                                                     m_StateEngine->get_movenum());
+            if ( (time_for_move + 50) < 100 ) {
+                time_for_move = 1 + 1;
+            } else {
+                time_for_move = (time_for_move + 50) / 100 + 1;
+            }
+            if (!m_StateEngine->get_timecontrol().byo_yomi(color) &&
+                time_for_move > 2 &&
+                m_StateEngine->m_win_rate[0] > 0.6f &&
+                m_StateEngine->m_win_rate[1] > 0.6f &&
+                m_StateEngine->m_win_rate[2] > 0.6f) {
+
+                time_for_move--;
+            }
         }
         if (cfg_engine_type == GTP::ANALYSIS) {
             uint64_t query_ms
@@ -1133,6 +1108,8 @@ void MainFrame::startKataGo() {
                     m_send_json["overrideSettings"]["maxTime"] = DEFAULT_MAX_TIME_ANALYSIS;
                 }
                 if (m_analyzing | m_pondering) {
+                    m_send_json["includeOwnership"] = true;
+                    m_send_json["includePolicy"] = true;
                     std::string req_query = m_send_json.dump();
                     wxString send_msg = req_query + "\n";
                     m_out->Write(send_msg, send_msg.length());
@@ -1151,9 +1128,7 @@ void MainFrame::startKataGo() {
                         m_send_json["overrideSettings"]["maxTime"] = time_for_move - 1;
                     }
                     m_send_json.erase("reportDuringSearchEvery");
-                    //if (m_panelBoard->getShowOwner()) {
-                    //    m_send_json["includeOwnership"] = true;
-                    //}
+
                     std::string req_query = m_send_json.dump();
                     wxString send_msg = req_query + "\n";
                     m_out->Write(send_msg, send_msg.length());
@@ -1208,7 +1183,7 @@ bool MainFrame::stopEngine(bool update_score) {
         m_engineThread->kill_score_update();
     }
 #ifdef USE_THREAD
-    if (cfg_use_engine == GTP::KATAGO_ENGINE && m_engineThread->get_thinking()) {
+    if (m_use_engine == GTP::KATAGO_ENGINE && m_engineThread->get_thinking()) {
         nlohmann::json terminate_json = nlohmann::json::parse(R"({"action":"terminate"})");
         terminate_json["id"] = "terminate_" + m_query_id;
         if (m_analyzing | m_pondering) {
@@ -1262,8 +1237,6 @@ void MainFrame::doToggleTerritory(wxCommandEvent& event) {
     }
 
     m_panelBoard->setShowTerritory(false);
-
-    m_panelBoard->Refresh();
 }
 
 void MainFrame::doToggleMoyo(wxCommandEvent& event) {
@@ -1285,8 +1258,6 @@ void MainFrame::doToggleMoyo(wxCommandEvent& event) {
     }
 
     m_panelBoard->setShowTerritory(false);
-
-    m_panelBoard->Refresh();
 }
 
 void MainFrame::doToggleProbabilities(wxCommandEvent& event) {
@@ -1352,18 +1323,20 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         delete visits;
     }
 #else
-    if (cfg_engine_type == GTP::GTP_INTERFACE) {
-        wxString GTPCmd = event.GetString();
-        if (!GTPCmd.IsEmpty() && GTPCmd.length() > 0) {
-            m_gtp_pending_cmd = GTPCmd;
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
+        if (cfg_engine_type == GTP::GTP_INTERFACE) {
+            wxString GTPCmd = event.GetString();
+            if (!GTPCmd.IsEmpty() && GTPCmd.length() > 0) {
+                m_gtp_pending_cmd = GTPCmd;
+            }
         }
-    }
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doNewMove = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doNewMove = true;
+            }
             return;
         }
         if (m_post_doNewMove) {
@@ -1372,7 +1345,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     } else {
         stopEngine();
     }
-    if (cfg_engine_type == GTP::GTP_INTERFACE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
         if (m_gtp_pending_cmd.length() > 0) {
             // lock the board
             m_panelBoard->lockState();
@@ -1401,12 +1374,8 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         if (m_soundEnabled) {
             m_tock.Play(wxSOUND_ASYNC);
         }
-    } else {
-        if (m_State.get_to_move() == m_playerColor
-            && m_State.get_last_move() == FastBoard::PASS) {
-
-            ::wxMessageBox(_("Computer passes"), _("Pass"), wxOK, this);
-        }
+    } else if (m_State.get_to_move() == m_playerColor) {
+        ::wxMessageBox(_("Computer passes"), _("Pass"), wxOK, this);
     }
 
     if (m_State.get_passes() >= 2 || m_State.get_last_move() == FastBoard::RESIGN) {
@@ -1423,26 +1392,23 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
             m_State.undo_move();
             m_State.undo_move();
 
-            if (m_State.get_to_move() != m_playerColor) {
+            if (m_State.get_to_move() != m_playerColor) {  // Next turn is computer
                 wxLogDebug(_("Computer to move"));
-                startEngine();
-            } else {
+            } else {                                       // Next turn is human
                 m_pondering = true;
-                startEngine();
             }
+            startEngine();
         }
     } else {
         if (!m_analyzing) {
-            // Computer's turn
-            if (m_State.get_to_move() != m_playerColor) {
+            if (m_State.get_to_move() != m_playerColor) {  // Next turn is computer
                 wxLogDebug(_("Computer to move"));
                 startEngine();
-            // Human's turn
-            } else {
+            } else {                                       // Next turn is human
                 // Pondering only works in new games and with unlimited engine max level.
-                if (m_ponderEnabled &&
+                if (((m_use_engine == GTP::ORIGINE_ENGINE && m_ponderEnabled) ||
+                     (m_use_engine == GTP::KATAGO_ENGINE && m_ponderKataGoEnabled)) &&
                     !m_ratedGame &&
-                    !m_analyzing &&
                     !m_ponderedOnce &&
                     !m_visitLimit) {
 
@@ -1462,16 +1428,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     }
 
     if (!m_ratedGame) {
-        if (cfg_engine_type == GTP::ANALYSIS) {
-            SetTitle(_("KataGo") + _("(Analysis)") +
-                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
-        } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
-            SetTitle(_("KataGo") + _("(GTP)") +
-                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
-        } else {
-            SetTitle(_("Leela") +
-                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
-        }
+        gameNoLongerCounts();
     }
 
     // signal update of visible board
@@ -1503,12 +1460,14 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
     bool wasRunning = stopEngine();
 #else
     bool wasRunning = false;
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doSettingsDialog = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doSettingsDialog = true;
+            }
             return;
         }
         if (m_post_doSettingsDialog) {
@@ -1530,16 +1489,9 @@ void MainFrame::doSettingsDialog(wxCommandEvent& event) {
         m_passEnabled = wxConfig::Get()->Read(wxT("passEnabled"), 1);
         m_soundEnabled = wxConfig::Get()->Read(wxT("soundEnabled"), 1);
         m_resignEnabled = wxConfig::Get()->Read(wxT("resignEnabled"), 1);
-        if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), 0) == 0)  {
-            m_japanese_rule_init = false;
-        } else {
-            m_japanese_rule_init = true;
-        }
-        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
-            m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderKataGoEnabled"), 1);
-        } else {
-            m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderEnabled"), 1);
-        }
+        m_resignKataGoEnabled = wxConfig::Get()->Read(wxT("resignKataGoEnabled"), 1);
+        m_ponderEnabled = wxConfig::Get()->Read(wxT("ponderEnabled"), 1);
+        m_ponderKataGoEnabled = wxConfig::Get()->Read(wxT("ponderKataGoEnabled"), 1);
     }
 
     wxCommandEvent dummy;
@@ -1552,13 +1504,15 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
 #ifdef USE_THREAD
     stopEngine(false);
 #else
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_update_score = false;
-            m_post_doNewGame = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_update_score = false;
+                m_post_doNewGame = true;
+            }
             return;
         }
         if (m_post_doNewGame) {
@@ -1574,14 +1528,27 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
     if (mydialog.ShowModal() == wxID_OK) {
         wxLogDebug(_("OK clicked"));
 
-        if (cfg_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
+        m_use_engine = wxConfig::Get()->ReadBool(wxT("useEngine"), (long)0);
+        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+            m_use_engine = GTP::ORIGINE_ENGINE;
+        }
+
+        if (m_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
             m_thinking_time = 0;
             m_thinking = false;
             m_think_num = 0;
             m_visits = 0;
         }
 
-        m_japanese_rule = m_japanese_rule_init;
+        if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+            if (m_use_engine == GTP::KATAGO_ENGINE) {
+                m_japanese_rule = true;
+            } else {
+                m_japanese_rule = false;
+            }
+        } else {
+            m_japanese_rule = false;
+        }
         m_State.init_game(mydialog.getBoardsize(), mydialog.getKomi());
         ::wxBeginBusyCursor();
         CalculateDialog calcdialog(this);
@@ -1596,8 +1563,9 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         m_panelBoard->clearViz();
         if (m_scoreHistogramWindow) {
             m_scoreHistogramWindow->ClearHistogram();
+            m_scoreHistogramWindow->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
         }
-        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        if (m_use_engine == GTP::KATAGO_ENGINE) {
             m_State.set_timecontrol(mydialog.getTimeControl() * 60 * 100,
                                     mydialog.getByoControl() * 100, 1, 0);
         } else {
@@ -1609,18 +1577,20 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
         m_playerColor = mydialog.getPlayerColor();
         // XXX
         m_netsEnabled = mydialog.getNetsEnabled();
-        wxConfig::Get()->Write(wxT("netsEnabled"), m_netsEnabled);
         setActiveMenus();
         // XXX
         m_panelBoard->setPlayerColor(m_playerColor);
         m_panelBoard->setShowTerritory(false);
+        m_panelBoard->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
+        m_panelBoard->setKataGoEngineType(cfg_engine_type);
         m_analyzing = false;
         m_pondering = false;
         m_disputing = false;
         gameNoLongerCounts();
 
 #ifndef USE_THREAD
-        if (cfg_engine_type == GTP::GTP_INTERFACE) {
+        if (m_use_engine == GTP::KATAGO_ENGINE &&
+            cfg_engine_type == GTP::GTP_INTERFACE) {
             m_StateEngine = std::make_unique<GameState>(m_State);
             if (m_visitLimit <= 0) {
                 m_gtp_send_cmd = wxString::Format("kata-set-param maxVisits %d\n", INT_MAX);
@@ -1633,9 +1603,18 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
             m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
             m_katagoStatus = KATAGO_GAME_START;
             return;
+        } else if (m_use_engine == GTP::KATAGO_ENGINE && 
+                   cfg_engine_type == GTP::ANALYSIS &&
+                   m_playerColor == m_State.get_to_move()) {
+            if (getAnalysisPolicyAndOwner()) {
+                // lock the board
+                m_panelBoard->lockState();
+                m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+                m_katagoStatus = ANALYSIS_STARTING_WAIT;
+                return;
+            }
         }
 #endif
-
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
         ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
@@ -1643,9 +1622,73 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
     }
 }
 
+bool MainFrame::getAnalysisPolicyAndOwner() {
+    m_StateEngine = std::make_unique<GameState>(m_State);
+    uint64_t query_ms
+        = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    m_query_id = std::to_string(query_ms);
+    int board_size = m_StateEngine->board.get_boardsize();
+    m_send_json = {};
+    try {
+        m_send_json["id"] = "analysis_" + m_query_id;
+        if (m_japanese_rule) {
+            m_send_json["rules"] = "japanese";
+            m_send_json["whiteHandicapBonus"] = "0";
+        } else {
+            m_send_json["rules"] = "chinese";
+            m_send_json["whiteHandicapBonus"] = "N";
+        }
+        m_send_json["komi"] = m_StateEngine->get_komi();
+        m_send_json["boardXSize"] = board_size;
+        m_send_json["boardYSize"] = board_size;
+        if (m_move_handi.size() > 0) {
+            int i = 0;
+            for (auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
+                std::string handi_move = m_StateEngine->move_to_text(*itr);
+                m_send_json["initialStones"][i][0] = "B";
+                m_send_json["initialStones"][i][1] = handi_move;
+                i++;
+            }
+            m_send_json["initialPlayer"] = "W";
+        } else {
+            m_send_json["initialPlayer"] = "B";
+        }
+        std::unique_ptr<GameState> state(new GameState);
+        *state = *m_StateEngine;
+        state->rewind();
+        m_send_json["moves"] = nlohmann::json::array();
+        if (m_StateEngine->get_movenum() > 0) {
+            for (int i = 0; i < m_StateEngine->get_movenum(); i++) {
+                state->forward_move();
+                int move = state->get_last_move();
+                if (move == FastBoard::RESIGN) {
+                    break;
+                }
+                std::string movestr = state->board.move_to_text(move);
+                if (state->get_to_move() == FastBoard::BLACK) {
+                    m_send_json["moves"][i][0] = "W";
+                } else {
+                    m_send_json["moves"][i][0] = "B";
+                }
+                m_send_json["moves"][i][1] = movestr;
+            }
+        }
+        m_send_json["includeOwnership"] = true;
+        m_send_json["includePolicy"] = true;
+        m_send_json["maxVisits"] = 1;
+        std::string req_query = m_send_json.dump();
+        wxString send_msg = req_query + "\n";
+        m_out->Write(send_msg, send_msg.length());
+    } catch(const std::exception& e) {
+        wxLogError(_("Exception at getAnalysisPolicyAndOwner: %s %s"), typeid(e).name(), e.what());
+        return false;
+    }
+    return true;
+}
+
 void MainFrame::setActiveMenus() {
     int boardsize = m_State.board.get_boardsize();
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE && boardsize != 19) {
+    if (m_use_engine == GTP::ORIGINE_ENGINE && boardsize != 19) {
         m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(false);
     } else {
         m_menuTools->FindItem(ID_MOVE_PROBABILITIES)->Enable(true);
@@ -1678,13 +1721,15 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
 #ifdef USE_THREAD
     stopEngine(false);
 #else
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_update_score = false;
-            m_post_doNewRatedGame = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_update_score = false;
+                m_post_doNewRatedGame = true;
+            }
             return;
         }
         if (m_post_doNewRatedGame) {
@@ -1695,7 +1740,12 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     }
 #endif
 
-    if (cfg_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
+    m_use_engine = wxConfig::Get()->ReadBool(wxT("ratedGameEngine"), (long)0);
+    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        m_use_engine = GTP::ORIGINE_ENGINE;
+    }
+
+    if (m_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
         m_thinking_time = 0;
         m_thinking = false;
         m_think_num = 0;
@@ -1708,9 +1758,23 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
 
     int rank = 0;
     if (m_ratedSize == 9) {
-        rank = wxConfig::Get()->ReadLong(wxT("userRank9"), (long)-30);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank9"), (long)-30);
+        } else {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank9KataGo"), (long)-15);
+            if (rank < -15) {
+                rank = -15;
+            }
+        }
     } else if (m_ratedSize == 19) {
-        rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
+        } else {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank19KataGo"), (long)-15);
+            if (rank < -15) {
+                rank = -15;
+            }
+        }
     }
 
     wxLogDebug(_("Last rank was: %d"), rank);
@@ -1720,12 +1784,12 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     mess += rankToString(rank);
     m_statusBar->SetStatusText(mess, 1);
 
-    if (cfg_engine_type == GTP::ANALYSIS) {
+    if (m_use_engine == GTP::ORIGINE_ENGINE) {
+        SetTitle(_("Leela - ") + mess);
+    } else if (cfg_engine_type == GTP::ANALYSIS) {
         SetTitle(_("KataGo") + _("(Analysis)") + wxT(" - ") + mess);
     } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
         SetTitle(_("KataGo") + _("(GTP)") + wxT(" - ") + mess);
-    } else {
-        SetTitle(_("Leela - ") + mess);
     }
     if (m_analysisWindow) {
         m_analysisWindow->Close();
@@ -1740,6 +1804,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
     int simulations = 250;
 
     // Correct for neural network enabled
+    m_netsEnabled = wxConfig::Get()->Read(wxT("netsEnabled"), 1);
     if (m_ratedSize == 19) {
         if (m_netsEnabled) {
             // Estimate it as being worth 7 stones
@@ -2042,12 +2107,18 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
 
     float komi;
     {
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE || !m_japanese_rule_init) {
-            komi = handicap ? 0.5f : 7.5f;
+        if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+            if (m_use_engine == GTP::KATAGO_ENGINE) {
+                m_japanese_rule = true;
+                komi = handicap ? 0.5f : 6.5f;
+            } else {
+                m_japanese_rule = false;
+                komi = handicap ? 0.5f : 7.5f;
+            }
         } else {
-            komi = handicap ? 0.5f : 6.5f;
+            m_japanese_rule = false;
+            komi = handicap ? 0.5f : 7.5f;
         }
-        m_japanese_rule = m_japanese_rule_init;
         m_State.init_game(m_ratedSize, komi);
         ::wxBeginBusyCursor();
         CalculateDialog calcdialog(this);
@@ -2058,29 +2129,37 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_move_handi = m_State.place_free_handicap(abs(handicap));
         calcdialog.Hide();
         ::wxEndBusyCursor();
-        // max 60 minutes per game
         if (m_scoreHistogramWindow) {
             m_scoreHistogramWindow->ClearHistogram();
+            m_scoreHistogramWindow->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
         }
         m_StateStack.clear();
         MCOwnerTable::get_MCO()->clear();
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        m_panelBoard->clearViz();
+        // max 60 minutes per game
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
             m_State.set_timecontrol(2 * m_ratedSize * 60 * 100, 0, 0, 0);
             m_visitLimit = simulations;
         } else {
-            m_State.set_timecontrol((m_ratedSize / 2) * 60 * 100, 200, 1, 0);
+            if (m_ratedSize == 19) {
+                m_State.set_timecontrol((m_ratedSize / 2) * 60 * 100, 200, 1, 0);
+            } else {
+                m_State.set_timecontrol((m_ratedSize / 4) * 60 * 100, 200, 1, 0);
+            }
             m_visitLimit = simulations / 10;
         }
         m_playerColor = (handicap >= 0 ? FastBoard::BLACK : FastBoard::WHITE);
         m_panelBoard->setPlayerColor(m_playerColor);
         m_panelBoard->setShowTerritory(false);
+        m_panelBoard->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
+        m_panelBoard->setKataGoEngineType(cfg_engine_type);
         m_ratedGame = true;
 
         setActiveMenus();
     }
 
 #ifndef USE_THREAD
-    if (cfg_engine_type == GTP::GTP_INTERFACE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
         m_StateEngine = std::make_unique<GameState>(m_State);
         if (m_visitLimit <= 0) {
             m_gtp_send_cmd = wxString::Format("kata-set-param maxVisits %d\n", INT_MAX);
@@ -2093,9 +2172,17 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
         m_katagoStatus = KATAGO_GAME_START;
         return;
+    } else if (m_use_engine == GTP::KATAGO_ENGINE && 
+               cfg_engine_type == GTP::ANALYSIS && m_playerColor == m_State.get_to_move()) {
+        if (getAnalysisPolicyAndOwner()) {
+            // lock the board
+            m_panelBoard->lockState();
+            m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+            m_katagoStatus = ANALYSIS_STARTING_WAIT;
+            return;
+        }
     }
 #endif
-
     wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
     myevent.SetEventObject(this);
     ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
@@ -2114,27 +2201,55 @@ void MainFrame::ratedGameEnd(bool won) {
     bool hadWon;
 
     if (m_ratedSize == 9) {
-        adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust9"), 10);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust9"), 10);
+        } else {
+            adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust9KataGo"), 10);
+        }
     } else {
-        adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust19"), 10);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust19"), 10);
+        } else {
+            adjust = wxConfig::Get()->ReadLong(wxT("userRankAdjust19KataGo"), 10);
+        }
     }
 
     if (m_ratedSize == 9) {
-        rank = wxConfig::Get()->ReadLong(wxT("userRank9"), (long)-30);
-        hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon9"), true);
-        if (won) {
-            wxConfig::Get()->Write(wxT("userLastWon9"), true);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank9"), (long)-30);
+            hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon9"), true);
+            if (won) {
+                wxConfig::Get()->Write(wxT("userLastWon9"), true);
+            } else {
+                wxConfig::Get()->Write(wxT("userLastWon9"), false);
+            }
         } else {
-            wxConfig::Get()->Write(wxT("userLastWon9"), false);
+            rank = wxConfig::Get()->ReadLong(wxT("userRank9KataGo"), (long)-30);
+            hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon9KataGo"), true);
+            if (won) {
+                wxConfig::Get()->Write(wxT("userLastWon9KataGo"), true);
+            } else {
+                wxConfig::Get()->Write(wxT("userLastWon9KataGo"), false);
+            }
         }
     } else {
         assert(m_ratedSize == 19);
-        rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
-        hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon19"), true);
-        if (won) {
-            wxConfig::Get()->Write(wxT("userLastWon19"), true);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            rank = wxConfig::Get()->ReadLong(wxT("userRank19"), (long)-15);
+            hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon19"), true);
+            if (won) {
+                wxConfig::Get()->Write(wxT("userLastWon19"), true);
+            } else {
+                wxConfig::Get()->Write(wxT("userLastWon19"), false);
+            }
         } else {
-            wxConfig::Get()->Write(wxT("userLastWon19"), false);
+            rank = wxConfig::Get()->ReadLong(wxT("userRank19KataGo"), (long)-15);
+            hadWon = wxConfig::Get()->ReadBool(wxT("userLastWon19KataGo"), true);
+            if (won) {
+                wxConfig::Get()->Write(wxT("userLastWon19KataGo"), true);
+            } else {
+                wxConfig::Get()->Write(wxT("userLastWon19KataGo"), false);
+            }
         }
     }
 
@@ -2154,12 +2269,22 @@ void MainFrame::ratedGameEnd(bool won) {
     }
 
     if (m_ratedSize == 9) {
-        wxConfig::Get()->Write(wxT("userRank9"), rank);
-        wxConfig::Get()->Write(wxT("userRankAdjust9"), adjust);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            wxConfig::Get()->Write(wxT("userRank9"), rank);
+            wxConfig::Get()->Write(wxT("userRankAdjust9"), adjust);
+        } else {
+            wxConfig::Get()->Write(wxT("userRank9KataGo"), rank);
+            wxConfig::Get()->Write(wxT("userRankAdjust9KataGo"), adjust);
+        }
     } else {
         assert(m_ratedSize == 19);
-        wxConfig::Get()->Write(wxT("userRank19"), rank);
-        wxConfig::Get()->Write(wxT("userRankAdjust19"), adjust);
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            wxConfig::Get()->Write(wxT("userRank19"), rank);
+            wxConfig::Get()->Write(wxT("userRankAdjust19"), adjust);
+        } else {
+            wxConfig::Get()->Write(wxT("userRank19KataGo"), rank);
+            wxConfig::Get()->Write(wxT("userRankAdjust19KataGo"), adjust);
+        }
     }
 
     wxString mess = wxString(_("Your rank: "));
@@ -2176,7 +2301,7 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
 #ifdef USE_THREAD
     stopEngine();
 #else
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+    if (m_use_engine == GTP::ORIGINE_ENGINE) {
         stopEngine();
     }
 #endif
@@ -2194,7 +2319,7 @@ bool MainFrame::scoreGame(float & komi, float & handicap,
         prekomi = score + komi + handicap;
     } else {
         komi = m_State.get_komi();
-        if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
             score = m_State.final_score(nullptr, m_disputing ? false : true);
         } else {
             score = ceil(m_State.m_black_score) - 0.5;
@@ -2252,7 +2377,7 @@ bool MainFrame::scoreDialog(float komi, float handicap,
         } else {
             confidence = _("WHITE wins.");
         }
-    } else if (cfg_use_engine == GTP::ORIGINE_ENGINE && m_State.board.get_boardsize() == 19) {
+    } else if (m_use_engine == GTP::ORIGINE_ENGINE && m_State.board.get_boardsize() == 19) {
         float net_score = Network::get_Network()->get_value(&m_State,
                                                             Network::Ensemble::AVERAGE_ALL);
         net_score = (m_State.get_to_move() == FastBoard::BLACK) ?
@@ -2264,7 +2389,7 @@ bool MainFrame::scoreDialog(float komi, float handicap,
             }
         }
     }
-    if (cfg_use_engine == GTP::KATAGO_ENGINE && m_think_num) {
+    if (m_use_engine == GTP::KATAGO_ENGINE && m_think_num) {
         confidence.Printf(_("Average thinking time per one move    : %d[ms]\n") +
                           _("Average number of visits per one move : %d[times]"),
                           m_thinking_time / m_think_num, m_visits / m_think_num);
@@ -2286,12 +2411,14 @@ bool MainFrame::scoreDialog(float komi, float handicap,
 
 void MainFrame::doScore(wxCommandEvent& event) {
 #ifndef USE_THREAD
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doScore = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doScore = true;
+            }
             return;
         }
         if (m_post_doScore) {
@@ -2326,12 +2453,14 @@ void MainFrame::doPass(wxCommandEvent& event) {
 #ifdef USE_THREAD
     stopEngine();
 #else
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doPass = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doPass = true;
+            }
             return;
         }
         if (m_post_doPass) {
@@ -2369,15 +2498,15 @@ void MainFrame::doPass(wxCommandEvent& event) {
 }
 
 void MainFrame::gameNoLongerCounts() {
-    if (cfg_engine_type == GTP::ANALYSIS) {
+    if (m_use_engine == GTP::ORIGINE_ENGINE) {
+        SetTitle(_("Leela") +
+                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+    } else if (cfg_engine_type == GTP::ANALYSIS) {
         SetTitle(_("KataGo") + _("(Analysis)") +
-             _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     } else if (cfg_engine_type == GTP::GTP_INTERFACE) {
         SetTitle(_("KataGo") + _("(GTP)") +
-             _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
-    } else {
-        SetTitle(_("Leela") +
-             _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
+                 _(" - move ") + wxString::Format(wxT("%i"), m_State.get_movenum() + 1));
     }
     m_ratedGame = false;
 }
@@ -2388,12 +2517,14 @@ void MainFrame::doRealUndo(int count, bool force) {
     bool wasRunning = stopEngine();
 #else
     bool wasRunning = false;
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doRealUndo = count;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doRealUndo = count;
+            }
             return;
         }
         if (m_post_doRealUndo) {
@@ -2403,7 +2534,7 @@ void MainFrame::doRealUndo(int count, bool force) {
         if (cfg_engine_type == GTP::GTP_INTERFACE && !force) {
             m_undo_num = count;
             m_undo_count = 0;
-            m_StateEngine = nullptr;
+            m_StateEngine = std::make_unique<GameState>(m_State);
             m_gtp_send_cmd = wxString("undo\n");
             m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
             // lock the board
@@ -2423,7 +2554,18 @@ void MainFrame::doRealUndo(int count, bool force) {
             wxLogDebug(_("Undoing one move"));
         }
     }
-    doPostMoveChange(wasAnalyzing && wasRunning);
+    if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::ANALYSIS) {
+        m_post_move_change = wasAnalyzing && wasRunning;
+        if (getAnalysisPolicyAndOwner()) {
+            // lock the board
+            m_panelBoard->lockState();
+            m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+            m_katagoStatus = ANALYSIS_UNDO_WAIT;
+            return;
+        }
+    } else {
+        doPostMoveChange(wasAnalyzing && wasRunning);
+    }
 }
 
 void MainFrame::doRealForward(int count, bool force) {
@@ -2432,12 +2574,14 @@ void MainFrame::doRealForward(int count, bool force) {
     bool wasRunning = stopEngine();
 #else
     bool wasRunning = false;
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doRealForward = count;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doRealForward = count;
+            }
             return;
         }
         if (m_post_doRealForward) {
@@ -2473,12 +2617,25 @@ void MainFrame::doRealForward(int count, bool force) {
     bool wasAnalyzing = m_analyzing && !m_pondering;
 #endif
 
-    for (int i = 0; i < count; i++) {
-        if (m_State.forward_move()) {
-            wxLogDebug(_("Forward one move"));
+    if (m_use_engine != GTP::KATAGO_ENGINE || cfg_engine_type != GTP::GTP_INTERFACE) {
+        for (int i = 0; i < count; i++) {
+            if (m_State.forward_move()) {
+                wxLogDebug(_("Forward one move"));
+            }
         }
     }
-    doPostMoveChange(wasAnalyzing && wasRunning);
+    if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::ANALYSIS) {
+        m_post_move_change = wasAnalyzing && wasRunning;
+        if (getAnalysisPolicyAndOwner()) {
+            // lock the board
+            m_panelBoard->lockState();
+            m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+            m_katagoStatus = ANALYSIS_UNDO_WAIT;
+            return;
+        }
+    } else {
+        doPostMoveChange(wasAnalyzing && wasRunning);
+    }
 }
 
 void MainFrame::doPostMoveChange(bool wasAnalyzing) {
@@ -2543,11 +2700,18 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State.m_black_score = 0.0;
         int rule = tree->get_rule();
         if (rule == -1) {
-            m_japanese_rule = m_japanese_rule_init;
+            if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+                m_japanese_rule = true;
+            } else {
+                m_japanese_rule = false;
+            }
         } else if (rule == 0) {
             m_japanese_rule = false;
         } else {
             m_japanese_rule = true;
+        }
+        if (m_use_engine == GTP::ORIGINE_ENGINE) {
+            m_japanese_rule = false;
         }
         for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
             m_State.m_win_rate[i] = 0.5f;
@@ -2567,7 +2731,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
     }
 
     // Reset to New Game dialog defaults
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         int minutes = wxConfig::Get()->ReadLong(wxT("DefaultMinutesKataGo"), (long)20);
         int byo = wxConfig::Get()->ReadLong(wxT("DefaultByoKataGo"), (long)2);
         m_State.set_timecontrol(minutes * 60 * 100, byo * 100, 1, 0);
@@ -2588,40 +2752,55 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
     MCOwnerTable::get_MCO()->clear();
     m_panelBoard->setPlayerColor(m_playerColor);
     m_panelBoard->setShowTerritory(false);
+    m_panelBoard->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
+    m_panelBoard->setKataGoEngineType(cfg_engine_type);
     m_panelBoard->clearViz();
     if (m_scoreHistogramWindow) {
         m_scoreHistogramWindow->ClearHistogram();
+        m_scoreHistogramWindow->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
     }
     gameNoLongerCounts();
     setActiveMenus();
 
-    if (cfg_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
+    if (m_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
         m_thinking_time = 0;
         m_thinking = false;
         m_think_num = 0;
         m_visits = 0;
     }
-
-    if (cfg_use_engine != GTP::KATAGO_ENGINE || cfg_engine_type != GTP::GTP_INTERFACE) {
-        //signal board change
-        wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
-        myevent.SetEventObject(this);
-        ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
-        broadcastCurrentMove();
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
+        if (cfg_engine_type == GTP::ANALYSIS) {
+            if (getAnalysisPolicyAndOwner()) {
+                // lock the board
+                m_panelBoard->lockState();
+                m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+                m_katagoStatus = ANALYSIS_SGF_WAIT;
+                return;
+            }
+        } else {
+            return;
+        }
     }
+    //signal board change
+    wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+    myevent.SetEventObject(this);
+    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+    broadcastCurrentMove();
 }
 
 void MainFrame::doOpenSGF(wxCommandEvent& event) {
 #ifdef USE_THREAD
     stopEngine(false);
 #else
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_update_score = false;
-            m_post_doOpenSGF = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_update_score = false;
+                m_post_doOpenSGF = true;
+            }
             return;
         }
         if (m_post_doOpenSGF) {
@@ -2672,12 +2851,14 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
 #ifdef USE_THREAD
     stopEngine();
 #else
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doSaveSGF = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doSaveSGF = true;
+            }
             return;
         }
         if (m_post_doSaveSGF) {
@@ -2688,7 +2869,10 @@ void MainFrame::doSaveSGF(wxCommandEvent& event) {
     }
 #endif
 
-    std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor, m_japanese_rule);
+    std::string sgfgame = SGFTree::state_to_string(&m_State,
+                                                   !m_playerColor,
+                                                   m_japanese_rule,
+                                                   m_use_engine != GTP::ORIGINE_ENGINE);
 
     wxString caption = _("Choose a file");
     wxString wildcard = _("Go games (*.sgf)|*.sgf");
@@ -2717,12 +2901,14 @@ void MainFrame::doForceMove(wxCommandEvent& event) {
     bool wasRunning = stopEngine();
 #else
     bool wasRunning = false;
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doForceMove = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doForceMove = true;
+            }
             return;
         }
         if (m_post_doForceMove) {
@@ -2752,12 +2938,14 @@ void MainFrame::doResign(wxCommandEvent& event) {
 #ifdef USE_THREAD
         stopEngine();
 #else
-        if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+        if (m_use_engine == GTP::KATAGO_ENGINE) {
             // If KataGo is currently requesting analysis,
             // MainFrame::doRecieveKataGo will process it instead.
             if (m_katagoStatus != KATAGO_IDLE) {
-                m_runflag = false;
-                m_post_doResign = true;
+                if (m_runflag) {
+                    m_runflag = false;
+                    m_post_doResign = true;
+                }
                 return;
             }
             if (m_post_doResign) {
@@ -2806,12 +2994,14 @@ void MainFrame::doAnalyze(wxCommandEvent& event) {
     bool wasRunning = stopEngine();
 #else
     bool wasRunning = false;
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
         // If KataGo is currently requesting analysis,
         // MainFrame::doRecieveKataGo will process it instead.
         if (m_katagoStatus != KATAGO_IDLE) {
-            m_runflag = false;
-            m_post_doAnalyze = true;
+            if (m_runflag) {
+                m_runflag = false;
+                m_post_doAnalyze = true;
+            }
             return;
         }
         if (m_post_doAnalyze) {
@@ -2838,7 +3028,6 @@ void MainFrame::doAnalyze(wxCommandEvent& event) {
         startEngine();
     } else if (wasAnalyzing) {
         m_analyzing = false;
-        SetStatusBarText(_("Analysis stopped"), 1);
     }
     m_panelBoard->unlockState();
     m_playerColor = m_State.get_to_move();
@@ -2979,7 +3168,10 @@ void MainFrame::doEvalUpdate(wxCommandEvent& event) {
 
 void MainFrame::doCopyClipboard(wxCommandEvent& event) {
     if (wxTheClipboard->Open()) {
-        std::string sgfgame = SGFTree::state_to_string(&m_State, !m_playerColor, m_japanese_rule);
+        std::string sgfgame = SGFTree::state_to_string(&m_State,
+                                                       !m_playerColor,
+                                                       m_japanese_rule,
+                                                       m_use_engine != GTP::ORIGINE_ENGINE);
         auto data = std::make_unique<wxTextDataObject>(wxString(sgfgame));
         wxTheClipboard->SetData(data.release());
         wxTheClipboard->Flush();
@@ -3004,11 +3196,18 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_State.m_black_score = 0.0;
                 int rule = sgftree->get_rule();
                 if (rule == -1) {
-                    m_japanese_rule = m_japanese_rule_init;
+                    if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+                        m_japanese_rule = true;
+                    } else {
+                        m_japanese_rule = false;
+                    }
                 } else if (rule == 0) {
                     m_japanese_rule = false;
                 } else {
                     m_japanese_rule = true;
+                }
+                if (m_use_engine == GTP::ORIGINE_ENGINE) {
+                    m_japanese_rule = false;
                 }
                 for (size_t i = 0; i < m_State.m_win_rate.size(); i++) {
                     m_State.m_win_rate[i] = 0.5f;
@@ -3030,14 +3229,17 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 MCOwnerTable::get_MCO()->clear();
                 m_panelBoard->setPlayerColor(m_playerColor);
                 m_panelBoard->setShowTerritory(false);
+                m_panelBoard->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
+                m_panelBoard->setKataGoEngineType(cfg_engine_type);
                 m_panelBoard->clearViz();
                 if (m_scoreHistogramWindow) {
                     m_scoreHistogramWindow->ClearHistogram();
+                    m_scoreHistogramWindow->setUseKataGo(m_use_engine == GTP::KATAGO_ENGINE);
                 }
                 gameNoLongerCounts();
                 setActiveMenus();
 
-                if (cfg_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
+                if (m_use_engine == GTP::KATAGO_ENGINE && m_think_num > 0) {
                     m_thinking_time = 0;
                     m_thinking = false;
                     m_think_num = 0;
@@ -3045,7 +3247,7 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 }
 
 #ifndef USE_THREAD
-                if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
                     if (m_State.board.get_stone_count() <= 0) {
                         m_StateEngine = std::make_unique<GameState>(m_State);
                         m_gtp_send_cmd = wxString("clear_board\n");
@@ -3213,7 +3415,7 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
         kataRes.find(": error while loading shared libraries:") != std::string::npos ||
         kataRes.find("what():") != std::string::npos) {
         wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
-    } else if (cfg_use_engine == GTP::KATAGO_ENGINE) {
+    } else if (m_use_engine == GTP::KATAGO_ENGINE) {
         if (cfg_engine_type == GTP::ANALYSIS &&
             kataRes.rfind("Started, ready to begin handling requests") != std::string::npos) {
             std::string tmp_query = "";
@@ -3242,7 +3444,7 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
     }
 }
 
-void MainFrame::doAnalysisResponse(const wxString& kataRes) {
+void MainFrame::doAnalysisResponseWait(const wxString& kataRes) {
     if (kataRes.length() == 0 || (kataRes.length() >= 9 && kataRes.substr(0, 8) == "(stderr):")) {
        return;
     } else if (kataRes.find(R"("error":)") != std::string::npos) {
@@ -3252,6 +3454,95 @@ void MainFrame::doAnalysisResponse(const wxString& kataRes) {
     setStartMenus();
     wxCommandEvent evt;
     doNewRatedGame(evt);
+}
+
+void MainFrame::doAnalysisStartingWait(const wxString& kataRes) {
+    // Receive analysis response from KataGo (Get First board status).
+    if (kataRes.find(R"("id":"dummy")") != std::string::npos ||
+        kataRes.find("(stderr):") != std::string::npos) {
+        return;
+    }
+    int who = 1 - m_StateEngine->get_to_move();
+    std::string::size_type pos = kataRes.find("{");
+    if (pos == std::string::npos) {
+        return;
+    }
+    nlohmann::json res_2_json;
+    try {
+        res_2_json = nlohmann::json::parse(kataRes.substr(pos));
+        if (res_2_json.contains("id") &&
+            res_2_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+            return;
+        } else if (kataRes.find(R"("error":)") != std::string::npos) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+            postIdle();
+            return;
+        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
+            postIdle();
+            return;
+        }
+        m_winrate = 1.0f - res_2_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_2_json["rootInfo"]["scoreLead"].get<float>();
+        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+    } catch (const std::exception& e) {
+        wxLogError(_("Exception at ANALYSIS_STARTING_WAIT: %s %s"), typeid(e).name(), e.what());
+        postIdle();
+        return;
+    }
+    wxString mess;
+    if (who == FastBoard::BLACK) {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    m_winrate * 100.0f, m_scoreMean, 0, 0);
+    } else {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, 0, 0);
+    }
+    SetStatusBarText(mess, 1);
+    // signal update of visible board
+    m_panelBoard->unlockState();
+    wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
+    myevent.SetEventObject(this);
+    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+    broadcastCurrentMove();
+    postIdle();
+}
+
+void MainFrame::doKataGameStartingWait(const wxString& kataRes) {
+    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+        return;
+    }
+    if (m_gtp_send_cmd == wxString("boardsize 25\n")) {
+        if (kataRes.substr(0, 1) != "=") {
+            cfg_board25 = false;
+        }
+        m_katagoStatus = KATAGO_IDLE;
+        setStartMenus();
+        wxCommandEvent evt;
+        doNewRatedGame(evt);
+        return;
+    } else if (kataRes.substr(0, 1) == "?") {
+        wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+        SetStatusBarText(kataRes, 1);
+        postIdle();
+        return;
+    } else if (m_gtp_send_cmd == wxString("kata-get-rules\n")) {
+        if (kataRes.find(R"("scoring":"AREA")") == std::string::npos) {
+            m_japanese_rule = true;
+            m_japanese_rule_init = m_japanese_rule;
+        }
+        m_gtp_send_cmd = wxString("boardsize 25\n");
+        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+        return;
+    }
+    if (m_ini_line_idx < (int)m_ini_line.size()) {
+        m_gtp_send_cmd = m_ini_line[m_ini_line_idx] + wxString("\n");
+        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+        m_ini_line_idx++;
+    } else {
+        m_gtp_send_cmd = wxString("kata-get-rules\n");
+        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+    }
 }
 
 void MainFrame::doAnalysisQuery(const wxString& kataRes) {
@@ -3339,6 +3630,7 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
                 mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")),
                             m_winrate * 100.0f, m_scoreMean);
             }
+            make_owner_policy(m_StateEngine, res_1_json, m_winrate, m_scoreMean);
             SetStatusBarText(mess, 1);
             Utils::GUIAnalysis((void*)analysis_packet.release());
             Utils::GUIBestMoves((void*)move_data.release());
@@ -3357,6 +3649,12 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
                 event_w->SetClientData((void*)new auto(scoretuple));
                 wxQueueEvent(GetEventHandler(), event_w);
             }
+            //signal board change
+            m_State = *m_StateEngine;
+            wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+            myevent.SetEventObject(this);
+            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+            broadcastCurrentMove();
         }
         if (!m_isDuringSearch) {
             m_visit = res_1_json["rootInfo"]["visits"].get<int>();
@@ -3418,7 +3716,10 @@ void MainFrame::doGameFirstQuery(const wxString& kataRes) {
         m_winrate = res_1_json["rootInfo"]["winrate"].get<float>();
         m_scoreMean = res_1_json["rootInfo"]["scoreLead"].get<float>();
         m_StateEngine->m_black_score = m_scoreMean;
-        playMove(who);
+        m_resignKataGoEnabled = wxConfig::Get()->ReadBool(wxT("resignKataGoEnabled"), true);
+        if (m_resignKataGoEnabled) {
+            playMove(who);
+        }
         if (m_move_str == "pass") {
             m_StateEngine->play_move(who, FastBoard::PASS);
         } else if (m_move_str == "resign") {
@@ -3481,7 +3782,6 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
     if (pos == std::string::npos) {
         return;
     }
-    bool err = false;
     nlohmann::json res_2_json;
     try {
         res_2_json = nlohmann::json::parse(kataRes.substr(pos));
@@ -3490,64 +3790,14 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
             return;
         } else if (kataRes.find(R"("error":)") != std::string::npos) {
             wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
-            err = true;
+            postIdle();
+            return;
         } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
             wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
-            err = true;
+            postIdle();
+            return;
         }
-        if (!err) {
-            int board_size = m_StateEngine->board.get_boardsize();
-            // Edit Ownership Information
-            std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
-            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                int x = vertex % board_size;
-                int y = vertex / board_size;
-                y = -1 * (y - board_size) - 1;
-                int pos_owner = m_StateEngine->board.get_vertex(x, y);
-                float owner = res_2_json["ownership"][vertex].get<float>();
-                conv_owner[pos_owner] = (owner / 2.0f) + 0.5f;
-            }
-            m_StateEngine->m_owner.clear();
-            for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-                m_StateEngine->m_owner.emplace_back(*itr);
-            }
-            std::bitset<FastBoard::MAXSQ> blackowns;
-            for (int i = 0; i < board_size; i++) {
-                for (int j = 0; j < board_size; j++) {
-                    int vtx = m_StateEngine->board.get_vertex(i, j);
-                    if (m_StateEngine->m_owner[vtx] >= 0.5f) {
-                        blackowns[vtx] = true;
-                    }
-                }
-            }
-            MCOwnerTable::get_MCO()->update_owns(blackowns,
-                                                 (1.0f - m_winrate >= 0.5f),
-                                                 -1.0f * m_scoreMean);
-            // Edit Policy Information
-            std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
-            float maxProbability = 0.0f;
-            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                int x = vertex % board_size;
-                int y = vertex / board_size;
-                y = -1 * (y - board_size) - 1;
-                int pos_policy = m_StateEngine->board.get_vertex(x, y);
-                float policy = res_2_json["policy"][vertex].get<float>();
-                conv_policy[pos_policy] = policy;
-                if (policy > maxProbability) {
-                    maxProbability = policy;
-                }
-            }
-            float policy = res_2_json["policy"][board_size * board_size].get<float>();
-            if (policy > maxProbability) {
-                maxProbability = policy;
-            }
-            conv_policy[0] = maxProbability;
-            conv_policy[1] = policy;
-            m_StateEngine->m_policy.clear();
-            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-                m_StateEngine->m_policy.emplace_back(*itr);
-            }
-        }
+        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
     } catch (const std::exception& e) {
         m_StateEngine->stop_clock(who);
         wxLogError(_("Exception at GAME_SECOND_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
@@ -3588,47 +3838,10 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
     postIdle();
 }
 
-void MainFrame::doKataGameStartingWait(const wxString& kataRes) {
-    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
-        return;
-    }
-    if (m_gtp_send_cmd == wxString("boardsize 25\n")) {
-        if (kataRes.substr(0, 1) != "=") {
-            cfg_board25 = false;
-        }
-        m_katagoStatus = KATAGO_IDLE;
-        setStartMenus();
-        wxCommandEvent evt;
-        doNewRatedGame(evt);
-        return;
-    } else if (kataRes.substr(0, 1) == "?") {
-        wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
-        SetStatusBarText(kataRes, 1);
-        postIdle();
-        return;
-    } else if (m_gtp_send_cmd == wxString("kata-get-rules\n")) {
-        if (kataRes.find(R"("scoring":"AREA")") == std::string::npos) {
-            m_japanese_rule = true;
-            m_japanese_rule_init = m_japanese_rule;
-        }
-        m_gtp_send_cmd = wxString("boardsize 25\n");
-        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
-        return;
-    }
-    if (m_ini_line_idx < (int)m_ini_line.size()) {
-        m_gtp_send_cmd = m_ini_line[m_ini_line_idx] + wxString("\n");
-        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
-        m_ini_line_idx++;
-    } else {
-        m_gtp_send_cmd = wxString("kata-get-rules\n");
-        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
-    }
-}
-
 void MainFrame::doKataGameStart(const wxString& kataRes) {
     if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
         return;
-    } else if (kataRes.substr(0, 1) != "=") {
+    } else if (m_gtp_send_cmd != "kata-raw-nn 0\n" && kataRes.substr(0, 1) != "=") {
         wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
         SetStatusBarText(kataRes, 1);
         postIdle();
@@ -3667,6 +3880,21 @@ void MainFrame::doKataGameStart(const wxString& kataRes) {
             m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
             return;
         }
+        if (m_StateEngine->get_movenum() == 0 &&
+            m_playerColor == m_StateEngine->get_to_move()) {
+            m_policy.clear();
+            m_ownership.clear();
+            m_policy_row = 0;
+            m_ownership_row = 0;
+            m_picked_winrate = false;
+            m_picked_score = false;
+            m_pick_policy = false;
+            m_picked_pass = false;
+            m_pick_ownership = false;
+            m_gtp_send_cmd = "kata-raw-nn 0\n";
+            m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+            return;
+        }
         m_katagoStatus = KATAGO_IDLE;
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
@@ -3674,12 +3902,62 @@ void MainFrame::doKataGameStart(const wxString& kataRes) {
         broadcastCurrentMove();
         postIdle();
     } else if (m_gtp_send_cmd.find("set_free_handicap") != std::string::npos) {
+        if (m_StateEngine->get_movenum() == 0 &&
+            m_playerColor == m_StateEngine->get_to_move()) {
+            m_policy.clear();
+            m_ownership.clear();
+            m_policy_row = 0;
+            m_ownership_row = 0;
+            m_picked_winrate = false;
+            m_picked_score = false;
+            m_pick_policy = false;
+            m_picked_pass = false;
+            m_pick_ownership = false;
+            m_gtp_send_cmd = "kata-raw-nn 0\n";
+            m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+            return;
+        }
         m_katagoStatus = KATAGO_IDLE;
         wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
         myevent.SetEventObject(this);
         ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
         broadcastCurrentMove();
         postIdle();
+    } else if (m_gtp_send_cmd.find("kata-raw-nn 0\n") != std::string::npos) {
+        try {
+            if (!kataRawParse(kataRes, true)) {
+                return;
+            }
+            m_StateEngine->m_black_score = m_black_score;
+            make_owner_policy(m_StateEngine,
+                              m_ownership,
+                              m_policy,
+                              m_policy_pass,
+                              m_black_winrate,
+                              m_black_score);
+            wxString mess;
+            if (m_playerColor == FastBoard::BLACK) {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            m_black_winrate * 100.0f,
+                            m_black_score, 0, 0);
+            } else {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            100.0f - m_black_winrate * 100.0f,
+                            -1.0f * m_black_score, 0, 0);
+            }
+            SetStatusBarText(mess, 1);
+            // signal update of visible board
+            m_panelBoard->unlockState();
+            wxCommandEvent myevent(wxEVT_NEW_MOVE, GetId());
+            myevent.SetEventObject(this);
+            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+            broadcastCurrentMove();
+            postIdle();
+        } catch (const std::exception& e) {
+            wxLogError(_("Exception at KATAGO_GAME_START(kata-raw-nn 0): %s %s"),
+                       typeid(e).name(), e.what());
+            postIdle();
+        }
     }
 }
 
@@ -3705,39 +3983,69 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
         postIdle();
     } else if (m_gtp_send_cmd.find("kata-analyze ") != std::string::npos &&
                kataRes.find("info move ") != std::string::npos) {
+        m_kataRes = kataRes;
+        m_policy.clear();
+        m_ownership.clear();
+        m_policy_row = 0;
+        m_ownership_row = 0;
+        m_pick_policy = false;
+        m_picked_pass = false;
+        m_pick_ownership = false;
+        m_gtp_send_cmd = "kata-raw-nn 0\n";
+        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+    } else if (m_gtp_send_cmd.find("kata-raw-nn 0\n") != std::string::npos) {
+        if (!kataRawParse(kataRes, true)) {
+            return;
+        }
         int who = m_StateEngine->get_to_move();
         m_visit_count = 0;
-        float score = std::nan("");
+        float best_winrate = std::nan("");
+        float best_score = std::nan("");
         std::string visits_str;
+        std::string winrate_str;
         std::string score_str;
-        std::string::size_type pos = kataRes.find(" visits ");
+        std::string::size_type pos = m_kataRes.find(" visits ");
+        std::string::size_type pos_w;
         while (true) {
             if (pos == std::string::npos) {
                 break;
             }
             visits_str = "";
-            for (auto i = pos + sizeof(" visits ") - 1; i < kataRes.length(); i++) {
-                if (kataRes[i] != ' ') {
-                    visits_str += kataRes[i];
+            for (auto i = pos + sizeof(" visits ") - 1; i < m_kataRes.length(); i++) {
+                if (m_kataRes[i] != ' ') {
+                    visits_str += m_kataRes[i];
                 } else {
                     break;
                 }
             }
             m_visit_count += stoi(visits_str);
-            if (std::isnan(score)) {
-                score_str = "";
-                pos = kataRes.find("scoreLead ", pos);
-                pos = pos + sizeof("scoreLead ") - 1;
-                for ( ; pos < kataRes.length(); pos++) {
-                    if (kataRes[pos] != ' ') {
-                        score_str += kataRes[pos];
+            if (std::isnan(best_winrate)) {
+                winrate_str = "";
+                pos_w = m_kataRes.find("winrate ", pos);
+                pos_w = pos_w + sizeof("winrate ") - 1;
+                for ( ; pos_w < m_kataRes.length(); pos_w++) {
+                    if (m_kataRes[pos_w] != ' ') {
+                        winrate_str += m_kataRes[pos_w];
                     } else {
                         break;
                     }
                 }
-                score = stof(score_str);
+                best_winrate = stof(winrate_str);
             }
-            pos = kataRes.find(" visits ", pos + sizeof(" visits "));
+            if (std::isnan(best_score)) {
+                score_str = "";
+                pos = m_kataRes.find("scoreLead ", pos);
+                pos = pos + sizeof("scoreLead ") - 1;
+                for ( ; pos < m_kataRes.length(); pos++) {
+                    if (m_kataRes[pos] != ' ') {
+                        score_str += m_kataRes[pos];
+                    } else {
+                        break;
+                    }
+                }
+                best_score = stof(score_str);
+            }
+            pos = m_kataRes.find(" visits ", pos + sizeof(" visits "));
         }
         m_think_num += 1;
         m_visits += m_visit_count;
@@ -3748,20 +4056,20 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
         std::unique_ptr<TDataVector> analysis_packet(new TDataVector);
         std::unique_ptr<TMoveData> move_data(new TMoveData);
         std::get<0>(*analysis_packet) = who;
-        std::get<1>(*analysis_packet) = score;
+        std::get<1>(*analysis_packet) = best_score;
         auto& analysis_data = std::get<2>(*analysis_packet);
         std::string move_str;
-        std::string winrate_str;
         std::string pv_str;
         int visits;
         float winrate = 0.0f;
+        float score = 0.0f;
         pos = 0;
-        while ((pos = kataRes.find("info move ", pos)) != std::string::npos) {
+        while ((pos = m_kataRes.find("info move ", pos)) != std::string::npos) {
             move_str = "";
             pos = pos + sizeof("info move ") - 1;
-            for ( ; pos < kataRes.length(); pos++) {
-                if (kataRes[pos] != ' ') {
-                    move_str += kataRes[pos];
+            for ( ; pos < m_kataRes.length(); pos++) {
+                if (m_kataRes[pos] != ' ') {
+                    move_str += m_kataRes[pos];
                 } else {
                     break;
                 }
@@ -3770,44 +4078,44 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
                 continue;
             }
             visits_str = "";
-            pos = kataRes.find("visits ", pos);
+            pos = m_kataRes.find("visits ", pos);
             pos = pos + sizeof("visits ") - 1;
-            for ( ; pos < kataRes.length(); pos++) {
-                if (kataRes[pos] != ' ') {
-                    visits_str += kataRes[pos];
+            for ( ; pos < m_kataRes.length(); pos++) {
+                if (m_kataRes[pos] != ' ') {
+                    visits_str += m_kataRes[pos];
                 } else {
                     break;
                 }
             }
             visits = stoi(visits_str);
             winrate_str = "";
-            pos = kataRes.find("winrate ", pos);
+            pos = m_kataRes.find("winrate ", pos);
             pos = pos + sizeof("winrate ") - 1;
-            for ( ; pos < kataRes.length(); pos++) {
-                if (kataRes[pos] != ' ') {
-                    winrate_str += kataRes[pos];
+            for ( ; pos < m_kataRes.length(); pos++) {
+                if (m_kataRes[pos] != ' ') {
+                    winrate_str += m_kataRes[pos];
                 } else {
                     break;
                 }
             }
             winrate = stof(winrate_str);
             score_str = "";
-            pos = kataRes.find("scoreLead ", pos);
+            pos = m_kataRes.find("scoreLead ", pos);
             pos = pos + sizeof("scoreLead ") - 1;
-            for ( ; pos < kataRes.length(); pos++) {
-                if (kataRes[pos] != ' ') {
-                    score_str += kataRes[pos];
+            for ( ; pos < m_kataRes.length(); pos++) {
+                if (m_kataRes[pos] != ' ') {
+                    score_str += m_kataRes[pos];
                 } else {
                     break;
                 }
             }
             score = stof(score_str);
             pv_str = "";
-            pos = kataRes.find("pv ", pos);
+            pos = m_kataRes.find("pv ", pos);
             pos = pos + sizeof("pv ") - 1;
-            for ( ; pos < kataRes.length(); pos++) {
-                if (kataRes[pos] != 'i') {
-                    pv_str += kataRes[pos];
+            for ( ; pos < m_kataRes.length(); pos++) {
+                if (m_kataRes[pos] != 'i') {
+                    pv_str += m_kataRes[pos];
                 } else {
                     break;
                 }
@@ -3823,18 +4131,14 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
             analysis_data.emplace_back(row);
             move_data->emplace_back(move_str, (float)(visits / (double)m_visit_count));
         }
-        wxString mess;
-        mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")),
-                    winrate * 100.0f, score);
-        SetStatusBarText(mess, 1);
         Utils::GUIAnalysis((void*)analysis_packet.release());
         Utils::GUIBestMoves((void*)move_data.release());
         if (who == FastBoard::BLACK) {
-            m_StateEngine->m_black_score = score;
+            m_StateEngine->m_black_score = best_score;
         } else {
-            m_StateEngine->m_black_score = -1.0f * score;
+            m_StateEngine->m_black_score = -1.0f * best_score;
         }
-        if (m_update_score && !std::isnan(winrate)) {
+        if (m_update_score && !std::isnan(best_winrate)) {
             auto event_w = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
             auto movenum = m_StateEngine->get_movenum();
             float lead = 0.5f;
@@ -3847,15 +4151,42 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
             }
             if (who == FastBoard::BLACK) {
                 std::tuple<int, float, float, float> scoretuple
-                    = std::make_tuple(movenum, winrate, lead, winrate);
+                    = std::make_tuple(movenum, best_winrate, lead, best_winrate);
                 event_w->SetClientData((void*)new auto(scoretuple));
             } else {
                 std::tuple<int, float, float, float> scoretuple
-                    = std::make_tuple(movenum, 1.0f - winrate, lead, 1.0f - winrate);
+                    = std::make_tuple(movenum, 1.0f - best_winrate, lead, 1.0f - best_winrate);
                 event_w->SetClientData((void*)new auto(scoretuple));
             }
             wxQueueEvent(GetEventHandler(), event_w);
         }
+        if (!std::isnan(best_winrate)) {
+            m_StateEngine->m_black_score = m_black_score;
+            make_owner_policy(m_StateEngine,
+                              m_ownership,
+                              m_policy,
+                              m_policy_pass,
+                              m_black_winrate,
+                              m_black_score);
+            wxString mess;
+            mess.Printf((_("Under analysis... ") + _("Win rate:%3.1f%% Score:%.1f")),
+                        best_winrate * 100.0f, best_score);
+            SetStatusBarText(mess, 1);
+            //signal board change
+            m_State = *m_StateEngine;
+            wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+            myevent.SetEventObject(this);
+            ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+            broadcastCurrentMove();
+        }
+        if (m_StateEngine->get_to_move() == FastBoard::BLACK) {
+            m_gtp_send_cmd = wxString::Format("kata-analyze b interval %i maxmoves %i\n",
+                                              GTP_ANALYZE_INTERVAL, GTP_ANALYZE_MAX_MOVES);
+        } else {
+            m_gtp_send_cmd = wxString::Format("kata-analyze w interval %i maxmoves %i\n",
+                                              GTP_ANALYZE_INTERVAL, GTP_ANALYZE_MAX_MOVES);
+        }
+        m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
     }
 }
 
@@ -3991,141 +4322,16 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
         }
     } else if (m_gtp_send_cmd.find("kata-raw-nn 0\n") != std::string::npos) {
         try {
-            if (kataRes.length() > 11 && kataRes.substr(0, 11) == "policyPass ") {
-                std::string s = "";
-                size_t offset = sizeof("policyPass ") - 1;
-                while (offset < kataRes.length()) {
-                    if (kataRes[offset] == ' ') {
-                        offset++;
-                        if (s.length() > 0) {
-                            break;
-                        }
-                        continue;
-                    } else {
-                        s += kataRes[offset];
-                        offset++;
-                    }
-                }
-                m_policy_pass = stof(s);
-                m_picked_pass = true;
-                if (m_policy_row < m_StateEngine->board.get_boardsize() ||
-                    m_ownership_row < m_StateEngine->board.get_boardsize()) {
-                    return;
-                }
-            } else if (kataRes.length() >= 6 && kataRes.substr(0, 6) == "policy") {
-                m_pick_policy = true;
-                m_pick_ownership = false;
-                return;
-            } else if (kataRes.length() >= 14 && kataRes.substr(0, 14) == "whiteOwnership") {
-                m_pick_policy = false;
-                m_pick_ownership = true;
-                return;
-            } else if (m_pick_policy) {
-                size_t offset = 0;
-                std::string s;
-                for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
-                    s = "";
-                    while (offset < kataRes.length()) {
-                        if (kataRes[offset] == ' ') {
-                            offset++;
-                            if (s.length() > 0) {
-                                break;
-                            }
-                            continue;
-                        } else {
-                            s += kataRes[offset];
-                            offset++;
-                        }
-                    }
-                    m_policy.emplace_back(stof(s));
-                }
-                m_policy_row++;
-                if (m_policy_row < m_StateEngine->board.get_boardsize()) {
-                    return;
-                } else {
-                    m_pick_policy = false;
-                    if (m_ownership_row < m_StateEngine->board.get_boardsize() || !m_picked_pass) {
-                        return;
-                    }
-                }
-            } else if (m_pick_ownership) {
-                size_t offset = 0;
-                std::string s;
-                for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
-                    s = "";
-                    while (offset < kataRes.length()) {
-                        if (kataRes[offset] == ' ') {
-                            offset++;
-                            if (s.length() > 0) {
-                                break;
-                            }
-                            continue;
-                        } else {
-                            s += kataRes[offset];
-                            offset++;
-                        }
-                    }
-                    m_ownership.emplace_back(stof(s));
-                }
-                m_ownership_row++;
-                if (m_ownership_row < m_StateEngine->board.get_boardsize()) {
-                    return;
-                } else {
-                    m_pick_ownership = false;
-                    if (m_policy_row < m_StateEngine->board.get_boardsize() || !m_picked_pass) {
-                        return;
-                    }
-                }
-            } else {
+            if (!kataRawParse(kataRes)) {
                 return;
             }
-            // Edit Policy Information
-            int board_size = m_StateEngine->board.get_boardsize();
-            std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
-            float maxProbability = 0.0f;
-            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                int x = vertex % board_size;
-                int y = vertex / board_size;
-                y = -1 * (y - board_size) - 1;
-                int pos_policy = m_StateEngine->board.get_vertex(x, y);
-                float policy_ent = m_policy[vertex];
-                conv_policy[pos_policy] = policy_ent;
-                if (policy_ent > maxProbability) {
-                    maxProbability = policy_ent;
-                }
-            }
-            if (m_policy_pass > maxProbability) {
-                maxProbability = m_policy_pass;
-            }
-            conv_policy[0] = maxProbability;
-            conv_policy[1] = m_policy_pass;
-            m_StateEngine->m_policy.clear();
-            for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-                m_StateEngine->m_policy.emplace_back(*itr);
-            }
-            // Edit Ownership Information
-            std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
-            for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-                int x = vertex % board_size;
-                int y = vertex / board_size;
-                y = -1 * (y - board_size) - 1;
-                int pos_owner = m_StateEngine->board.get_vertex(x, y);
-                conv_owner[pos_owner] = -1 * (m_ownership[vertex] / 2) + 0.5f;
-            }
-            m_StateEngine->m_owner.clear();
-            for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-                m_StateEngine->m_owner.emplace_back(*itr);
-            }
-            std::bitset<FastBoard::MAXSQ> blackowns;
-            for (int i = 0; i < board_size; i++) {
-                for (int j = 0; j < board_size; j++) {
-                    int vtx = m_StateEngine->board.get_vertex(i, j);
-                    if (m_StateEngine->m_owner[vtx] >= 0.5f) {
-                        blackowns[vtx] = true;
-                    }
-                }
-            }
-            MCOwnerTable::get_MCO()->update_owns(blackowns, m_black_win, m_black_score);
+            m_StateEngine->m_black_score = m_black_score;
+            make_owner_policy(m_StateEngine,
+                              m_ownership,
+                              m_policy,
+                              m_policy_pass,
+                              m_black_winrate,
+                              m_black_score);
 
             if (m_update_score) {
                 // Broadcast result from search
@@ -4148,8 +4354,19 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                                   (query_end - m_query_start).count();
             m_thinking_time += think_time;
             m_thinking = false;
-            mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
-                        100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, think_time, m_visit_count);
+            if (m_playerColor == FastBoard::BLACK) {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            m_black_winrate * 100.0f,
+                            m_black_score,
+                            think_time,
+                            m_visit_count);
+            } else {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            100.0f - m_black_winrate * 100.0f,
+                            -1.0f * m_black_score,
+                            think_time,
+                            m_visit_count);
+            }
             SetStatusBarText(mess, 1);
             wxQueueEvent(GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
             m_StateEngine->stop_clock(1 - m_StateEngine->get_to_move());
@@ -4173,13 +4390,22 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
         } else if (m_gtp_send_cmd.find("undo\n") != std::string::npos) {
             m_undo_count++;
             if (m_undo_count >= m_undo_num || kataRes.substr(0,1) == "?") {
-                postIdle();
-                m_panelBoard->unlockState();
-                doRealUndo(m_undo_num, true);
+                m_policy.clear();
+                m_ownership.clear();
+                m_policy_row = 0;
+                m_ownership_row = 0;
+                m_picked_winrate = false;
+                m_picked_score = false;
+                m_pick_policy = false;
+                m_picked_pass = false;
+                m_pick_ownership = false;
+                m_gtp_send_cmd = "kata-raw-nn 0\n";
+                m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                m_gtp_send_cmd += "doRealUndo";
             } else if (kataRes.substr(0,1) == "="){
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
             }
-        } else if (kataRes.substr(0, 1) != "=") {
+        } else if (kataRes.substr(0, 1) == "?") {
             wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
             SetStatusBarText(kataRes, 1);
             postIdle();
@@ -4200,11 +4426,18 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
         } else if (m_gtp_send_cmd.find("play ") != std::string::npos) {
             m_forward_count++;
             if (m_forward_count >= m_forward_num) {
-                m_StateEngine.reset();
-                m_StateEngine = nullptr;
-                postIdle();
-                m_panelBoard->unlockState();
-                doRealForward(m_forward_num, true);
+                m_policy.clear();
+                m_ownership.clear();
+                m_policy_row = 0;
+                m_ownership_row = 0;
+                m_picked_winrate = false;
+                m_picked_score = false;
+                m_pick_policy = false;
+                m_picked_pass = false;
+                m_pick_ownership = false;
+                m_gtp_send_cmd = "kata-raw-nn 0\n";
+                m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                m_gtp_send_cmd += "doRealForward";
             } else {
                 if (m_StateEngine->forward_move()) {
                     std::string move_str = m_StateEngine->move_to_text(m_StateEngine->get_last_move());
@@ -4219,11 +4452,18 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
                     m_gtp_send_cmd += wxString("\n");
                     m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                 } else {
-                    m_StateEngine.reset();
-                    m_StateEngine = nullptr;
-                    postIdle();
-                    m_panelBoard->unlockState();
-                    doRealForward(m_forward_num, true);
+                    m_policy.clear();
+                    m_ownership.clear();
+                    m_policy_row = 0;
+                    m_ownership_row = 0;
+                    m_picked_winrate = false;
+                    m_picked_score = false;
+                    m_pick_policy = false;
+                    m_picked_pass = false;
+                    m_pick_ownership = false;
+                    m_gtp_send_cmd = "kata-raw-nn 0\n";
+                    m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                    m_gtp_send_cmd += "doRealForward";
                 }
             }
         } else if (m_gtp_send_cmd.find("loadsgf ") != std::string::npos) {
@@ -4264,20 +4504,161 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
             }
             m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
         } else if (m_gtp_send_cmd.find("kata-set-param maxVisits ") != std::string::npos) {
-            m_StateEngine.reset();
-            m_StateEngine = nullptr;
-            postIdle();
+            m_policy.clear();
+            m_ownership.clear();
+            m_policy_row = 0;
+            m_ownership_row = 0;
+            m_picked_winrate = false;
+            m_picked_score = false;
+            m_pick_policy = false;
+            m_picked_pass = false;
+            m_pick_ownership = false;
+            m_gtp_send_cmd = "kata-raw-nn 0\n";
+            m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+        } else if (m_gtp_send_cmd.find("kata-raw-nn 0\n") != std::string::npos) {
+            if (!kataRawParse(kataRes, true)) {
+                return;
+            }
+            m_StateEngine->m_black_score = m_black_score;
+            make_owner_policy(m_StateEngine,
+                              m_ownership,
+                              m_policy,
+                              m_policy_pass,
+                              m_black_winrate,
+                              m_black_score);
+            wxString mess;
+            if (m_playerColor == FastBoard::BLACK) {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            m_black_winrate * 100.0f,
+                            m_black_score, 0, 0);
+            } else {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            100.0f - m_black_winrate * 100.0f,
+                            -1.0f * m_black_score, 0, 0);
+            }
+            SetStatusBarText(mess, 1);
             m_panelBoard->unlockState();
             //signal board change
             wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
             myevent.SetEventObject(this);
             ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
             broadcastCurrentMove();
+            postIdle();
+            if (m_gtp_send_cmd.find("doRealUndo") != std::string::npos) {
+                doRealUndo(m_undo_num, true);
+            } else if (m_gtp_send_cmd.find("doRealForward") != std::string::npos) {
+                doRealForward(m_forward_num, true);
+            }
         }
     } catch (const std::exception& e) {
         wxLogError(_("Exception at KATAGO_GTP_ETC_WAIT: %s %s"), typeid(e).name(), e.what());
         postIdle();
     }
+}
+
+void MainFrame::doAnalysisSGFWait(const wxString& kataRes) {
+    wxLogDebug(_("AnalysisSGFWait"));
+
+    // Receive analysis response from KataGo (Get current board status).
+    if (kataRes.find(R"("id":"dummy")") != std::string::npos ||
+        kataRes.find("(stderr):") != std::string::npos) {
+        return;
+    }
+    int who = 1 - m_StateEngine->get_to_move();
+    std::string::size_type pos = kataRes.find("{");
+    if (pos == std::string::npos) {
+        return;
+    }
+    nlohmann::json res_2_json;
+    try {
+        res_2_json = nlohmann::json::parse(kataRes.substr(pos));
+        if (res_2_json.contains("id") &&
+            res_2_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+            return;
+        } else if (kataRes.find(R"("error":)") != std::string::npos) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+            postIdle();
+            return;
+        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
+            postIdle();
+            return;
+        }
+        m_winrate = 1.0f - res_2_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_2_json["rootInfo"]["scoreLead"].get<float>();
+        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+    } catch (const std::exception& e) {
+        wxLogError(_("Exception at ANALYSIS_SGF_WAIT: %s %s"), typeid(e).name(), e.what());
+        postIdle();
+        return;
+    }
+    wxString mess;
+    if (who == FastBoard::BLACK) {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    m_winrate * 100.0f, m_scoreMean, 0, 0);
+    } else {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, 0, 0);
+    }
+    SetStatusBarText(mess, 1);
+    // signal update of visible board
+    m_panelBoard->unlockState();
+    wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
+    myevent.SetEventObject(this);
+    ::wxPostEvent(m_panelBoard->GetEventHandler(), myevent);
+    broadcastCurrentMove();
+    postIdle();
+}
+
+void MainFrame::doAnalysisUndoWait(const wxString& kataRes) {
+    wxLogDebug(_("AnalysisUndoWait"));
+
+    // Receive analysis response from KataGo (Get current board status).
+    if (kataRes.find(R"("id":"dummy")") != std::string::npos ||
+        kataRes.find("(stderr):") != std::string::npos) {
+        return;
+    }
+    int who = 1 - m_StateEngine->get_to_move();
+    std::string::size_type pos = kataRes.find("{");
+    if (pos == std::string::npos) {
+        return;
+    }
+    nlohmann::json res_2_json;
+    try {
+        res_2_json = nlohmann::json::parse(kataRes.substr(pos));
+        if (res_2_json.contains("id") &&
+            res_2_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+            return;
+        } else if (kataRes.find(R"("error":)") != std::string::npos) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+            postIdle();
+            return;
+        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
+            postIdle();
+            return;
+        }
+        m_winrate = 1.0f - res_2_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_2_json["rootInfo"]["scoreLead"].get<float>();
+        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+    } catch (const std::exception& e) {
+        wxLogError(_("Exception at ANALYSIS_UNDO_WAIT: %s %s"), typeid(e).name(), e.what());
+        postIdle();
+        return;
+    }
+    wxString mess;
+    if (who == FastBoard::BLACK) {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    m_winrate * 100.0f, m_scoreMean, 0, 0);
+    } else {
+        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                    100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, 0, 0);
+    }
+    SetStatusBarText(mess, 1);
+    // signal update of visible board
+    m_panelBoard->unlockState();
+    doPostMoveChange(m_post_move_change);
+    postIdle();
 }
 
 void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
@@ -4293,7 +4674,9 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     if (m_katagoStatus == KATAGO_STARTING) {
         doKataGoStart(kataRes);
     } else if (m_katagoStatus == ANALYSIS_RESPONSE_WAIT) {
-        doAnalysisResponse(kataRes);
+        doAnalysisResponseWait(kataRes);
+    } else if (m_katagoStatus == ANALYSIS_STARTING_WAIT) {
+        doAnalysisStartingWait(kataRes);
     } else if (m_katagoStatus == ANALYSIS_QUERY_WAIT) {
         doAnalysisQuery(kataRes);
     } else if (m_katagoStatus == GAME_FIRST_QUERY_WAIT) {
@@ -4310,6 +4693,10 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         doKataGTPWait(kataRes);
     } else if (m_katagoStatus == KATAGO_GTP_ETC_WAIT) {
         doKataGTPEtcWait(kataRes);
+    } else if (m_katagoStatus == ANALYSIS_SGF_WAIT) {
+        doAnalysisSGFWait(kataRes);
+    } else if (m_katagoStatus == ANALYSIS_UNDO_WAIT) {
+        doAnalysisUndoWait(kataRes);
     } else if (kataRes.find("Uncaught exception:") != std::string::npos ||
         kataRes.find("PARSE ERROR:") != std::string::npos ||
         kataRes.find("failed with error") != std::string::npos ||
@@ -4322,10 +4709,10 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
 void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
     wxLogDebug(_("KataGo terminated"));
     m_timerIdleWakeUp.Stop();
-    m_in = nullptr;
-    m_err = nullptr;
-    m_out = nullptr;
-    if (m_katagoStatus == KATAGO_STARTING) {
+    if (m_katagoStatus == KATAGO_STARTING ||
+        m_katagoStatus == ANALYSIS_RESPONSE_WAIT ||
+        m_katagoStatus == KATAGO_STARTING_WAIT) {
+
         m_katagoStatus = KATAGO_STOPED;
         cfg_use_engine = GTP::ORIGINE_ENGINE;
         cfg_engine_type = GTP::NONE;
@@ -4347,8 +4734,267 @@ void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
         m_katagoStatus = KATAGO_STOPED;
         Close();
     } else {
-        m_katagoStatus = KATAGO_IDLE;
+        m_katagoStatus = KATAGO_STOPED;
         wxLogError(_("KataGo terminated abnormally."));
+    }
+}
+
+bool MainFrame::kataRawParse(const wxString& kataRes, const bool& win_score_read) {
+    if (kataRes.length() > 11 && kataRes.substr(0, 11) == "policyPass ") {
+        std::string s = "";
+        size_t offset = sizeof("policyPass ") - 1;
+        while (offset < kataRes.length()) {
+            if (kataRes[offset] == ' ') {
+                offset++;
+                if (s.length() > 0) {
+                    break;
+                }
+                continue;
+            } else {
+                s += kataRes[offset];
+                offset++;
+            }
+        }
+        m_policy_pass = stof(s);
+        m_picked_pass = true;
+        if (!m_picked_winrate || !m_picked_score ||
+            m_policy_row < m_StateEngine->board.get_boardsize() ||
+            m_ownership_row < m_StateEngine->board.get_boardsize()) {
+            return false;
+        }
+    } else if (kataRes.length() >= 8 && kataRes.substr(0, 8) == "whiteWin") {
+        std::string s = "";
+        size_t offset = sizeof("whiteWin ") - 1;
+        while (offset < kataRes.length()) {
+            if (kataRes[offset] == ' ') {
+                offset++;
+                if (s.length() > 0) {
+                    break;
+                }
+                continue;
+            } else {
+                s += kataRes[offset];
+                offset++;
+            }
+        }
+        if (win_score_read) {
+            m_black_winrate = 1.0f - stof(s);
+        } else {
+            m_winrate = 1.0f - stof(s);
+        }
+        m_picked_winrate = true;
+        if (!m_picked_pass || !m_picked_score ||
+            m_policy_row < m_StateEngine->board.get_boardsize() ||
+            m_ownership_row < m_StateEngine->board.get_boardsize()) {
+            return false;
+        }
+    } else if (kataRes.length() >= 9 && kataRes.substr(0, 9) == "whiteLead") {
+        std::string s = "";
+        size_t offset = sizeof("whiteLead ") - 1;
+        while (offset < kataRes.length()) {
+            if (kataRes[offset] == ' ') {
+                offset++;
+                if (s.length() > 0) {
+                    break;
+                }
+                continue;
+            } else {
+                s += kataRes[offset];
+                offset++;
+            }
+        }
+        if (win_score_read) {
+            m_black_score = -1.0f * stof(s);
+        } else {
+            m_scoreMean = 1.0f - stof(s);
+        }
+        m_picked_score = true;
+        if (!m_picked_pass || !m_picked_winrate ||
+            m_policy_row < m_StateEngine->board.get_boardsize() ||
+            m_ownership_row < m_StateEngine->board.get_boardsize()) {
+            return false;
+        }
+    } else if (kataRes.length() >= 6 && kataRes.substr(0, 6) == "policy") {
+        m_pick_policy = true;
+        m_pick_ownership = false;
+        return false;
+    } else if (kataRes.length() >= 14 && kataRes.substr(0, 14) == "whiteOwnership") {
+        m_pick_policy = false;
+        m_pick_ownership = true;
+        return false;
+    } else if (m_pick_policy) {
+        size_t offset = 0;
+        std::string s;
+        for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
+            s = "";
+            while (offset < kataRes.length()) {
+                if (kataRes[offset] == ' ') {
+                    offset++;
+                    if (s.length() > 0) {
+                        break;
+                    }
+                    continue;
+                } else {
+                    s += kataRes[offset];
+                    offset++;
+                }
+            }
+            m_policy.emplace_back(stof(s));
+        }
+        m_policy_row++;
+        if (m_policy_row < m_StateEngine->board.get_boardsize()) {
+            return false;
+        } else {
+            m_pick_policy = false;
+            if (m_ownership_row < m_StateEngine->board.get_boardsize() ||
+                !m_picked_pass || !m_picked_winrate || !m_picked_score) {
+                return false;
+            }
+        }
+    } else if (m_pick_ownership) {
+        size_t offset = 0;
+        std::string s;
+        for (auto i = 0; i < m_StateEngine->board.get_boardsize(); i++) {
+            s = "";
+            while (offset < kataRes.length()) {
+                if (kataRes[offset] == ' ') {
+                    offset++;
+                    if (s.length() > 0) {
+                        break;
+                    }
+                    continue;
+                } else {
+                    s += kataRes[offset];
+                    offset++;
+                }
+            }
+            m_ownership.emplace_back(stof(s));
+        }
+        m_ownership_row++;
+        if (m_ownership_row < m_StateEngine->board.get_boardsize()) {
+            return false;
+        } else {
+            m_pick_ownership = false;
+            if (m_policy_row < m_StateEngine->board.get_boardsize() ||
+                !m_picked_pass || !m_picked_winrate || !m_picked_score) {
+                return false;
+            }
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
+void MainFrame::make_owner_policy(std::unique_ptr<GameState>& state,
+                                  nlohmann::json& res_json,
+                                  float winrate,
+                                  float score) {
+    int board_size = state->board.get_boardsize();
+    // Edit Ownership Information
+    std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+        int x = vertex % board_size;
+        int y = vertex / board_size;
+        y = -1 * (y - board_size) - 1;
+        int pos_owner = state->board.get_vertex(x, y);
+        float owner = res_json["ownership"][vertex].get<float>();
+        conv_owner[pos_owner] = (owner / 2.0f) + 0.5f;
+    }
+    state->m_owner.clear();
+    for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+        state->m_owner.emplace_back(*itr);
+    }
+    std::bitset<FastBoard::MAXSQ> blackowns;
+    for (int i = 0; i < board_size; i++) {
+        for (int j = 0; j < board_size; j++) {
+            int vtx = state->board.get_vertex(i, j);
+            if (state->m_owner[vtx] >= 0.5f) {
+                blackowns[vtx] = true;
+            }
+        }
+    }
+    MCOwnerTable::get_MCO()->update_owns(blackowns,
+                                         (1.0f - winrate >= 0.5f),
+                                         -1.0f * score);
+    // Edit Policy Information
+    std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
+    float maxProbability = 0.0f;
+    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+        int x = vertex % board_size;
+        int y = vertex / board_size;
+        y = -1 * (y - board_size) - 1;
+        int pos_policy = state->board.get_vertex(x, y);
+        float policy = res_json["policy"][vertex].get<float>();
+        conv_policy[pos_policy] = policy;
+        if (policy > maxProbability) {
+            maxProbability = policy;
+        }
+    }
+    float policy = res_json["policy"][board_size * board_size].get<float>();
+    if (policy > maxProbability) {
+        maxProbability = policy;
+    }
+    conv_policy[0] = maxProbability;
+    conv_policy[1] = policy;
+    state->m_policy.clear();
+    for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+        state->m_policy.emplace_back(*itr);
+    }
+}
+
+void MainFrame::make_owner_policy(std::unique_ptr<GameState>& state,
+                                  std::vector<float> ownership,
+                                  std::vector<float> policy,
+                                  float policy_pass,
+                                  float winrate,
+                                  float score) {
+    int board_size = state->board.get_boardsize();
+    // Edit Ownership Information
+    std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+        int x = vertex % board_size;
+        int y = vertex / board_size;
+        y = -1 * (y - board_size) - 1;
+        int pos_owner = state->board.get_vertex(x, y);
+        conv_owner[pos_owner] = -1 * (ownership[vertex] / 2) + 0.5f;
+    }
+    state->m_owner.clear();
+    for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+        state->m_owner.emplace_back(*itr);
+    }
+    std::bitset<FastBoard::MAXSQ> blackowns;
+    for (int i = 0; i < board_size; i++) {
+        for (int j = 0; j < board_size; j++) {
+            int vtx = state->board.get_vertex(i, j);
+            if (state->m_owner[vtx] >= 0.5f) {
+                blackowns[vtx] = true;
+            }
+        }
+    }
+    MCOwnerTable::get_MCO()->update_owns(blackowns, winrate >= 0.5f, score);
+    // Edit Policy Information
+    std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
+    float maxProbability = 0.0f;
+    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+        int x = vertex % board_size;
+        int y = vertex / board_size;
+        y = -1 * (y - board_size) - 1;
+        int pos_policy = state->board.get_vertex(x, y);
+        float policy_ent = policy[vertex];
+        conv_policy[pos_policy] = policy_ent;
+        if (policy_ent > maxProbability) {
+            maxProbability = policy_ent;
+        }
+    }
+    if (policy_pass > maxProbability) {
+        maxProbability = policy_pass;
+    }
+    conv_policy[0] = maxProbability;
+    conv_policy[1] = policy_pass;
+    state->m_policy.clear();
+    for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+        state->m_policy.emplace_back(*itr);
     }
 }
 
@@ -4412,9 +5058,9 @@ void MainFrame::playMove(int who) {
 void MainFrame::postIdle() {
     wxCommandEvent evt;
     if (m_StateEngine) {
-        if ((!m_analyzing && !m_pondering) || m_katagoStatus == KATAGO_GTP_WAIT) {
+        //if ((!m_analyzing && !m_pondering) || m_katagoStatus == KATAGO_GTP_WAIT) {
             m_State = *m_StateEngine;
-        }
+        //}
         m_StateEngine.reset();
     }
     m_katagoStatus = KATAGO_IDLE;
