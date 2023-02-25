@@ -790,7 +790,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	sbSizer10->Add( m_filePickerEngine, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer22->Add( sbSizer10, 1, wxALL|wxEXPAND, 5 );
+	bSizer22->Add( sbSizer10, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer101;
 	sbSizer101 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Configration") ), wxVERTICAL );
@@ -799,7 +799,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	sbSizer101->Add( m_filePickerConfigration, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer22->Add( sbSizer101, 1, wxALL|wxEXPAND, 5 );
+	bSizer22->Add( sbSizer101, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer102;
 	sbSizer102 = new wxStaticBoxSizer( new wxStaticBox( sbSizer7->GetStaticBox(), wxID_ANY, _("Model") ), wxVERTICAL );
@@ -808,7 +808,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 	sbSizer102->Add( m_filePickerModel, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer22->Add( sbSizer102, 1, wxALL|wxEXPAND, 5 );
+	bSizer22->Add( sbSizer102, 0, wxALL|wxEXPAND, 5 );
 
 
 	sbSizer7->Add( bSizer22, 0, wxEXPAND, 5 );

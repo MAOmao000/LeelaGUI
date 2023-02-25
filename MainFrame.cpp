@@ -2137,16 +2137,15 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         MCOwnerTable::get_MCO()->clear();
         m_panelBoard->clearViz();
         // max 60 minutes per game
+        m_visitLimit = simulations;
         if (m_use_engine == GTP::ORIGINE_ENGINE) {
             m_State.set_timecontrol(2 * m_ratedSize * 60 * 100, 0, 0, 0);
-            m_visitLimit = simulations;
         } else {
             if (m_ratedSize == 19) {
                 m_State.set_timecontrol((m_ratedSize / 2) * 60 * 100, 200, 1, 0);
             } else {
                 m_State.set_timecontrol((m_ratedSize / 4) * 60 * 100, 200, 1, 0);
             }
-            m_visitLimit = simulations / 10;
         }
         m_playerColor = (handicap >= 0 ? FastBoard::BLACK : FastBoard::WHITE);
         m_panelBoard->setPlayerColor(m_playerColor);
@@ -4713,7 +4712,7 @@ void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
         m_katagoStatus == ANALYSIS_RESPONSE_WAIT ||
         m_katagoStatus == KATAGO_STARTING_WAIT) {
 
-        m_katagoStatus = KATAGO_STOPED;
+        m_katagoStatus = KATAGO_IDLE;
         cfg_use_engine = GTP::ORIGINE_ENGINE;
         cfg_engine_type = GTP::NONE;
         wxString errStr;
@@ -4723,6 +4722,7 @@ void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
         if (answer != wxYES) {
             Close();
         } else {
+            wxConfig::Get()->Write(wxT("ratedGameEngine"), (long)0);
             m_japanese_rule = false;
             m_japanese_rule_init = false;
             m_ponderEnabled = wxConfig::Get()->ReadBool(wxT("ponderEnabled"), true);
@@ -4731,10 +4731,10 @@ void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
             doNewRatedGame(evt);
         }
     } else if (m_katagoStatus == KATAGO_STOPING) {
-        m_katagoStatus = KATAGO_STOPED;
+        m_katagoStatus = KATAGO_IDLE;
         Close();
     } else {
-        m_katagoStatus = KATAGO_STOPED;
+        m_katagoStatus = KATAGO_IDLE;
         wxLogError(_("KataGo terminated abnormally."));
     }
 }
