@@ -1622,6 +1622,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
     }
 }
 
+#ifndef USE_THREAD
 bool MainFrame::getAnalysisPolicyAndOwner() {
     m_StateEngine = std::make_unique<GameState>(m_State);
     uint64_t query_ms
@@ -1685,6 +1686,7 @@ bool MainFrame::getAnalysisPolicyAndOwner() {
     }
     return true;
 }
+#endif
 
 void MainFrame::setActiveMenus() {
     int boardsize = m_State.board.get_boardsize();
@@ -2553,6 +2555,7 @@ void MainFrame::doRealUndo(int count, bool force) {
             wxLogDebug(_("Undoing one move"));
         }
     }
+#ifndef USE_THREAD
     if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::ANALYSIS) {
         m_post_move_change = wasAnalyzing && wasRunning;
         if (getAnalysisPolicyAndOwner()) {
@@ -2562,9 +2565,9 @@ void MainFrame::doRealUndo(int count, bool force) {
             m_katagoStatus = ANALYSIS_UNDO_WAIT;
             return;
         }
-    } else {
-        doPostMoveChange(wasAnalyzing && wasRunning);
     }
+#endif
+    doPostMoveChange(wasAnalyzing && wasRunning);
 }
 
 void MainFrame::doRealForward(int count, bool force) {
@@ -2623,6 +2626,7 @@ void MainFrame::doRealForward(int count, bool force) {
             }
         }
     }
+#ifndef USE_THREAD
     if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::ANALYSIS) {
         m_post_move_change = wasAnalyzing && wasRunning;
         if (getAnalysisPolicyAndOwner()) {
@@ -2632,9 +2636,9 @@ void MainFrame::doRealForward(int count, bool force) {
             m_katagoStatus = ANALYSIS_UNDO_WAIT;
             return;
         }
-    } else {
-        doPostMoveChange(wasAnalyzing && wasRunning);
     }
+#endif
+    doPostMoveChange(wasAnalyzing && wasRunning);
 }
 
 void MainFrame::doPostMoveChange(bool wasAnalyzing) {
@@ -2767,6 +2771,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_think_num = 0;
         m_visits = 0;
     }
+#ifndef USE_THREAD
     if (m_use_engine == GTP::KATAGO_ENGINE) {
         if (cfg_engine_type == GTP::ANALYSIS) {
             if (getAnalysisPolicyAndOwner()) {
@@ -2780,6 +2785,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
             return;
         }
     }
+#endif
     //signal board change
     wxCommandEvent myevent(wxEVT_BOARD_UPDATE, GetId());
     myevent.SetEventObject(this);
