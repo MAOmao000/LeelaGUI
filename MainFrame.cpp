@@ -4735,6 +4735,9 @@ void MainFrame::doTerminatedKataGo(wxCommandEvent & event) {
         Close();
     } else {
         m_katagoStatus = KATAGO_IDLE;
+        cfg_use_engine = GTP::ORIGINE_ENGINE;
+        cfg_engine_type = GTP::NONE;
+        wxConfig::Get()->Write(wxT("ratedGameEngine"), (long)0);
         wxLogError(_("KataGo terminated abnormally."));
     }
 }
