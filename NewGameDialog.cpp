@@ -20,8 +20,20 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     int komi = wxConfig::Get()->ReadLong(wxT("DefaultKomi"), (long)7);
     m_spinCtrlKomi->SetValue(komi);
     
-    int simulations;
+    int use_engine = 0;
     if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+        m_radioBoxEngine->SetSelection(0);
+        m_radioBoxEngine->Enable(false);
+    } else {
+        use_engine = wxConfig::Get()->ReadLong(wxT("useEngine"), (long)0);
+        m_radioBoxEngine->SetSelection(use_engine);
+    }
+
+    int simulations;
+    if (use_engine == 0) {
+        m_radioBoxRule->SetSelection(0);
+        m_radioBoxRule->Enable(1, false);
+        
         simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulations"), (long)6);
         m_radioBoxLevel->SetSelection(simulations);
         
@@ -34,6 +46,9 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
         int byo = wxConfig::Get()->ReadLong(wxT("DefaultByo"), (long)2);
         m_spinCtrlByo->SetValue(byo);
     } else {
+        int rule = wxConfig::Get()->ReadLong(wxT("NewGameRule"), (long)4);
+        m_radioBoxRule->SetSelection(rule);
+        
         simulations = wxConfig::Get()->ReadLong(wxT("DefaultSimulationsKataGo"), (long)6);
         m_radioBoxLevel->SetSelection(simulations);
         
@@ -49,14 +64,6 @@ void NewGameDialog::doInit( wxInitDialogEvent& event ) {
     
     int color = wxConfig::Get()->ReadLong(wxT("DefaultColor"), (long)0);
     m_radioBoxColor->SetSelection(color);
-
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
-        m_radioBoxEngine->SetSelection(0);
-        m_radioBoxEngine->Enable(false);
-    } else {
-        int use_engine = wxConfig::Get()->ReadLong(wxT("useEngine"), (long)0);
-        m_radioBoxEngine->SetSelection(use_engine);
-    }
 
     bool nets = wxConfig::Get()->Read(wxT("netsEnabled"), true);
     m_checkNeuralNet->SetValue(nets);
@@ -100,19 +107,24 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
 
     int simulations = m_radioBoxLevel->GetSelection();
     int simulations_num = m_spinCtrlLevel->GetValue();
-    if (cfg_use_engine == GTP::ORIGINE_ENGINE) {
+    int use_engine = 0;
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+        use_engine = wxConfig::Get()->ReadLong(wxT("useEngine"), (long)0);
+        m_radioBoxEngine->SetSelection(use_engine);
+        wxConfig::Get()->Write(wxT("useEngine"), (long)use_engine);
+    }
+    if (use_engine == 0) {
         wxConfig::Get()->Write(wxT("DefaultSimulations"), (long)simulations);
         wxConfig::Get()->Write(wxT("DefaultSimulationsNum"), (long)simulations_num);
     } else {
+        int rule = m_radioBoxRule->GetSelection();
+        wxConfig::Get()->Write(wxT("NewGameRule"), (long)rule);
         wxConfig::Get()->Write(wxT("DefaultSimulationsKataGo"), (long)simulations);
         wxConfig::Get()->Write(wxT("DefaultSimulationsNumKataGo"), (long)simulations_num);
     }
 
     int color = m_radioBoxColor->GetSelection();
     wxConfig::Get()->Write(wxT("DefaultColor"), (long)color);
-
-    int use_engine = m_radioBoxEngine->GetSelection();
-    wxConfig::Get()->Write(wxT("useEngine"), (long)use_engine);
 
     int handicap = m_spinCtrlHandicap->GetValue();
     wxConfig::Get()->Write(wxT("DefaultHandicap"), (long)handicap);
@@ -138,6 +150,30 @@ void NewGameDialog::doOK( wxCommandEvent& event ) {
     }
 
     event.Skip();
+}
+
+void NewGameDialog::doChangeEngine(wxCommandEvent& WXUNUSED(event)) {
+    int use_engine = m_radioBoxEngine->GetSelection();
+    wxConfig::Get()->Write(wxT("useEngine"), (long)use_engine);
+
+    if (use_engine == 0) {
+        m_radioBoxRule->SetSelection(0);
+        m_radioBoxRule->Enable(1, false);
+    } else {
+        m_radioBoxRule->Enable(1, true);
+        int rule = wxConfig::Get()->ReadLong(wxT("NewGameRule"), (long)4);
+        m_radioBoxRule->SetSelection(rule);
+    }
+}
+
+void NewGameDialog::doChangeRule(wxCommandEvent& WXUNUSED(event)) {
+    if (cfg_use_engine != GTP::ORIGINE_ENGINE) {
+        int use_engine = m_radioBoxEngine->GetSelection();
+        if (use_engine == 1) {
+            int rule = m_radioBoxRule->GetSelection();
+            wxConfig::Get()->Write(wxT("NewGameRule"), (long)rule);
+        }
+    }
 }
 
 float NewGameDialog::getKomi() {

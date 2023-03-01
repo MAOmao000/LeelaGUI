@@ -20,6 +20,8 @@ protected:
     virtual void doHandicapUpdate( wxSpinEvent& event );
     virtual void doRadioBox( wxCommandEvent& event );
     virtual void doLevel( wxCommandEvent& event );
+    virtual void doChangeEngine( wxCommandEvent& event );
+    virtual void doChangeRule( wxCommandEvent& event );
     
 public:
     /** Constructor */

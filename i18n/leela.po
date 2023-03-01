@@ -461,6 +461,10 @@ msgstr ""
 msgid "Board size"
 msgstr "碁盤サイズ"
 
+#: GUI.cpp:756
+msgid "Use rule"
+msgstr "使用ルール"
+
 #: GUI.cpp:342
 msgid "Komi (+0.5)"
 msgstr "コミ (+0.5)"

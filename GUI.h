@@ -208,7 +208,9 @@ class TNewGameDialog : public wxDialog
 		// Private event handlers
 		void _wxFB_doInit( wxInitDialogEvent& event ){ doInit( event ); }
 		void _wxFB_doRadioBox( wxCommandEvent& event ){ doRadioBox( event ); }
+		void _wxFB_doChangeRule( wxCommandEvent& event ){ doChangeRule( event ); }
 		void _wxFB_doHandicapUpdate( wxSpinEvent& event ){ doHandicapUpdate( event ); }
+		void _wxFB_doChangeEngine( wxCommandEvent& event ){ doChangeEngine( event ); }
 		void _wxFB_doLevel( wxCommandEvent& event ){ doLevel( event ); }
 		void _wxFB_doOK( wxCommandEvent& event ){ doOK( event ); }
 		void _wxFB_doCancel1( wxCommandEvent& event ){ doCancel1( event ); }
@@ -219,12 +221,15 @@ class TNewGameDialog : public wxDialog
 		{
 			ID_NEWGAME = 1000,
 			ID_BOARDSIZE,
+			ID_USE_RULE,
 			ID_KOMISPIN,
 			ID_HANDICAPSPIN,
+			ID_USE_ENGINE,
 			ID_LEVEL
 		};
 
 		wxRadioBox* m_radioBoxBoardSize;
+		wxRadioBox* m_radioBoxRule;
 		wxSpinCtrl* m_spinCtrlKomi;
 		wxSpinCtrl* m_spinCtrlHandicap;
 		wxStaticText* m_staticText3;
@@ -243,7 +248,9 @@ class TNewGameDialog : public wxDialog
 		// Virtual event handlers, override them in your derived class
 		virtual void doInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void doRadioBox( wxCommandEvent& event ) { event.Skip(); }
+		virtual void doChangeRule( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doHandicapUpdate( wxSpinEvent& event ) { event.Skip(); }
+		virtual void doChangeEngine( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doLevel( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doOK( wxCommandEvent& event ) { event.Skip(); }
 		virtual void doCancel1( wxCommandEvent& event ) { event.Skip(); }

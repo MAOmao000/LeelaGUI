@@ -307,7 +307,9 @@ TMainFrame::~TMainFrame()
 BEGIN_EVENT_TABLE( TNewGameDialog, wxDialog )
 	EVT_INIT_DIALOG( TNewGameDialog::_wxFB_doInit )
 	EVT_RADIOBOX( ID_BOARDSIZE, TNewGameDialog::_wxFB_doRadioBox )
+	EVT_RADIOBOX( ID_USE_RULE, TNewGameDialog::_wxFB_doChangeRule )
 	EVT_SPINCTRL( ID_HANDICAPSPIN, TNewGameDialog::_wxFB_doHandicapUpdate )
+	EVT_RADIOBOX( ID_USE_ENGINE, TNewGameDialog::_wxFB_doChangeEngine )
 	EVT_RADIOBOX( ID_LEVEL, TNewGameDialog::_wxFB_doLevel )
 	EVT_BUTTON( wxID_OK, TNewGameDialog::_wxFB_doOK )
 	EVT_BUTTON( wxID_CANCEL, TNewGameDialog::_wxFB_doCancel1 )
@@ -334,6 +336,12 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 	m_radioBoxBoardSize = new wxRadioBox( this, ID_BOARDSIZE, _("Board size"), wxDefaultPosition, wxDefaultSize, m_radioBoxBoardSizeNChoices, m_radioBoxBoardSizeChoices, 3, wxRA_SPECIFY_ROWS );
 	m_radioBoxBoardSize->SetSelection( 4 );
 	bSizer12->Add( m_radioBoxBoardSize, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+	wxString m_radioBoxRuleChoices[] = { _("Chinese"), _("Japanese") };
+	int m_radioBoxRuleNChoices = sizeof( m_radioBoxRuleChoices ) / sizeof( wxString );
+	m_radioBoxRule = new wxRadioBox( this, ID_USE_RULE, _("Use rule"), wxDefaultPosition, wxDefaultSize, m_radioBoxRuleNChoices, m_radioBoxRuleChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxRule->SetSelection( 0 );
+	bSizer12->Add( m_radioBoxRule, 1, wxALL|wxEXPAND, 5 );
 
 
 	bSizer9->Add( bSizer12, 0, wxEXPAND, 5 );
@@ -400,7 +408,7 @@ TNewGameDialog::TNewGameDialog( wxWindow* parent, wxWindowID id, const wxString&
 
 	wxString m_radioBoxEngineChoices[] = { _("Leela"), _("KataGo") };
 	int m_radioBoxEngineNChoices = sizeof( m_radioBoxEngineChoices ) / sizeof( wxString );
-	m_radioBoxEngine = new wxRadioBox( this, wxID_ANY, _("Use engine"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineNChoices, m_radioBoxEngineChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBoxEngine = new wxRadioBox( this, ID_USE_ENGINE, _("Use engine"), wxDefaultPosition, wxDefaultSize, m_radioBoxEngineNChoices, m_radioBoxEngineChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBoxEngine->SetSelection( 0 );
 	bSizer10->Add( m_radioBoxEngine, 0, wxALL, 5 );
 
@@ -784,7 +792,7 @@ TSettingsDialog::TSettingsDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
 #ifdef WIN32
 	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*.exe;*.bat)|*.exe;*.bat"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
-#else    
+#else
 	m_filePickerEngine = new wxFilePickerCtrl( sbSizer10->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("Engine files (*;*.sh)|*;*.sh"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE|wxFLP_SMALL|wxFLP_USE_TEXTCTRL );
 #endif
 	sbSizer10->Add( m_filePickerEngine, 0, wxALL|wxEXPAND, 5 );
