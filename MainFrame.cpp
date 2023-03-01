@@ -86,7 +86,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
 #endif
 
     m_japanese_rule = false;
-    if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+    if (wxConfig::Get()->ReadLong(wxT("KataGoRule"), (long)0) == 1) {
         m_japanese_rule_init = true;
     } else {
         m_japanese_rule_init = false;
@@ -1540,8 +1540,8 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
             m_visits = 0;
         }
 
-        if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
-            if (m_use_engine == GTP::KATAGO_ENGINE) {
+        if (m_use_engine == GTP::KATAGO_ENGINE) {
+            if (wxConfig::Get()->ReadLong(wxT("NewGameRule"), (long)0) == 1) {
                 m_japanese_rule = true;
             } else {
                 m_japanese_rule = false;
@@ -2109,7 +2109,7 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
 
     float komi;
     {
-        if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+        if (wxConfig::Get()->ReadLong(wxT("KataGoRule"), (long)0) == 1) {
             if (m_use_engine == GTP::KATAGO_ENGINE) {
                 m_japanese_rule = true;
                 komi = handicap ? 0.5f : 6.5f;
@@ -2703,7 +2703,7 @@ void MainFrame::loadSGFString(const wxString & SGF, int movenum) {
         m_State.m_black_score = 0.0;
         int rule = tree->get_rule();
         if (rule == -1) {
-            if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+            if (wxConfig::Get()->ReadLong(wxT("KataGoRule"), (long)0) == 1) {
                 m_japanese_rule = true;
             } else {
                 m_japanese_rule = false;
@@ -2833,7 +2833,7 @@ void MainFrame::doOpenSGF(wxCommandEvent& event) {
             if (sgfFile.ReadAll(&SGF)) {
                 loadSGFString(SGF);
 #ifndef USE_THREAD
-                if (cfg_engine_type == GTP::GTP_INTERFACE) {
+                if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
                     m_StateEngine = std::make_unique<GameState>(m_State);
                     if (m_State.board.get_stone_count() <= 0) {
                         m_gtp_send_cmd = wxString("clear_board\n");
@@ -2956,7 +2956,6 @@ void MainFrame::doResign(wxCommandEvent& event) {
             if (m_post_doResign) {
                 m_post_doResign = false;
             }
-#ifndef USE_THREAD
             if (cfg_engine_type == GTP::GTP_INTERFACE) {
                 if (m_resign_send) {
                     m_StateEngine = nullptr;
@@ -2978,7 +2977,6 @@ void MainFrame::doResign(wxCommandEvent& event) {
                     m_resign_send = true;
                 }
             }
-#endif
         } else {
             stopEngine();
         }
@@ -3201,7 +3199,7 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 m_State.m_black_score = 0.0;
                 int rule = sgftree->get_rule();
                 if (rule == -1) {
-                    if (wxConfig::Get()->ReadLong(wxT("DefaultRule"), (long)0) == 1) {
+                    if (wxConfig::Get()->ReadLong(wxT("KataGoRule"), (long)0) == 1) {
                         m_japanese_rule = true;
                     } else {
                         m_japanese_rule = false;
@@ -3252,7 +3250,15 @@ void MainFrame::doPasteClipboard(wxCommandEvent& event) {
                 }
 
 #ifndef USE_THREAD
-                if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
+                if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::ANALYSIS) {
+                    if (getAnalysisPolicyAndOwner()) {
+                        // lock the board
+                        m_panelBoard->lockState();
+                        m_timerIdleWakeUp.Start(WAKE_UP_TIMER_MS);
+                        m_katagoStatus = ANALYSIS_SGF_WAIT;
+                        return;
+                    }
+                } else if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
                     if (m_State.board.get_stone_count() <= 0) {
                         m_StateEngine = std::make_unique<GameState>(m_State);
                         m_gtp_send_cmd = wxString("clear_board\n");
@@ -3450,7 +3456,7 @@ void MainFrame::doKataGoStart(const wxString& kataRes) {
 }
 
 void MainFrame::doAnalysisResponseWait(const wxString& kataRes) {
-    if (kataRes.length() == 0 || (kataRes.length() >= 9 && kataRes.substr(0, 8) == "(stderr):")) {
+    if (kataRes.length() >= 9 && kataRes.substr(0, 8) == "(stderr):") {
        return;
     } else if (kataRes.find(R"("error":)") != std::string::npos) {
         cfg_board25 = false;
@@ -3514,7 +3520,7 @@ void MainFrame::doAnalysisStartingWait(const wxString& kataRes) {
 }
 
 void MainFrame::doKataGameStartingWait(const wxString& kataRes) {
-    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+    if (kataRes.find("(stderr):") != std::string::npos) {
         return;
     }
     if (m_gtp_send_cmd == wxString("boardsize 25\n")) {
@@ -3572,7 +3578,7 @@ void MainFrame::doAnalysisQuery(const wxString& kataRes) {
             postIdle();
             return;
         }
-        pos = kataRes.find(R"("isDuringSearch":)");;
+        pos = kataRes.find(R"("isDuringSearch":)");
         if (pos == std::string::npos) {
             return;
         } else if (m_isDuringSearch && kataRes.substr(pos + 17, 5) == "false") {
@@ -3844,7 +3850,7 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
 }
 
 void MainFrame::doKataGameStart(const wxString& kataRes) {
-    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+    if (kataRes.find("(stderr):") != std::string::npos) {
         return;
     } else if (m_gtp_send_cmd != "kata-raw-nn 0\n" && kataRes.substr(0, 1) != "=") {
         wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
@@ -3859,7 +3865,7 @@ void MainFrame::doKataGameStart(const wxString& kataRes) {
         m_gtp_send_cmd = wxString::Format("boardsize %d\n", m_StateEngine->board.get_boardsize());
         m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
     } else if (m_gtp_send_cmd.find("boardsize ") != std::string::npos) {
-        if (m_japanese_rule_init) {
+        if (m_japanese_rule) {
             m_gtp_send_cmd = R"(kata-set-rules {"friendlyPassOk":false,"hasButton":false,)";
             m_gtp_send_cmd += R"("ko":"SIMPLE","scoring":"TERRITORY","suicide":false,)";
             m_gtp_send_cmd += R"("tax":"SEKI","whiteHandicapBonus":"0"})";
@@ -3967,7 +3973,7 @@ void MainFrame::doKataGameStart(const wxString& kataRes) {
 }
 
 void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
-    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+    if (kataRes.find("(stderr):") != std::string::npos) {
         return;
     } else if (kataRes.substr(0, 1) == "?") {
         wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
@@ -4196,7 +4202,7 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
 }
 
 void MainFrame::doKataGTPWait(const wxString& kataRes) {
-    if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+    if (kataRes.find("(stderr):") != std::string::npos) {
         return;
     }
     if (m_gtp_send_cmd.find("time_settings ") != std::string::npos) {
@@ -4390,7 +4396,7 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
 
 void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
     try {
-        if (kataRes.length() == 0 || kataRes.find("(stderr):") != std::string::npos) {
+        if (kataRes.find("(stderr):") != std::string::npos) {
             return;
         } else if (m_gtp_send_cmd.find("undo\n") != std::string::npos) {
             m_undo_count++;
@@ -4421,13 +4427,13 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
             postIdle();
             m_panelBoard->unlockState();
             wxCommandEvent evt;
-            doPass(evt);;
+            doPass(evt);
         } else if (m_gtp_send_cmd.find(" resign\n") != std::string::npos) {
             m_resign_send = false;
             postIdle();
             m_panelBoard->unlockState();
             wxCommandEvent evt;
-            doResign(evt);;
+            doResign(evt);
         } else if (m_gtp_send_cmd.find("play ") != std::string::npos) {
             m_forward_count++;
             if (m_forward_count >= m_forward_num) {
@@ -4490,7 +4496,7 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
                                               m_StateEngine->board.get_boardsize());
             m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
         } else if (m_gtp_send_cmd.find("boardsize ") != std::string::npos) {
-            if (m_japanese_rule_init) {
+            if (m_japanese_rule) {
                 m_gtp_send_cmd = R"(kata-set-rules {"friendlyPassOk":false,)";
                 m_gtp_send_cmd += R"("hasButton":false,"ko":"SIMPLE","scoring":"TERRITORY",)";
                 m_gtp_send_cmd += R"("suicide":false,"tax":"SEKI","whiteHandicapBonus":"0"})";
