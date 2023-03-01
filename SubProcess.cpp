@@ -18,18 +18,22 @@ bool SubProcess::HasInput() {
             wxTextInputStream tis(*GetInputStream());
             wxString msg;
             msg << tis.ReadLine();
-            auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
-            event->SetClientData((void*)new auto(msg));
-            wxQueueEvent(m_parent->GetEventHandler(), event);
+            if (msg.length() > 0) {
+                auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
+                event->SetClientData((void*)new auto(msg));
+                wxQueueEvent(m_parent->GetEventHandler(), event);
+            }
             hasInput = true;
         }
         if ( IsErrorAvailable() ) {
             wxTextInputStream tis(*GetErrorStream());
             wxString msg;
             msg << "(stderr):" << tis.ReadLine();
-            auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
-            event->SetClientData((void*)new auto(msg));
-            wxQueueEvent(m_parent->GetEventHandler(), event);
+            if (msg.length() > 0) {
+                auto event = new wxCommandEvent(wxEVT_RECIEVE_KATAGO);
+                event->SetClientData((void*)new auto(msg));
+                wxQueueEvent(m_parent->GetEventHandler(), event);
+            }
             hasInput = true;
         }
     } catch (const std::exception& e) {
