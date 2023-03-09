@@ -618,11 +618,13 @@ void OpenCL_Network::convolve(int filter_size, int channels, int outputs,
         outputGroup = 16;
     }
 
+#ifndef NDEBUG
     // Total output size after reducing
     size_t outSize = width * height * outputs * sizeof(float);
 
     // Produce channel * output planes and merge them at the end
     size_t mergeSize = (channels >> channelShift) * outSize;
+#endif
 
     // Store the filters locally
     // size_t filtSize = outputGroup * channelGroup * filter_len * sizeof(float);

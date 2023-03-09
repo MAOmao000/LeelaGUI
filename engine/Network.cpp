@@ -187,7 +187,7 @@ void Network::benchmark(FastState * state) {
             tg.add_task([iters_per_thread, state]() {
                 FastState mystate = *state;
                 for (int loop = 0; loop < iters_per_thread; loop++) {
-                    auto vec = get_value(&mystate, Ensemble::RANDOM_ROTATION);
+                    /*auto vec = */get_value(&mystate, Ensemble::RANDOM_ROTATION);
                 }
             });
         };
