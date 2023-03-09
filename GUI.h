@@ -232,7 +232,6 @@ class TNewGameDialog : public wxDialog
 		wxRadioBox* m_radioBoxRule;
 		wxSpinCtrl* m_spinCtrlKomi;
 		wxSpinCtrl* m_spinCtrlHandicap;
-		wxStaticText* m_staticText3;
 		wxSpinCtrl* m_spinCtrlTime;
 		wxStaticText* m_staticText13;
 		wxSpinCtrl* m_spinCtrlByo;
