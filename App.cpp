@@ -81,11 +81,18 @@ bool MyApp::OnInit()
     ::wxSetWorkingDirectory(::wxPathOnly(wxString::FromUTF8(prg_path)));
 #endif
 
-#ifdef NDEBUG
     bool japanese = wxConfig::Get()->ReadBool(wxT("japaneseEnabled"), true);
-    MainFrame::setLocale(japanese);
+    if (japanese) {
+        if (!wxLocale::IsAvailable(wxLANGUAGE_JAPANESE)) {
+            wxConfig::Get()->Write(wxT("japaneseEnabled"), false);
+        } else {
+            m_locale.Init();
+            m_locale.AddCatalogLookupPathPrefix(wxT("catalogs"));
+            m_locale.AddCatalog(wxT("messages"));
+            m_locale.AddCatalog(wxT("wxstd"));
+        }
+    }
     ::wxSetWorkingDirectory(cwd);
-#endif
 
     wxImage::AddHandler(new wxPNGHandler());
 
