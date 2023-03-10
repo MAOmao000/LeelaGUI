@@ -137,6 +137,35 @@ class MainFrame : public TMainFrame {
         void doAnalysisSGFWait(const wxString& kataRes);
         void doAnalysisUndoWait(const wxString& kataRes);
 
+        static constexpr int WAKE_UP_TIMER_MS = 100;
+
+#endif
+
+        static constexpr int INIT = 0;
+        static constexpr int KATAGO_STARTING = 1;
+        static constexpr int ANALYSIS_STARTING_WAIT = 2;
+        static constexpr int KATAGO_IDLE = 3;
+        static constexpr int KATAGO_STOPING = 4;
+        static constexpr int KATAGO_STOPED = 5;
+        static constexpr int ANALYSIS_QUERY_WAIT = 6;
+        static constexpr int GAME_FIRST_QUERY_WAIT = 7;
+        static constexpr int GAME_SECOND_QUERY_WAIT = 8;
+        static constexpr int KATAGO_GAME_START = 9;
+        static constexpr int KATAGO_GTP_ANALYSIS = 10;
+        static constexpr int KATAGO_GTP_WAIT = 11;
+        static constexpr int KATAGO_GTP_ETC_WAIT = 12;
+        static constexpr int ANALYSIS_SGF_WAIT = 13;
+        static constexpr int ANALYSIS_UNDO_WAIT = 14;
+
+
+        static constexpr int NO_WINDOW_AUTOSIZE = 1;
+        static constexpr long MAX_RANK = 13L;
+        static constexpr long MIN_RANK = -30L;
+        static constexpr int DEFAULT_ANALYSIS_PV_LEN = 15;
+        static constexpr float DEFAULT_REPORT_DURING_SEARCH = 1.0f;
+        static constexpr int GTP_ANALYZE_INTERVAL = 200;
+        static constexpr int GTP_ANALYZE_MAX_MOVES = 50;
+
 #ifdef WIN32
 #ifdef USE_GPU
         static constexpr char* ENGINE_PATH
@@ -168,37 +197,6 @@ class MainFrame : public TMainFrame {
             = (char*)"/usr/games/katago_common.cfg";
         static constexpr int SIGNAL = wxSIGTERM;
 #endif
-
-        static constexpr int INIT = 0;
-        static constexpr int KATAGO_STARTING = 1;
-        static constexpr int ANALYSIS_STARTING_WAIT = 2;
-        static constexpr int KATAGO_IDLE = 3;
-        static constexpr int KATAGO_STOPING = 4;
-        static constexpr int KATAGO_STOPED = 5;
-        static constexpr int ANALYSIS_QUERY_WAIT = 6;
-        static constexpr int GAME_FIRST_QUERY_WAIT = 7;
-        static constexpr int GAME_SECOND_QUERY_WAIT = 8;
-        static constexpr int KATAGO_GAME_START = 9;
-        static constexpr int KATAGO_GTP_ANALYSIS = 10;
-        static constexpr int KATAGO_GTP_WAIT = 11;
-        static constexpr int KATAGO_GTP_ETC_WAIT = 12;
-        static constexpr int ANALYSIS_SGF_WAIT = 13;
-        static constexpr int ANALYSIS_UNDO_WAIT = 14;
-
-#endif
-
-        static constexpr int NO_WINDOW_AUTOSIZE = 1;
-        static constexpr long MAX_RANK = 13L;
-        static constexpr long MIN_RANK = -30L;
-        static constexpr int DEFAULT_ANALYSIS_PV_LEN = 15;
-        static constexpr float DEFAULT_REPORT_DURING_SEARCH = 1.0f;
-        static constexpr int GTP_ANALYZE_INTERVAL = 200;
-        static constexpr int GTP_ANALYZE_MAX_MOVES = 50;
-
-#ifndef USE_THREAD
-        static constexpr int WAKE_UP_TIMER_MS = 100;
-#endif
-
         int m_use_engine;
         GameState m_State;
         std::vector<GameState> m_StateStack;
@@ -256,6 +254,7 @@ class MainFrame : public TMainFrame {
         int m_visits;
         int m_katagoStatus;
         std::mutex m_GTPmutex;
+        int m_time_for_move;
 
 #ifdef USE_THREAD
         wxProcess* m_process{nullptr};

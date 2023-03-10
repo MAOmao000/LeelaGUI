@@ -69,6 +69,7 @@ MainFrame::MainFrame(wxFrame *frame, const wxString& title)
     m_process = nullptr;
     m_katagoStatus = INIT;
     m_use_engine = -1;
+    m_time_for_move = -1;
 
 #ifdef NDEBUG
     delete wxLog::SetActiveTarget(NULL);
@@ -1071,7 +1072,16 @@ void MainFrame::startKataGo() {
                 m_katagoStatus = KATAGO_GTP_ANALYSIS;
             } else {
                 m_StateEngine->start_clock(color);
-                m_gtp_send_cmd = wxString::Format("time_settings 0 %i 1\n", time_for_move + 1);
+                if (time_for_move == m_time_for_move) {
+                    if (m_StateEngine->get_to_move() == FastBoard::BLACK) {
+                        m_gtp_send_cmd = "kata-genmove_analyze b\n";
+                    } else {
+                        m_gtp_send_cmd = "kata-genmove_analyze w\n";
+                    }
+                } else {
+                    m_time_for_move = time_for_move;
+                    m_gtp_send_cmd = wxString::Format("time_settings 0 %i 1\n", time_for_move + 1);
+                }
                 m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
                 m_runflag = true;
                 m_katagoStatus = KATAGO_GTP_WAIT;
@@ -1452,6 +1462,10 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
             m_visits = 0;
         }
 
+        if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
+            m_time_for_move = -1;
+        }
+
         if (m_use_engine == GTP::KATAGO_ENGINE) {
             if (wxConfig::Get()->ReadLong(wxT("NewGameRule"), (long)0) == 1) {
                 m_japanese_rule = true;
@@ -1664,6 +1678,10 @@ void MainFrame::doNewRatedGame(wxCommandEvent& event) {
         m_thinking = false;
         m_think_num = 0;
         m_visits = 0;
+    }
+
+    if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
+        m_time_for_move = -1;
     }
 
     m_analyzing = false;
@@ -4409,18 +4427,7 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
     }
     std::unique_ptr<wxString> bundle(reinterpret_cast<wxString*>(rawdataptr));
     auto kataRes = *bundle;
-#ifndef NDEBUG
-    FILE* outputfile;
-    outputfile = fopen("kata_response.log", "a");
-    if (outputfile != NULL) {
-        fprintf(outputfile, "status:%d send:%s recieve:%s\n",
-                            m_katagoStatus,
-                            (const char*)m_gtp_send_cmd.mb_str(),
-                            (const char*)kataRes.mb_str());
-        fflush(outputfile);
-        fclose(outputfile);
-    }
-#endif
+
     if (m_katagoStatus == KATAGO_STARTING) {
         if (kataRes.StartsWith("START OK")) {
             if (kataRes.find("board25:0") != std::string::npos) {
