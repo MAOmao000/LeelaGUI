@@ -188,6 +188,7 @@ else()
     -Wno-unused-parameter
     -Wno-unused-variable
     -Wno-unknown-pragmas
+    -Wno-trigraphs
   )
   
   target_compile_definitions(leelagui PUBLIC
