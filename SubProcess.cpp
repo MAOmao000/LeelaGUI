@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SubProcess.h"
 
+#ifndef USE_THREAD
 SubProcess::SubProcess(MainFrame *parent,
                        int engine_type,
                        std::vector<wxString>& ini_line) : wxProcess(parent) {
@@ -178,7 +179,7 @@ bool SubProcess::KataRawNnRecieve(wxString& msg) {
     } else if (m_row_getting) {
         if (m_col_num == 0) {
             bool prev_sp = true;
-            for (auto i = 0; i < msg.length(); i++) {
+            for (size_t i = 0; i < msg.length(); i++) {
                 if (msg[i] == (const char)' ') {
                     prev_sp = true;
                 } else if (prev_sp) {
@@ -205,3 +206,4 @@ bool SubProcess::KataRawNnRecieve(wxString& msg) {
     }
     return (m_stack_row == 0);
 }
+#endif
