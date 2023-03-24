@@ -95,7 +95,7 @@ class MainFrame : public TMainFrame {
         void broadcastCurrentMove();
         void startEngine();
         bool stopEngine(bool update_score = true);
-        bool getAnalysisPolicyAndOwner();
+        bool getAnalysisPolicyAndOwner(bool get_policy = true, bool get_ownership = true);
         // true = user accepts score
         bool scoreDialog(float komi, float handicap, float score, float prekomi, bool dispute = false);
         bool scoreGame(float & komi, float & handicap, float & score, float & prescore);
@@ -118,13 +118,17 @@ class MainFrame : public TMainFrame {
         void make_owner_policy(std::unique_ptr<GameState>& state,
                                nlohmann::json& res_json,
                                float winrate,
-                               float score);
+                               float score,
+                               bool make_policy = true,
+                               bool make_ownership = true);
         void make_owner_policy(std::unique_ptr<GameState>& state,
                                std::vector<float> ownership,
                                std::vector<float> policy,
                                float policy_pass,
                                float winrate,
-                               float score);
+                               float score,
+                               bool make_policy = true,
+                               bool make_ownership = true);
         void postIdle();
         void doAnalysisStartingWait(const wxString& kataRes);
         void doAnalysisQuery(const wxString& kataRes);
@@ -136,6 +140,8 @@ class MainFrame : public TMainFrame {
         void doKataGTPEtcWait(const wxString& kataRes);
         void doAnalysisSGFWait(const wxString& kataRes);
         void doAnalysisUndoWait(const wxString& kataRes);
+        void doKataRawWait(const wxString& kataRes);
+        void doGetPolicyWait(const wxString& kataRes);
 
         static constexpr int WAKE_UP_TIMER_MS = 100;
 
@@ -156,7 +162,8 @@ class MainFrame : public TMainFrame {
         static constexpr int KATAGO_GTP_ETC_WAIT = 12;
         static constexpr int ANALYSIS_SGF_WAIT = 13;
         static constexpr int ANALYSIS_UNDO_WAIT = 14;
-
+        static constexpr int KATA_RAW_WAIT = 15;
+        static constexpr int GET_POLICY_WAIT = 16;
 
         static constexpr int NO_WINDOW_AUTOSIZE = 1;
         static constexpr long MAX_RANK = 13L;
@@ -279,6 +286,7 @@ class MainFrame : public TMainFrame {
         bool m_post_doResign;
         bool m_post_doAnalyze;
         bool m_post_move_change;
+        bool m_post_show_prob;
         std::string m_move_str;
         wxString m_kataRes;
         float m_winrate;
