@@ -340,7 +340,7 @@ void MainFrame::doInit() {
                 // Remove whitespace at the beginning of a line
                 std::string trim_line
                     = std::regex_replace(line, std::regex("^\\s+"), std::string(""));
-                if (trim_line.length() <= 0 || trim_line[0] == '#') {
+                if (trim_line.empty() || trim_line[0] == '#') {
                     continue;
                 }
                 // Remove the first character after `#` starting at the beginning of the line
@@ -355,7 +355,7 @@ void MainFrame::doInit() {
                 // Replace 2 or more spaces with 1 space
                 std::regex reg(R"(\s+)");
                 std::string s = std::regex_replace(last_line, reg, " ");
-                if (!m_ini_line.size() && s.find(" gtp ") != std::string::npos) {
+                if (m_ini_line.empty() && s.find(" gtp ") != std::string::npos) {
                     pos = s.find(" -override-config");
                     if (pos == std::string::npos) {
                         if (m_ponderKataGoEnabled) {
@@ -433,7 +433,7 @@ void MainFrame::doInit() {
                             s += R"( -override-config "reportAnalysisWinratesAs=SIDETOMOVE")";
                         }
                     }
-                } else if (!m_ini_line.size() && s.find(" analysis ") != std::string::npos) {
+                } else if (m_ini_line.empty() && s.find(" analysis ") != std::string::npos) {
                     pos = s.find(" -override-config");
                     if (pos == std::string::npos) {
                         s += R"( -override-config "reportAnalysisWinratesAs=BLACK")";
@@ -458,7 +458,7 @@ void MainFrame::doInit() {
                 m_ini_line.emplace_back(s);
             }
         }
-        if (m_ini_line.size() > 0) {
+        if (!m_ini_line.empty()) {
             defined_ini = true;
         } else {
             cfg_use_engine = GTP::ORIGINE_ENGINE;
@@ -474,7 +474,7 @@ void MainFrame::doInit() {
             wxConfig::Get()->Read(wxT("GTPModelPath"), &model_path);
         }
 
-        if (!engine_path.size()) {
+        if (engine_path.IsEmpty()) {
             engine_path = wxString::FromUTF8(ENGINE_PATH);
             if (cfg_engine_type == GTP::ANALYSIS) {
                 wxConfig::Get()->Write(wxT("AnalysisEnginePath"), engine_path);
@@ -482,7 +482,7 @@ void MainFrame::doInit() {
                 wxConfig::Get()->Write(wxT("GTPEnginePath"), engine_path);
             }
         }
-        if (!model_path.size()) {
+        if (model_path.IsEmpty()) {
             model_path = wxString::FromUTF8(MODEL_PATH);
             if (cfg_engine_type == GTP::ANALYSIS) {
                 wxConfig::Get()->Write(wxT("AnalysisModelPath"), model_path);
@@ -490,7 +490,7 @@ void MainFrame::doInit() {
                 wxConfig::Get()->Write(wxT("GTPModelPath"), model_path);
             }
         }
-        if (!config_path.size()) {
+        if (config_path.IsEmpty()) {
             config_path = wxString::FromUTF8(CONFIG_PATH);
             if (cfg_engine_type == GTP::ANALYSIS) {
                 wxConfig::Get()->Write(wxT("AnalysisConfigPath"), config_path);
@@ -638,11 +638,9 @@ void MainFrame::doInit() {
                         pos = -1;
                     }
                     last_msg = res_msg.substr(pos + 1);
-                    if (last_msg.length() > 26 &&
-                        last_msg.substr(0, 1) == "2" &&
-                        last_msg.substr(4, 1) == "-" &&
-                        last_msg.substr(7, 1) == "-") {
-                        last_msg.erase(0, 26); // "YYYY-MM-DD HH:MM:SS+0900: "
+                    std::regex regex(R"(\d{4}-\d{2}-\d{2})");
+                    if (std::regex_search(last_msg, regex)) {
+                        last_msg.erase(0, sizeof("YYYY-MM-DD HH:MM:SS+0900: ") - 1); 
                     }
                     SetStatusBarText(_("KataGo starting... ") + last_msg, 1);
                     if (last_msg.find("Uncaught exception:") != std::string::npos ||
@@ -795,6 +793,7 @@ void MainFrame::doInit() {
     m_post_doForceMove = false;
     m_post_doResign = false;
     m_post_doAnalyze = false;
+    m_post_show_prob = false;
     m_gtp_pending_cmd.clear();
     SetStatusBarText(_("KataGo starting... "), 0);
     m_katagoStatus = KATAGO_STARTING;
@@ -968,7 +967,7 @@ void MainFrame::startKataGo() {
                 m_send_json["komi"] = m_StateEngine->get_komi();
                 m_send_json["boardXSize"] = board_size;
                 m_send_json["boardYSize"] = board_size;
-                if (m_move_handi.size() > 0) {
+                if (!m_move_handi.empty()) {
                     int i = 0;
                     for (auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
                         std::string handi_move = m_StateEngine->move_to_text(*itr);
@@ -997,7 +996,7 @@ void MainFrame::startKataGo() {
                         m_send_json["moves"][i][1] = movestr;
                     }
                 } else {
-                    if (m_move_handi.size() > 0) {
+                    if (!m_move_handi.empty()) {
                         m_send_json["initialPlayer"] = "W";
                     } else {
                         m_send_json["initialPlayer"] = "B";
@@ -1032,6 +1031,7 @@ void MainFrame::startKataGo() {
                 } else {
                     m_StateEngine->start_clock(color);
                     m_send_json["id"] = "play1_" + m_query_id;
+                    m_send_json["includeOwnership"] = true;
                     if (m_visitLimit <= 0) {
                         m_send_json["maxVisits"] = INT_MAX;
                     } else {
@@ -1074,9 +1074,9 @@ void MainFrame::startKataGo() {
                 m_StateEngine->start_clock(color);
                 if (time_for_move == m_time_for_move) {
                     if (m_StateEngine->get_to_move() == FastBoard::BLACK) {
-                        m_gtp_send_cmd = "kata-genmove_analyze b\n";
+                        m_gtp_send_cmd = "kata-genmove_analyze b ownership true\n";
                     } else {
-                        m_gtp_send_cmd = "kata-genmove_analyze w\n";
+                        m_gtp_send_cmd = "kata-genmove_analyze w ownership true\n";
                     }
                 } else {
                     m_time_for_move = time_for_move;
@@ -1183,6 +1183,33 @@ void MainFrame::doToggleMoyo(wxCommandEvent& event) {
 }
 
 void MainFrame::doToggleProbabilities(wxCommandEvent& event) {
+#ifndef USE_THREAD
+    if (m_use_engine == GTP::KATAGO_ENGINE) {
+        if (!m_panelBoard->getShowProbabilities()) {
+            wxMenuItem * prob = m_menuTools->FindItem(ID_MOVE_PROBABILITIES);
+            prob->Enable(false);
+            m_menuTools->FindItem(ID_BEST_MOVES)->Enable(false);
+            if (m_katagoStatus == KATAGO_IDLE) {
+                if (cfg_engine_type == GTP::ANALYSIS) {
+                    if (getAnalysisPolicyAndOwner(true, false)) {
+                        m_katagoStatus = GET_POLICY_WAIT;
+                    }
+                } else {
+                    m_StateEngine = std::make_unique<GameState>(m_State);
+                    m_policy.clear();
+                    m_gtp_send_cmd = "kata-raw-nn 0\n";
+                    m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                    m_katagoStatus = KATA_RAW_WAIT;
+                }
+            } else {
+                m_runflag = true;
+                m_post_show_prob = true;
+            }
+            return;
+        }
+    }
+#endif
+
     m_panelBoard->setShowProbabilities(!m_panelBoard->getShowProbabilities());
 
     if (m_panelBoard->getShowProbabilities()) {
@@ -1248,7 +1275,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
     if (m_use_engine == GTP::KATAGO_ENGINE) {
         if (cfg_engine_type == GTP::GTP_INTERFACE) {
             wxString GTPCmd = event.GetString();
-            if (!GTPCmd.IsEmpty() && GTPCmd.length() > 0) {
+            if (!GTPCmd.IsEmpty()) {
                 m_gtp_pending_cmd = GTPCmd;
             }
         }
@@ -1268,7 +1295,7 @@ void MainFrame::doNewMove(wxCommandEvent & event) {
         stopEngine();
     }
     if (m_use_engine == GTP::KATAGO_ENGINE && cfg_engine_type == GTP::GTP_INTERFACE) {
-        if (m_gtp_pending_cmd.length() > 0) {
+        if (!m_gtp_pending_cmd.IsEmpty()) {
             // lock the board
             m_panelBoard->lockState();
             m_StateEngine = std::make_unique<GameState>(m_State);
@@ -1549,7 +1576,7 @@ void MainFrame::doNewGame(wxCommandEvent& event) {
 }
 
 #ifndef USE_THREAD
-bool MainFrame::getAnalysisPolicyAndOwner() {
+bool MainFrame::getAnalysisPolicyAndOwner(bool get_policy, bool get_ownership) {
     m_StateEngine = std::make_unique<GameState>(m_State);
     uint64_t query_ms
         = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -1568,7 +1595,7 @@ bool MainFrame::getAnalysisPolicyAndOwner() {
         m_send_json["komi"] = m_StateEngine->get_komi();
         m_send_json["boardXSize"] = board_size;
         m_send_json["boardYSize"] = board_size;
-        if (m_move_handi.size() > 0) {
+        if (!m_move_handi.empty()) {
             int i = 0;
             for (auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
                 std::string handi_move = m_StateEngine->move_to_text(*itr);
@@ -1600,8 +1627,8 @@ bool MainFrame::getAnalysisPolicyAndOwner() {
                 m_send_json["moves"][i][1] = movestr;
             }
         }
-        m_send_json["includeOwnership"] = true;
-        m_send_json["includePolicy"] = true;
+        m_send_json["includeOwnership"] = get_ownership;
+        m_send_json["includePolicy"] = get_policy;
         m_send_json["maxVisits"] = 1;
         std::string req_query = m_send_json.dump();
         wxString send_msg = req_query + "\n";
@@ -3273,9 +3300,9 @@ std::string MainFrame::GTPSend(const wxString& s, const int& sleep_ms) {
             m_GTPmutex.unlock();
             res_msg += buffer;
             buffer[0] = 0;
-            if (res_msg.length() > 0 && res_msg.back() == '\n') {
+            if (!res_msg.empty() && res_msg.back() == '\n') {
                 res_msg.erase(res_msg.length() - 1);
-                if (res_msg.length() > 0 && res_msg.back() == '\r') {
+                if (!res_msg.empty() && res_msg.back() == '\r') {
                     res_msg.erase(res_msg.length() - 1);
                 }
                 return res_msg;
@@ -3561,7 +3588,7 @@ void MainFrame::doGameFirstQuery(const wxString& kataRes) {
             return;
         }
         m_move_str = "pass";
-        if (res_1_json.contains("moveInfos") && res_1_json["moveInfos"].size() > 0 &&
+        if (res_1_json.contains("moveInfos") && !res_1_json["moveInfos"].empty() &&
             !res_1_json["moveInfos"][0]["move"].is_null()) {
             m_move_str = res_1_json["moveInfos"][0]["move"].get<std::string>();
         }
@@ -3602,26 +3629,62 @@ void MainFrame::doGameFirstQuery(const wxString& kataRes) {
         } else {
             m_StateEngine->play_move(who, m_StateEngine->board.text_to_move(m_move_str));
         }
-        m_send_json["id"] = "play2_" + m_query_id;
-        m_send_json["includeOwnership"] = true;
-        m_send_json["includePolicy"] = true;
-        m_send_json["maxVisits"] = 1;
-        m_send_json["analysisPVLen"] = 1;
-        int movenum = m_StateEngine->get_movenum() - 1;
-        if (who == FastBoard::BLACK) {
-            m_send_json["moves"][movenum][0] = "B";
+        make_owner_policy(m_StateEngine, res_1_json, m_winrate, m_scoreMean, false);
+        if (wxConfig::Get()->ReadBool("showProbabilitiesEnabled", false)) {
+            m_send_json["id"] = "play2_" + m_query_id;
+            m_send_json["includeOwnership"] = false;
+            m_send_json["includePolicy"] = true;
+            m_send_json["maxVisits"] = 1;
+            m_send_json["analysisPVLen"] = 1;
+            int movenum = m_StateEngine->get_movenum() - 1;
+            if (who == FastBoard::BLACK) {
+                m_send_json["moves"][movenum][0] = "B";
+            } else {
+                m_send_json["moves"][movenum][0] = "W";
+            }
+            if (m_move_str == "resign") {
+                m_send_json["moves"][movenum][1] = "pass";
+            } else {
+                m_send_json["moves"][movenum][1] = m_move_str;
+            }
+            std::string req_query_2 = m_send_json.dump();
+            wxString send_msg = req_query_2 + "\n";
+            m_out->Write(send_msg, send_msg.length());
+            m_katagoStatus = GAME_SECOND_QUERY_WAIT;
         } else {
-            m_send_json["moves"][movenum][0] = "W";
+            if (m_update_score) {
+                // Broadcast result from search
+                auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                auto movenum = m_StateEngine->get_movenum();
+                float lead = 0.5f;
+                if (m_scoreMean > 0.0f) {
+                    lead = 0.5f + (std::min)(0.5f, std::sqrt(m_scoreMean) / 40.0f);
+                } else if (m_scoreMean < 0.0f) {
+                    lead = 0.5f - (std::min)(0.5f, std::sqrt(-1.0f * m_scoreMean) / 40.0f);
+                }
+                std::tuple<int, float, float, float> scoretuple
+                    = std::make_tuple(movenum, m_winrate, lead, m_winrate);
+                event->SetClientData((void*)new auto(scoretuple));
+                wxQueueEvent(GetEventHandler(), event);
+            }
+            wxString mess;
+            auto query_end = std::chrono::system_clock::now();
+            int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                                  (query_end - m_query_start).count();
+            m_thinking_time += think_time;
+            m_thinking = false;
+            if (who == FastBoard::BLACK) {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            100.0f - m_winrate * 100.0f, -1.0f * m_scoreMean, think_time, m_visit);
+            } else {
+                mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                            m_winrate * 100.0f, m_scoreMean, think_time, m_visit);
+            }
+            SetStatusBarText(mess, 1);
+            wxQueueEvent(GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+            m_StateEngine->stop_clock(who);
+            postIdle();
         }
-        if (m_move_str == "resign") {
-            m_send_json["moves"][movenum][1] = "pass";
-        } else {
-            m_send_json["moves"][movenum][1] = m_move_str;
-        }
-        std::string req_query_2 = m_send_json.dump();
-        wxString send_msg = req_query_2 + "\n";
-        m_out->Write(send_msg, send_msg.length());
-        m_katagoStatus = GAME_SECOND_QUERY_WAIT;
     } catch (const std::exception& e) {
         m_StateEngine->stop_clock(who);
         wxLogError(_("Exception at GAME_FIRST_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
@@ -3646,7 +3709,7 @@ void MainFrame::doGameSecondQuery(const wxString& kataRes) {
             postIdle();
             return;
         }
-        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean, true, false);
     } catch (const std::exception& e) {
         m_StateEngine->stop_clock(who);
         wxLogError(_("Exception at GAME_SECOND_QUERY_WAIT: %s %s"), typeid(e).name(), e.what());
@@ -3719,7 +3782,7 @@ void MainFrame::doKataGameStart(const wxString& kataRes) {
         m_gtp_send_cmd = "clear_board\n";
         m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
     } else if (m_gtp_send_cmd.StartsWith("clear_board\n")) {
-        if (m_move_handi.size() > 0) {
+        if (!m_move_handi.empty()) {
             m_gtp_send_cmd = "set_free_handicap";
             for(auto itr = m_move_handi.begin(); itr != m_move_handi.end(); ++itr) {
                 int handi_move = *itr;
@@ -3896,7 +3959,7 @@ void MainFrame::doKataGTPAnalysis(const wxString& kataRes) {
                     break;
                 }
             }
-            if (move_str.length() < 1) {
+            if (move_str.empty()) {
                 continue;
             }
             visits_str.clear();
@@ -4024,9 +4087,9 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
             return;
         }
         if (m_StateEngine->get_to_move() == FastBoard::BLACK) {
-            m_gtp_send_cmd = "kata-genmove_analyze b\n";
+            m_gtp_send_cmd = "kata-genmove_analyze b ownership true\n";
         } else {
-            m_gtp_send_cmd = "kata-genmove_analyze w\n";
+            m_gtp_send_cmd = "kata-genmove_analyze w ownership true\n";
         }
         m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
     } else if (kataRes.StartsWith("?")) {
@@ -4043,7 +4106,7 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                 std::string::size_type pos;
                 move_str = kataRes.substr(sizeof("play ") - 1,
                                           kataRes.length() - (sizeof("play ") - 1));
-                if (move_str.length() > 0) {
+                if (!move_str.empty()) {
                     std::string find_str = "move " + move_str;
                     if (move_str != "pass" && move_str != "resign") {
                         pos = m_info_move.find(find_str);
@@ -4104,6 +4167,34 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                 }
                 m_think_num += 1;
                 m_visits += m_visit_count;
+                pos = m_info_move.find("ownership ") + sizeof("ownership ") - 1;
+                bool prev_sp = true;
+                wxString s;
+                m_ownership.clear();
+                int board_size = m_StateEngine->board.get_boardsize();
+                for (auto i = 0; i < board_size * board_size && pos < m_info_move.length(); pos++) {
+                    if (m_info_move[pos] == (const char)' ') {
+                        if (!prev_sp) {
+                            prev_sp = true;
+                            if (who == FastBoard::BLACK) {
+                                m_ownership.emplace_back(wxAtof(s) * -1.0f);
+                            } else {
+                                m_ownership.emplace_back(wxAtof(s));
+                            }
+                            s.Empty();
+                            i++;
+                        }
+                    } else {
+                        if (prev_sp) {
+                            prev_sp = false;
+                            s.Empty();
+                        }
+                        s += m_info_move[pos];
+                    }
+                }
+                if (!s.IsEmpty()) {
+                    m_ownership.emplace_back(wxAtof(s));
+                }
 
                 if (move_str == "pass") {
                     m_StateEngine->play_move(who, FastBoard::PASS);
@@ -4122,11 +4213,59 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                     m_black_score = -1.0f * m_scoreMean;
                 }
                 m_black_win = m_black_winrate >= 0.5f;
-                m_StateEngine->m_black_score = m_black_score;
-                m_policy.clear();
-                m_ownership.clear();
-                m_gtp_send_cmd = "kata-raw-nn 0\n";
-                m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                make_owner_policy(m_StateEngine,
+                                  m_ownership,
+                                  m_policy,
+                                  m_policy_pass,
+                                  m_black_winrate,
+                                  m_black_score,
+                                  false);
+                if (wxConfig::Get()->ReadBool("showProbabilitiesEnabled", false)) {
+                    m_StateEngine->m_black_score = m_black_score;
+                    m_policy.clear();
+                    m_gtp_send_cmd = "kata-raw-nn 0\n";
+                    m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+                } else {
+                    m_StateEngine->m_black_score = m_black_score;
+                    if (m_update_score) {
+                        // Broadcast result from search
+                        auto event = new wxCommandEvent(wxEVT_EVALUATION_UPDATE);
+                        auto movenum = m_StateEngine->get_movenum();
+                        float lead = 0.5;
+                        if (m_black_score > 0.0) {
+                            lead = 0.5 + (std::min)(0.5f, std::sqrt(m_black_score) / 40);
+                        } else if (m_black_score < 0.0) {
+                            lead = 0.5 - (std::min)(0.5f, std::sqrt(-1.0f * m_black_score) / 40);
+                        }
+                        std::tuple<int, float, float, float> scoretuple
+                            = std::make_tuple(movenum, m_black_winrate, lead, m_black_winrate);
+                        event->SetClientData((void*)new auto(scoretuple));
+                        wxQueueEvent(GetEventHandler(), event);
+                    }
+                    wxString mess;
+                    auto query_end = std::chrono::system_clock::now();
+                    int think_time = (int)std::chrono::duration_cast<std::chrono::milliseconds>
+                                          (query_end - m_query_start).count();
+                    m_thinking_time += think_time;
+                    m_thinking = false;
+                    if (m_playerColor == FastBoard::BLACK) {
+                        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                                    m_black_winrate * 100.0f,
+                                    m_black_score,
+                                    think_time,
+                                    m_visit_count);
+                    } else {
+                        mess.Printf(_("Win rate:%3.1f%% Score:%.1f Time:%d[ms] Visits:%d"),
+                                    100.0f - m_black_winrate * 100.0f,
+                                    -1.0f * m_black_score,
+                                    think_time,
+                                    m_visit_count);
+                    }
+                    SetStatusBarText(mess, 1);
+                    wxQueueEvent(GetEventHandler(), new wxCommandEvent(wxEVT_NEW_MOVE));
+                    m_StateEngine->stop_clock(1 - m_StateEngine->get_to_move());
+                    postIdle();
+                }
             } else if (kataRes.StartsWith("info move ")) {
                 m_info_move = kataRes;
             }
@@ -4145,7 +4284,9 @@ void MainFrame::doKataGTPWait(const wxString& kataRes) {
                               m_policy,
                               m_policy_pass,
                               m_black_winrate,
-                              m_black_score);
+                              m_black_score,
+                              true,
+                              false);
 
             if (m_update_score) {
                 // Broadcast result from search
@@ -4336,24 +4477,24 @@ void MainFrame::doKataGTPEtcWait(const wxString& kataRes) {
 void MainFrame::doAnalysisSGFWait(const wxString& kataRes) {
     // Receive analysis response from KataGo (Get current board status).
     int who = 1 - m_StateEngine->get_to_move();
-    nlohmann::json res_2_json;
+    nlohmann::json res_json;
     try {
-        res_2_json = nlohmann::json::parse(kataRes);
-        if (res_2_json.contains("id") &&
-            res_2_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+        res_json = nlohmann::json::parse(kataRes);
+        if (res_json.contains("id") &&
+            res_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
             return;
         } else if (kataRes.find(R"("error":)") != std::string::npos) {
             wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
             postIdle();
             return;
-        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+        } else if (res_json.contains("noResults") && res_json["noResults"].get<bool>()) {
             wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
             postIdle();
             return;
         }
-        m_winrate = 1.0f - res_2_json["rootInfo"]["winrate"].get<float>();
-        m_scoreMean = -1.0f * res_2_json["rootInfo"]["scoreLead"].get<float>();
-        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+        m_winrate = 1.0f - res_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_json["rootInfo"]["scoreLead"].get<float>();
+        make_owner_policy(m_StateEngine, res_json, m_winrate, m_scoreMean);
     } catch (const std::exception& e) {
         wxLogError(_("Exception at ANALYSIS_SGF_WAIT: %s %s"), typeid(e).name(), e.what());
         postIdle();
@@ -4380,24 +4521,24 @@ void MainFrame::doAnalysisSGFWait(const wxString& kataRes) {
 void MainFrame::doAnalysisUndoWait(const wxString& kataRes) {
     // Receive analysis response from KataGo (Get current board status).
     int who = 1 - m_StateEngine->get_to_move();
-    nlohmann::json res_2_json;
+    nlohmann::json res_json;
     try {
-        res_2_json = nlohmann::json::parse(kataRes);
-        if (res_2_json.contains("id") &&
-            res_2_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+        res_json = nlohmann::json::parse(kataRes);
+        if (res_json.contains("id") &&
+            res_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
             return;
         } else if (kataRes.find(R"("error":)") != std::string::npos) {
             wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
             postIdle();
             return;
-        } else if (res_2_json.contains("noResults") && res_2_json["noResults"].get<bool>()) {
+        } else if (res_json.contains("noResults") && res_json["noResults"].get<bool>()) {
             wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
             postIdle();
             return;
         }
-        m_winrate = 1.0f - res_2_json["rootInfo"]["winrate"].get<float>();
-        m_scoreMean = -1.0f * res_2_json["rootInfo"]["scoreLead"].get<float>();
-        make_owner_policy(m_StateEngine, res_2_json, m_winrate, m_scoreMean);
+        m_winrate = 1.0f - res_json["rootInfo"]["winrate"].get<float>();
+        m_scoreMean = -1.0f * res_json["rootInfo"]["scoreLead"].get<float>();
+        make_owner_policy(m_StateEngine, res_json, m_winrate, m_scoreMean);
     } catch (const std::exception& e) {
         wxLogError(_("Exception at ANALYSIS_UNDO_WAIT: %s %s"), typeid(e).name(), e.what());
         postIdle();
@@ -4415,6 +4556,84 @@ void MainFrame::doAnalysisUndoWait(const wxString& kataRes) {
     // signal update of visible board
     m_panelBoard->unlockState();
     doPostMoveChange(m_post_move_change);
+    postIdle();
+}
+
+void MainFrame::doKataRawWait(const wxString& kataRes) {
+    if (kataRes == "= KataGo") {
+        return;
+    }
+    if (kataRes.StartsWith("?")) {
+        wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+        SetStatusBarText(kataRes, 1);
+        postIdle();
+    } else if (m_gtp_send_cmd.StartsWith("kata-raw-nn 0\n")) {
+        kataRawParse(kataRes, true);
+        m_StateEngine->m_black_score = m_black_score;
+        make_owner_policy(m_StateEngine,
+                          m_ownership,
+                          m_policy,
+                          m_policy_pass,
+                          m_black_winrate,
+                          m_black_score,
+                          true,
+                          false);
+        wxMenuItem * prob = m_menuTools->FindItem(ID_MOVE_PROBABILITIES);
+        wxMenuItem * bm = m_menuTools->FindItem(ID_BEST_MOVES);
+        prob->Enable(true);
+        bm->Enable(true);
+        m_panelBoard->setShowProbabilities(!m_panelBoard->getShowProbabilities());
+        wxConfig::Get()->Write("showProbabilitiesEnabled", true);
+        prob->Check(true);
+        gameNoLongerCounts();
+        if (m_panelBoard->getShowBestMoves()) {
+            wxConfig::Get()->Write("showBestMovesEnabled", false);
+            m_panelBoard->setShowBestMoves(false);
+            bm->Check(false);
+        }
+        m_panelBoard->Refresh();
+        m_post_show_prob = false;
+        postIdle();
+    }
+}
+
+void MainFrame::doGetPolicyWait(const wxString& kataRes) {
+    nlohmann::json res_json;
+    try {
+        res_json = nlohmann::json::parse(kataRes);
+        if (res_json.contains("id") &&
+            res_json["id"].get<std::string>() != m_send_json["id"].get<std::string>()) {
+            return;
+        } else if (kataRes.find(R"("error":)") != std::string::npos) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), kataRes.mb_str());
+            postIdle();
+            return;
+        } else if (res_json.contains("noResults") && res_json["noResults"].get<bool>()) {
+            wxLogError(_("Error was returned from KataGo engine: %s"), "noResults");
+            postIdle();
+            return;
+        }
+        make_owner_policy(m_StateEngine, res_json, 0.0f, 0.0f, true, false);
+    } catch (const std::exception& e) {
+        wxLogError(_("Exception at ANALYSIS_SGF_WAIT: %s %s"), typeid(e).name(), e.what());
+        postIdle();
+        return;
+    }
+    wxMenuItem * prob = m_menuTools->FindItem(ID_MOVE_PROBABILITIES);
+    wxMenuItem * bm = m_menuTools->FindItem(ID_BEST_MOVES);
+    prob->Enable(true);
+    bm->Enable(true);
+    m_panelBoard->setShowProbabilities(!m_panelBoard->getShowProbabilities());
+    wxConfig::Get()->Write("showProbabilitiesEnabled", true);
+    prob->Check(true);
+    gameNoLongerCounts();
+    if (m_panelBoard->getShowBestMoves()) {
+        wxConfig::Get()->Write("showBestMovesEnabled", false);
+        m_panelBoard->setShowBestMoves(false);
+        bm->Check(false);
+    }
+    m_panelBoard->Refresh();
+    m_post_show_prob = false;
     postIdle();
 }
 
@@ -4462,6 +4681,10 @@ void MainFrame::doRecieveKataGo(wxCommandEvent & event) {
         doAnalysisSGFWait(kataRes);
     } else if (m_katagoStatus == ANALYSIS_UNDO_WAIT) {
         doAnalysisUndoWait(kataRes);
+    } else if (m_katagoStatus == KATA_RAW_WAIT) {
+        doKataRawWait(kataRes);
+    } else if (m_katagoStatus == GET_POLICY_WAIT) {
+        doGetPolicyWait(kataRes);
     }
 }
 
@@ -4538,57 +4761,63 @@ void MainFrame::kataRawParse(const wxString& msg, const bool& win_score_read) {
 void MainFrame::make_owner_policy(std::unique_ptr<GameState>& state,
                                   nlohmann::json& res_json,
                                   float winrate,
-                                  float score) {
+                                  float score,
+                                  bool make_policy,
+                                  bool make_ownership) {
     int board_size = state->board.get_boardsize();
     // Edit Ownership Information
-    std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
-    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-        int x = vertex % board_size;
-        int y = vertex / board_size;
-        y = -1 * (y - board_size) - 1;
-        int pos_owner = state->board.get_vertex(x, y);
-        float owner = res_json["ownership"][vertex].get<float>();
-        conv_owner[pos_owner] = (owner / 2.0f) + 0.5f;
-    }
-    state->m_owner.clear();
-    for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-        state->m_owner.emplace_back(*itr);
-    }
-    std::bitset<FastBoard::MAXSQ> blackowns;
-    for (int i = 0; i < board_size; i++) {
-        for (int j = 0; j < board_size; j++) {
-            int vtx = state->board.get_vertex(i, j);
-            if (state->m_owner[vtx] >= 0.5f) {
-                blackowns[vtx] = true;
+    if (make_ownership) {
+        std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+        for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+            int x = vertex % board_size;
+            int y = vertex / board_size;
+            y = -1 * (y - board_size) - 1;
+            int pos_owner = state->board.get_vertex(x, y);
+            float owner = res_json["ownership"][vertex].get<float>();
+            conv_owner[pos_owner] = (owner / 2.0f) + 0.5f;
+        }
+        state->m_owner.clear();
+        for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+            state->m_owner.emplace_back(*itr);
+        }
+        std::bitset<FastBoard::MAXSQ> blackowns;
+        for (int i = 0; i < board_size; i++) {
+            for (int j = 0; j < board_size; j++) {
+                int vtx = state->board.get_vertex(i, j);
+                if (state->m_owner[vtx] >= 0.5f) {
+                    blackowns[vtx] = true;
+                }
             }
         }
+        MCOwnerTable::get_MCO()->update_owns(blackowns,
+                                             (1.0f - winrate >= 0.5f),
+                                             -1.0f * score);
     }
-    MCOwnerTable::get_MCO()->update_owns(blackowns,
-                                         (1.0f - winrate >= 0.5f),
-                                         -1.0f * score);
     // Edit Policy Information
-    std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
-    float maxProbability = 0.0f;
-    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-        int x = vertex % board_size;
-        int y = vertex / board_size;
-        y = -1 * (y - board_size) - 1;
-        int pos_policy = state->board.get_vertex(x, y);
-        float policy = res_json["policy"][vertex].get<float>();
-        conv_policy[pos_policy] = policy;
+    if (make_policy) {
+        std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
+        float maxProbability = 0.0f;
+        for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+            int x = vertex % board_size;
+            int y = vertex / board_size;
+            y = -1 * (y - board_size) - 1;
+            int pos_policy = state->board.get_vertex(x, y);
+            float policy = res_json["policy"][vertex].get<float>();
+            conv_policy[pos_policy] = policy;
+            if (policy > maxProbability) {
+                maxProbability = policy;
+            }
+        }
+        float policy = res_json["policy"][board_size * board_size].get<float>();
         if (policy > maxProbability) {
             maxProbability = policy;
         }
-    }
-    float policy = res_json["policy"][board_size * board_size].get<float>();
-    if (policy > maxProbability) {
-        maxProbability = policy;
-    }
-    conv_policy[0] = maxProbability;
-    conv_policy[1] = policy;
-    state->m_policy.clear();
-    for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-        state->m_policy.emplace_back(*itr);
+        conv_policy[0] = maxProbability;
+        conv_policy[1] = policy;
+        state->m_policy.clear();
+        for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+            state->m_policy.emplace_back(*itr);
+        }
     }
 }
 
@@ -4597,53 +4826,59 @@ void MainFrame::make_owner_policy(std::unique_ptr<GameState>& state,
                                   std::vector<float> policy,
                                   float policy_pass,
                                   float winrate,
-                                  float score) {
+                                  float score,
+                                  bool make_policy,
+                                  bool make_ownership) {
     int board_size = state->board.get_boardsize();
     // Edit Ownership Information
-    std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
-    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-        int x = vertex % board_size;
-        int y = vertex / board_size;
-        y = -1 * (y - board_size) - 1;
-        int pos_owner = state->board.get_vertex(x, y);
-        conv_owner[pos_owner] = -1 * (ownership[vertex] / 2) + 0.5f;
-    }
-    state->m_owner.clear();
-    for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
-        state->m_owner.emplace_back(*itr);
-    }
-    std::bitset<FastBoard::MAXSQ> blackowns;
-    for (int i = 0; i < board_size; i++) {
-        for (int j = 0; j < board_size; j++) {
-            int vtx = state->board.get_vertex(i, j);
-            if (state->m_owner[vtx] >= 0.5f) {
-                blackowns[vtx] = true;
+    if (make_ownership) {
+        std::vector<float> conv_owner((board_size + 2) * (board_size + 2), 0.0f);
+        for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+            int x = vertex % board_size;
+            int y = vertex / board_size;
+            y = -1 * (y - board_size) - 1;
+            int pos_owner = state->board.get_vertex(x, y);
+            conv_owner[pos_owner] = -1 * (ownership[vertex] / 2) + 0.5f;
+        }
+        state->m_owner.clear();
+        for (auto itr = conv_owner.begin(); itr != conv_owner.end(); ++itr) {
+            state->m_owner.emplace_back(*itr);
+        }
+        std::bitset<FastBoard::MAXSQ> blackowns;
+        for (int i = 0; i < board_size; i++) {
+            for (int j = 0; j < board_size; j++) {
+                int vtx = state->board.get_vertex(i, j);
+                if (state->m_owner[vtx] >= 0.5f) {
+                    blackowns[vtx] = true;
+                }
             }
         }
+        MCOwnerTable::get_MCO()->update_owns(blackowns, winrate >= 0.5f, score);
     }
-    MCOwnerTable::get_MCO()->update_owns(blackowns, winrate >= 0.5f, score);
     // Edit Policy Information
-    std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
-    float maxProbability = 0.0f;
-    for (int vertex = 0; vertex < board_size * board_size; vertex++) {
-        int x = vertex % board_size;
-        int y = vertex / board_size;
-        y = -1 * (y - board_size) - 1;
-        int pos_policy = state->board.get_vertex(x, y);
-        float policy_ent = policy[vertex];
-        conv_policy[pos_policy] = policy_ent;
-        if (policy_ent > maxProbability) {
-            maxProbability = policy_ent;
+    if (make_policy) {
+        std::vector<float> conv_policy((board_size + 2) * (board_size + 2), 0.0f);
+        float maxProbability = 0.0f;
+        for (int vertex = 0; vertex < board_size * board_size; vertex++) {
+            int x = vertex % board_size;
+            int y = vertex / board_size;
+            y = -1 * (y - board_size) - 1;
+            int pos_policy = state->board.get_vertex(x, y);
+            float policy_ent = policy[vertex];
+            conv_policy[pos_policy] = policy_ent;
+            if (policy_ent > maxProbability) {
+                maxProbability = policy_ent;
+            }
         }
-    }
-    if (policy_pass > maxProbability) {
-        maxProbability = policy_pass;
-    }
-    conv_policy[0] = maxProbability;
-    conv_policy[1] = policy_pass;
-    state->m_policy.clear();
-    for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
-        state->m_policy.emplace_back(*itr);
+        if (policy_pass > maxProbability) {
+            maxProbability = policy_pass;
+        }
+        conv_policy[0] = maxProbability;
+        conv_policy[1] = policy_pass;
+        state->m_policy.clear();
+        for (auto itr = conv_policy.begin(); itr != conv_policy.end(); ++itr) {
+            state->m_policy.emplace_back(*itr);
+        }
     }
 }
 
@@ -4799,6 +5034,18 @@ void MainFrame::postIdle() {
         doAnalyze(evt);
         if (m_katagoStatus != KATAGO_IDLE) {
             return;
+        }
+    }
+    if (m_post_show_prob) {
+        if (cfg_engine_type == GTP::ANALYSIS) {
+            getAnalysisPolicyAndOwner(true, false);
+            m_katagoStatus = GET_POLICY_WAIT;
+        } else {
+            m_StateEngine = std::make_unique<GameState>(m_State);
+            m_policy.clear();
+            m_gtp_send_cmd = "kata-raw-nn 0\n";
+            m_out->Write(m_gtp_send_cmd, strlen(m_gtp_send_cmd));
+            m_katagoStatus = KATA_RAW_WAIT;
         }
     }
 }
