@@ -1,6 +1,6 @@
 ﻿!define LEELABIN  "LeelaI18N.exe"
 !define LEELAOCL  "LeelaI18N_OpenCL.exe"
-!define VERSION   "2.0.7"
+!define VERSION   "2.0.8"
 
 !if "${NSIS_PACKEDVERSION}" >= 0x3000000
 Unicode true
@@ -337,6 +337,11 @@ Section "LeelaI18N" leela
   File "bin\katago_avx2.exe"
   File "bin\katago_TRT.exe"
   File "bin\katago_common.cfg"
+  File "bin\mimalloc-override.dll"
+  File "bin\mimalloc-redirect.dll"
+  File "bin\msvcp140.dll"
+  File "bin\vcruntime140.dll"
+  File "bin\vcruntime140_1.dll"
   File "bin\kata1-b40c256-s11840935168-d2898845681.bin.gz"
   File "bin\g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
   File "bin\b18c384nbt-uec.bin.gz"
