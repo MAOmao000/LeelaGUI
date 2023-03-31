@@ -5143,8 +5143,5 @@ void MainFrame::setStartMenus(bool enable) {
         GetEventHandler()->QueueEvent(event);
     }
     wxPersistentRegisterAndRestore(this, "MainFrame");
-    if (cfg_use_engine == GTP::KATAGO_ENGINE) {
-        cfg_num_threads = std::max(1, cfg_num_threads / 2);
-    }
     thread_pool.initialize(cfg_num_threads);
 }
